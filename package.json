@@ -19,7 +19,9 @@
     "test": "jest"
   },
   "jest": {
-    "testMatch": ["**/__tests__/**/*.test.js"],
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ],
     "transform": {
       "^.+\\.js$": "babel-jest"
     }
@@ -28,7 +30,9 @@
   "devDependencies": {
     "@babel/core": "^8.0.9",
     "@babel/preset-env": "^8.0.7",
+    "@types/react": "~19.3.0",
     "babel-jest": "^30.5.2",
-    "jest": "^30.5.2"
+    "jest": "^30.5.2",
+    "typescript": "~6.0.3"
   }
 }
