@@ -19,11 +19,21 @@ function HeatmapDayCell({
   esVacio = false,
   onPress,
   tamanoGrande = false,
+  tamanoCelda = 34,
 }) {
+  // Dimensión dinámica en modo grande para adaptarse al ancho de pantalla
+  const estiloDimension = tamanoGrande
+    ? { width: tamanoCelda, height: tamanoCelda }
+    : null;
+
   if (esVacio) {
     return (
       <View
-        style={[styles.celdaVacia, tamanoGrande && styles.celdaVaciaGrande]}
+        style={[
+          styles.celdaVacia,
+          tamanoGrande && styles.celdaVaciaGrande,
+          estiloDimension,
+        ]}
       />
     );
   }
@@ -51,6 +61,7 @@ function HeatmapDayCell({
       style={[
         styles.celda,
         tamanoGrande && styles.celdaGrande,
+        estiloDimension,
         {
           backgroundColor: estiloNivel.fondo,
           borderColor: isToday ? '#FFFFFF' : estiloNivel.borde,

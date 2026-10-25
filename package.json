@@ -23,7 +23,23 @@
       "**/__tests__/**/*.test.js"
     ],
     "transform": {
-      "^.+\\.js$": "babel-jest"
+      "^.+\\.js$": [
+        "babel-jest",
+        {
+          "configFile": false,
+          "babelrc": false,
+          "presets": [
+            [
+              "@babel/preset-env",
+              {
+                "targets": {
+                  "node": "current"
+                }
+              }
+            ]
+          ]
+        }
+      ]
     }
   },
   "private": true,

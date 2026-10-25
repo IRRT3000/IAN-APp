@@ -30,8 +30,23 @@ export default function App() {
   const [enLiveMode, setEnLiveMode] = useState(false);
   const [anioHeatmap, setAnioHeatmap] = useState(new Date().getFullYear());
   const [resumenAnual, setResumenAnual] = useState({});
+  // Resumen fijo del año en curso para el widget mensual de Inicio,
+  // independiente del año que se esté explorando en la pestaña Heatmap.
+  const [resumenAnioActual, setResumenAnioActual] = useState({});
 
   const fechaHoy = obtenerFechaLocal();
+  const anioActual = Number(fechaHoy.slice(0, 4));
+
+  const refrescarResumenes = useCallback(async () => {
+    const [delAnioActual, delAnioSeleccionado] = await Promise.all([
+      obtenerResumenAnualHabitos(anioActual),
+      anioHeatmap === anioActual
+        ? Promise.resolve(null)
+        : obtenerResumenAnualHabitos(anioHeatmap),
+    ]);
+    setResumenAnioActual(delAnioActual);
+    setResumenAnual(delAnioSeleccionado || delAnioActual);
+  }, [anioHeatmap, anioActual]);
 
   const sincronizarDatos = useCallback(async () => {
     const [
@@ -40,22 +55,20 @@ export default function App() {
       comidasGuardadas,
       cambiosGuardados,
       perfilCargado,
-      resumenHabitos,
     ] = await Promise.all([
       cargarEntrenamientos(),
       obtenerDiasConActividad(),
       cargarComidas(),
       cargarCambiosFisicos(),
       cargarPerfilUsuario(),
-      obtenerResumenAnualHabitos(anioHeatmap),
+      refrescarResumenes(),
     ]);
     setEntrenamientos(listaGuardada);
     setDiasConActividad(diasActivos);
     setComidas(comidasGuardadas);
     setCambiosFisicos(cambiosGuardados);
     setPerfilUsuario(perfilCargado);
-    setResumenAnual(resumenHabitos);
-  }, [anioHeatmap]);
+  }, [refrescarResumenes]);
 
   useEffect(() => {
     sincronizarDatos();
@@ -99,42 +112,39 @@ export default function App() {
   const manejarEntrenamientosActualizados = useCallback(
     async (nuevaLista) => {
       setEntrenamientos(nuevaLista);
-      const [diasActualizados, nuevoResumen] = await Promise.all([
+      const [diasActualizados] = await Promise.all([
         obtenerDiasConActividad(),
-        obtenerResumenAnualHabitos(anioHeatmap),
+        refrescarResumenes(),
       ]);
       setDiasConActividad(diasActualizados);
-      setResumenAnual(nuevoResumen);
     },
-    [anioHeatmap]
+    [refrescarResumenes]
   );
 
   // Reactividad inmediata: al registrar o borrar comida, recalcula los días activos y el resumen del heatmap (RF-1)
   const manejarCambioComidas = useCallback(
     async (nuevaListaComidas) => {
       setComidas(nuevaListaComidas);
-      const [diasActualizados, nuevoResumen] = await Promise.all([
+      const [diasActualizados] = await Promise.all([
         obtenerDiasConActividad(),
-        obtenerResumenAnualHabitos(anioHeatmap),
+        refrescarResumenes(),
       ]);
       setDiasConActividad(diasActualizados);
-      setResumenAnual(nuevoResumen);
     },
-    [anioHeatmap]
+    [refrescarResumenes]
   );
 
   // Reactividad inmediata: al registrar cambio físico, actualiza resumen anual
   const manejarCambioFisico = useCallback(
     async (nuevaListaCambios) => {
       setCambiosFisicos(nuevaListaCambios);
-      const [diasActualizados, nuevoResumen] = await Promise.all([
+      const [diasActualizados] = await Promise.all([
         obtenerDiasConActividad(),
-        obtenerResumenAnualHabitos(anioHeatmap),
+        refrescarResumenes(),
       ]);
       setDiasConActividad(diasActualizados);
-      setResumenAnual(nuevoResumen);
     },
-    [anioHeatmap]
+    [refrescarResumenes]
   );
 
   const renderizarVistaActiva = () => {
@@ -192,7 +202,7 @@ export default function App() {
         totalDiasActivos={diasConActividad.length}
         caloriasHoy={caloriasHoy}
         ultimoEjercicioHoy={entrenamientosDeHoy[0] || null}
-        resumenAnual={resumenAnual}
+        resumenAnual={resumenAnioActual}
         onAlternarDescanso={manejarAlternarDescanso}
         onIrAFitnessTracker={() => setVistaActiva('tracker')}
         onIrANutricion={() => setVistaActiva('nutricion')}

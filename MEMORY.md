@@ -13,7 +13,10 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 - Sistema Multi-Agente (`.agents/agents/`) y Servidores MCP (`context7`, `sequential-thinking`, `playwright`) operativos.
 
 ## Decisiones Técnicas (y su justificación)
-- Reactividad inmediata de hábitos (`App.js`): `manejarCambioComidas`, `manejarEntrenamientosActualizados` y `manejarCambioFisico` sincronizan concurrentemente `obtenerResumenAnualHabitos(anioHeatmap)` con `setResumenAnual`. El día actual se actualiza al instante sin requerir alternar descanso.
+- Flujo de trabajo (regla del usuario): Toda **nueva Spec** usa obligatoriamente el equipo multi-agente (`orquestador` → `planificador` → `revisor-critico` → `implementador`). Ajustes puntuales y bugfixes se hacen directo.
+- Sin `babel.config.js` en la raíz: Expo usa `babel-preset-expo` por defecto. Un `babel.config.js` con solo `@babel/preset-env` rompió el bundle (JSX no soportado). Jest configura su Babel inline en `package.json` (`configFile: false`). Verificar con `npx expo export --platform android`.
+- Dos resúmenes anuales (`App.js`): `resumenAnioActual` (widget mensual de Inicio, siempre año en curso) y `resumenAnual` (año explorado en Heatmap). `refrescarResumenes()` actualiza ambos tras cada cambio de comidas/entrenos/fotos/descanso.
+- Widget mensual responsivo (`MonthBlock.jsx`): tamaño de celda calculado con `useWindowDimensions` (máx. 34px) para que 7 columnas quepan en pantallas de 360dp.
 - 5ª Pestaña "Heatmap" y Widget Mensual (`HeatmapView.jsx`, `MenuBienvenida.jsx`): La vista anual completa reside en la 5ª pestaña para descongestionar el inicio; el inicio conserva el mes actual en un widget interactivo con celdas 34x34, día numerado y acceso directo a `DaySummaryModal`.
 - Motor Vaso de Agua y Días de Descanso (`waterGlassEngine.js`, `storage.js`): Puntuación 0.0 a 1.0 dividida en 50% nutrición y 50% entreno/descanso; días de descanso persisten en `@fitness_tracker_dias_descanso_v1` sin penalización; fotos físicas computan como insignia visual sin degradar el score.
 - Aritmética local y cuadrícula anual (`dateUtilsLocal.js`, `MonthBlock.jsx`, `HeatmapDayCell.jsx`): Celdas memoizadas con `React.memo`, alineación L-D con `(day + 6) % 7`, indexación $O(1)$ en `obtenerResumenAnualHabitos` y `ScrollView` ergonómico.

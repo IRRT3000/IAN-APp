@@ -1,5 +1,11 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+
+// Espacio horizontal ocupado fuera de la cuadrícula en el widget de Inicio:
+// padding de App (16*2) + padding de tarjeta (16*2) + padding del bloque (8*2) + bordes y margen de seguridad.
+const MARGEN_HORIZONTAL_WIDGET = 86;
+const MARGEN_CELDA_GRANDE = 7; // 3.5 por lado
+const ANCHO_MAX_CELDA_GRANDE = 41;
 import HeatmapDayCell from './HeatmapDayCell';
 import {
   DIAS_SEMANA_CORTO,
@@ -24,6 +30,17 @@ export default function MonthBlock({
   mostrarTitulo = true,
 }) {
   const nombreMes = NOMBRES_MESES[monthIndex] || `M${monthIndex + 1}`;
+  const { width: anchoPantalla } = useWindowDimensions();
+
+  // En modo grande, la celda se ajusta para que 7 columnas quepan en pantallas estrechas (p. ej. 360dp)
+  const anchoColumnaGrande = Math.min(
+    ANCHO_MAX_CELDA_GRANDE,
+    Math.floor((anchoPantalla - MARGEN_HORIZONTAL_WIDGET) / 7)
+  );
+  const tamanoCelda = anchoColumnaGrande - MARGEN_CELDA_GRANDE;
+  const estiloAnchoGrande = tamanoGrande
+    ? { width: 7 * anchoColumnaGrande }
+    : null;
 
   const celdas = useMemo(
     () => generarMatrizMes(year, monthIndex),
@@ -53,6 +70,7 @@ export default function MonthBlock({
         style={[
           styles.filaDiasSemana,
           tamanoGrande && styles.filaDiasSemanaGrande,
+          estiloAnchoGrande,
         ]}
       >
         {DIAS_SEMANA_CORTO.map((diaLetra, idx) => (
@@ -61,6 +79,7 @@ export default function MonthBlock({
             style={[
               styles.textoDiaSemana,
               tamanoGrande && styles.textoDiaSemanaGrande,
+              tamanoGrande && { width: tamanoCelda },
             ]}
           >
             {diaLetra}
@@ -73,6 +92,7 @@ export default function MonthBlock({
         style={[
           styles.cuadriculaMes,
           tamanoGrande && styles.cuadriculaMesGrande,
+          estiloAnchoGrande,
         ]}
       >
         {celdas.map((item, idx) => {
