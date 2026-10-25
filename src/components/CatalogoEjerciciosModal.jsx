@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   Modal,
-  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -11,16 +10,34 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import {
   CATALOGO_EJERCICIOS_BASE,
-  COLORES_GRUPOS,
   GRUPOS_MUSCULARES,
   GRUPOS_MUSCULARES_REGISTRO,
   IMPLEMENTOS,
   obtenerColorGrupo,
-  obtenerIconoImplemento,
 } from '../constants/catalogoEjercicios';
 import { guardarEjercicioPersonalizado } from '../services/storage';
+import { vibrarSeleccionBascula } from '../services/haptics';
+import { TOKENS } from '../theme/tokens';
+
+const obtenerIconoImplementoFeather = (implemento) => {
+  switch (implemento) {
+    case 'Barra':
+      return 'activity';
+    case 'Mancuerna':
+      return 'disc';
+    case 'Polea':
+      return 'sliders';
+    case 'Máquina':
+      return 'settings';
+    case 'Corporal':
+      return 'user';
+    default:
+      return 'zap';
+  }
+};
 
 export default function CatalogoEjerciciosModal({
   visible,
@@ -32,7 +49,6 @@ export default function CatalogoEjerciciosModal({
   const [busqueda, setBusqueda] = useState('');
   const [grupoFiltro, setGrupoFiltro] = useState('Todos');
 
-  // Estado del sub-modal de creación personalizada
   const [subModalVisible, setSubModalVisible] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState('');
   const [nuevoGrupo, setNuevoGrupo] = useState('Pecho');
@@ -50,13 +66,8 @@ export default function CatalogoEjerciciosModal({
       const coincideGrupo =
         grupoFiltro === 'Todos' || item.grupoMuscular === grupoFiltro;
 
-      if (!coincideGrupo) {
-        return false;
-      }
-
-      if (!texto) {
-        return true;
-      }
+      if (!coincideGrupo) return false;
+      if (!texto) return true;
 
       const nombreCoincide = item.nombre.toLowerCase().includes(texto);
       const implementoCoincide = (item.implemento || '')
@@ -103,52 +114,9 @@ export default function CatalogoEjerciciosModal({
     }
   };
 
-  const renderizarItem = ({ item }) => {
-    const colorGrupo = obtenerColorGrupo(item.grupoMuscular);
-    const icono = obtenerIconoImplemento(item.implemento);
-
-    return (
-      <TouchableOpacity
-        style={styles.tarjetaEjercicio}
-        activeOpacity={0.7}
-        onPress={() => onSeleccionarEjercicio(item)}
-      >
-        <View style={[styles.barraColor, { backgroundColor: colorGrupo }]} />
-        <View style={styles.contenidoTarjeta}>
-          <View style={styles.filaSuperiorTarjeta}>
-            <View
-              style={[
-                styles.badgeGrupo,
-                { borderColor: colorGrupo, backgroundColor: `${colorGrupo}22` },
-              ]}
-            >
-              <Text style={[styles.textoBadgeGrupo, { color: colorGrupo }]}>
-                {item.grupoMuscular}
-              </Text>
-            </View>
-
-            <View style={styles.badgeImplemento}>
-              <Text style={styles.iconoImplemento}>{icono}</Text>
-              <Text style={styles.textoBadgeImplemento}>
-                {item.implemento || 'Implemento'}
-              </Text>
-            </View>
-
-            {item.esPersonalizado ? (
-              <View style={styles.badgePersonalizado}>
-                <Text style={styles.textoBadgePersonalizado}>★ Propio</Text>
-              </View>
-            ) : null}
-          </View>
-
-          <Text style={styles.nombreEjercicio}>{item.nombre}</Text>
-        </View>
-
-        <View style={styles.flechaSeleccion}>
-          <Text style={styles.textoFlecha}>➔</Text>
-        </View>
-      </TouchableOpacity>
-    );
+  const seleccionarFiltro = (grupo) => {
+    vibrarSeleccionBascula();
+    setGrupoFiltro(grupo);
   };
 
   return (
@@ -158,126 +126,133 @@ export default function CatalogoEjerciciosModal({
       transparent={false}
       onRequestClose={onCerrar}
     >
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.contenedorModal}>
-          {/* Encabezado */}
-          <View style={styles.encabezado}>
-            <View>
-              <Text style={styles.tituloModal}>Catálogo de Ejercicios</Text>
-              <Text style={styles.subtituloModal}>
-                Selecciona o crea un ejercicio para tu sesión
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.botonCerrar}
-              activeOpacity={0.7}
-              onPress={onCerrar}
-            >
-              <Text style={styles.textoBotonCerrar}>✕</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Buscador */}
-          <View style={styles.contenedorBuscador}>
-            <Text style={styles.iconoBuscador}>🔍</Text>
-            <TextInput
-              style={styles.inputBuscador}
-              placeholder="Buscar ejercicio o implemento..."
-              placeholderTextColor="#757575"
-              value={busqueda}
-              onChangeText={setBusqueda}
-              autoCapitalize="none"
-              clearButtonMode="while-editing"
-            />
-            {busqueda.length > 0 ? (
-              <TouchableOpacity
-                onPress={() => setBusqueda('')}
-                style={styles.botonLimpiarBusqueda}
-              >
-                <Text style={styles.textoLimpiarBusqueda}>✕</Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
-
-          {/* Chips de filtro por grupo muscular */}
-          <View style={styles.contenedorFiltros}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.scrollFiltros}
-            >
-              {GRUPOS_MUSCULARES.map((grupo) => {
-                const activo = grupoFiltro === grupo;
-                const color =
-                  grupo === 'Todos'
-                    ? '#00E676'
-                    : COLORES_GRUPOS[grupo] || '#00E676';
-
-                return (
-                  <TouchableOpacity
-                    key={grupo}
-                    style={[
-                      styles.chipFiltro,
-                      activo && {
-                        backgroundColor: color,
-                        borderColor: color,
-                      },
-                    ]}
-                    activeOpacity={0.75}
-                    onPress={() => setGrupoFiltro(grupo)}
-                  >
-                    <Text
-                      style={[
-                        styles.textoChipFiltro,
-                        activo && styles.textoChipFiltroActivo,
-                      ]}
-                    >
-                      {grupo}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-
-          {/* Botón para crear personalizado */}
+      <SafeAreaView style={styles.contenedorSafeArea}>
+        <View style={styles.cabecera}>
           <TouchableOpacity
-            style={styles.botonCrearPersonalizado}
-            activeOpacity={0.85}
-            onPress={() => {
-              setErrorCreacion('');
-              setSubModalVisible(true);
-            }}
+            style={styles.botonCerrar}
+            onPress={onCerrar}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Text style={styles.iconoMas}>＋</Text>
-            <Text style={styles.textoCrearPersonalizado}>
-              Crear ejercicio personalizado
-            </Text>
+            <Feather name="x" size={20} color={TOKENS.colors.textPrimary} />
           </TouchableOpacity>
 
-          {/* Lista de ejercicios */}
-          <FlatList
-            data={listaFiltrada}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={renderizarItem}
-            contentContainerStyle={styles.listaContenido}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            ListEmptyComponent={
-              <View style={styles.estadoVacio}>
-                <Text style={styles.textoVacioTitulo}>
-                  No encontramos "{busqueda}"
-                </Text>
-                <Text style={styles.textoVacioSub}>
-                  Puedes pulsar en "Crear ejercicio personalizado" arriba para
-                  agregarlo ahora mismo.
-                </Text>
-              </View>
-            }
-          />
+          <Text style={styles.tituloModal}>Catálogo de Ejercicios</Text>
+
+          <TouchableOpacity
+            style={styles.botonCrearRapido}
+            onPress={() => setSubModalVisible(true)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Feather name="plus" size={20} color={TOKENS.colors.textPrimary} />
+          </TouchableOpacity>
         </View>
 
-        {/* Sub-Modal para crear ejercicio personalizado */}
+        <View style={styles.barraBusqueda}>
+          <Feather
+            name="search"
+            size={16}
+            color={TOKENS.colors.textSecondary}
+            style={{ marginRight: 8 }}
+          />
+          <TextInput
+            style={styles.inputBusqueda}
+            placeholder="Buscar por ejercicio o implemento..."
+            placeholderTextColor={TOKENS.colors.textMuted}
+            value={busqueda}
+            onChangeText={setBusqueda}
+            autoCorrect={false}
+          />
+          {busqueda.length > 0 ? (
+            <TouchableOpacity onPress={() => setBusqueda('')}>
+              <Feather name="x" size={16} color={TOKENS.colors.textMuted} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
+        <View style={styles.contenedorFiltros}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.scrollFiltros}
+          >
+            {GRUPOS_MUSCULARES.map((grupo) => {
+              const activo = grupoFiltro === grupo;
+              return (
+                <TouchableOpacity
+                  key={`filtro-${grupo}`}
+                  style={[
+                    styles.chipFiltro,
+                    activo && styles.chipFiltroActivo,
+                  ]}
+                  onPress={() => seleccionarFiltro(grupo)}
+                >
+                  <Text
+                    style={[
+                      styles.textoChipFiltro,
+                      activo && styles.textoChipFiltroActivo,
+                    ]}
+                  >
+                    {grupo}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        <FlatList
+          data={listaFiltrada}
+          keyExtractor={(item) => String(item.id)}
+          contentContainerStyle={styles.listaEjercicios}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => {
+            const iconoFeather = obtenerIconoImplementoFeather(item.implemento);
+            return (
+              <TouchableOpacity
+                style={styles.tarjetaEjercicio}
+                activeOpacity={0.7}
+                onPress={() => {
+                  vibrarSeleccionBascula();
+                  onSeleccionarEjercicio(item);
+                }}
+              >
+                <View style={styles.infoEjercicio}>
+                  <Text style={styles.nombreEjercicio}>{item.nombre}</Text>
+                  <View style={styles.filaSubinfo}>
+                    <Text style={styles.grupoMuscular}>
+                      {item.grupoMuscular}
+                    </Text>
+                    <View style={styles.puntoSeparador} />
+                    <Feather
+                      name={iconoFeather}
+                      size={10}
+                      color={TOKENS.colors.textSecondary}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text style={styles.implemento}>{item.implemento}</Text>
+                  </View>
+                </View>
+                <Feather
+                  name="chevron-right"
+                  size={16}
+                  color={TOKENS.colors.textMuted}
+                />
+              </TouchableOpacity>
+            );
+          }}
+          ListEmptyComponent={
+            <View style={styles.estadoVacio}>
+              <Feather
+                name="activity"
+                size={32}
+                color={TOKENS.colors.textMuted}
+                style={{ marginBottom: 12 }}
+              />
+              <Text style={styles.textoVacio}>No se encontraron ejercicios.</Text>
+            </View>
+          }
+        />
+
         <Modal
           visible={subModalVisible}
           animationType="fade"
@@ -285,98 +260,62 @@ export default function CatalogoEjerciciosModal({
           onRequestClose={() => setSubModalVisible(false)}
         >
           <View style={styles.overlaySubModal}>
-            <View style={styles.tarjetaSubModal}>
-              <Text style={styles.tituloSubModal}>Nuevo Ejercicio Propio</Text>
-              <Text style={styles.descripcionSubModal}>
-                Se guardará localmente en tu catálogo personal.
-              </Text>
-
-              <Text style={styles.etiquetaCampo}>Nombre del ejercicio *</Text>
-              <TextInput
-                style={styles.inputNombrePersonalizado}
-                placeholder="Ej. Press inclinado en máquina convergente"
-                placeholderTextColor="#757575"
-                value={nuevoNombre}
-                onChangeText={(val) => {
-                  setNuevoNombre(val);
-                  if (errorCreacion) setErrorCreacion('');
-                }}
-              />
-
-              <Text style={styles.etiquetaCampo}>Grupo muscular</Text>
-              <View style={styles.grillaOpciones}>
-                {GRUPOS_MUSCULARES_REGISTRO.map((g) => {
-                  const sel = nuevoGrupo === g;
-                  const color = COLORES_GRUPOS[g] || '#00E676';
-                  return (
-                    <TouchableOpacity
-                      key={g}
-                      style={[
-                        styles.opcionBoton,
-                        sel && { borderColor: color, backgroundColor: `${color}25` },
-                      ]}
-                      onPress={() => setNuevoGrupo(g)}
-                    >
-                      <Text
-                        style={[
-                          styles.textoOpcionBoton,
-                          sel && { color: color, fontWeight: '800' },
-                        ]}
-                      >
-                        {g}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
-              <Text style={styles.etiquetaCampo}>Implemento / Máquina</Text>
-              <View style={styles.grillaOpciones}>
-                {IMPLEMENTOS.map((imp) => {
-                  const sel = nuevoImplemento === imp;
-                  return (
-                    <TouchableOpacity
-                      key={imp}
-                      style={[
-                        styles.opcionBoton,
-                        sel && styles.opcionBotonSeleccionado,
-                      ]}
-                      onPress={() => setNuevoImplemento(imp)}
-                    >
-                      <Text
-                        style={[
-                          styles.textoOpcionBoton,
-                          sel && styles.textoOpcionBotonSeleccionado,
-                        ]}
-                      >
-                        {obtenerIconoImplemento(imp)} {imp}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+            <View style={styles.cajaSubModal}>
+              <View style={styles.cabeceraSubModal}>
+                <Text style={styles.tituloSubModal}>Nuevo Ejercicio</Text>
+                <TouchableOpacity onPress={() => setSubModalVisible(false)}>
+                  <Feather name="x" size={18} color={TOKENS.colors.textSecondary} />
+                </TouchableOpacity>
               </View>
 
               {errorCreacion ? (
-                <Text style={styles.textoErrorSubModal}>{errorCreacion}</Text>
+                <Text style={styles.errorSubModal}>{errorCreacion}</Text>
               ) : null}
 
-              <View style={styles.filaBotonesSubModal}>
-                <TouchableOpacity
-                  style={styles.botonCancelarSubModal}
-                  onPress={() => setSubModalVisible(false)}
-                >
-                  <Text style={styles.textoCancelarSubModal}>Cancelar</Text>
-                </TouchableOpacity>
+              <TextInput
+                style={styles.inputNombrePersonalizado}
+                placeholder="Nombre del ejercicio (ej. Hip Thrust)"
+                placeholderTextColor={TOKENS.colors.textMuted}
+                value={nuevoNombre}
+                onChangeText={setNuevoNombre}
+              />
 
-                <TouchableOpacity
-                  style={styles.botonGuardarSubModal}
-                  onPress={manejarCrearPersonalizado}
-                >
-                  <Text style={styles.textoGuardarSubModal}>
-                    Guardar y Usar
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.etiquetaCampo}>GRUPO MUSCULAR</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                {GRUPOS_MUSCULARES_REGISTRO.map((g) => (
+                  <TouchableOpacity
+                    key={`nuevo-g-${g}`}
+                    style={[styles.chipOpcion, nuevoGrupo === g && styles.chipOpcionActivo]}
+                    onPress={() => setNuevoGrupo(g)}
+                  >
+                    <Text style={[styles.textoChipOpcion, nuevoGrupo === g && styles.textoChipOpcionActivo]}>
+                      {g}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <Text style={styles.etiquetaCampo}>IMPLEMENTO</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+                {IMPLEMENTOS.map((imp) => (
+                  <TouchableOpacity
+                    key={`nuevo-imp-${imp}`}
+                    style={[styles.chipOpcion, nuevoImplemento === imp && styles.chipOpcionActivo]}
+                    onPress={() => setNuevoImplemento(imp)}
+                  >
+                    <Text style={[styles.textoChipOpcion, nuevoImplemento === imp && styles.textoChipOpcionActivo]}>
+                      {imp}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <TouchableOpacity
+                style={styles.botonConfirmarCreacion}
+                onPress={manejarCrearPersonalizado}
+              >
+                <Text style={styles.textoBotonConfirmar}>Crear y Seleccionar</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </Modal>
@@ -386,326 +325,212 @@ export default function CatalogoEjerciciosModal({
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  contenedorSafeArea: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: TOKENS.colors.canvas,
   },
-  contenedorModal: {
-    flex: 1,
-    backgroundColor: '#121212',
-    paddingTop: Platform.OS === 'android' ? 36 : 10,
-    paddingHorizontal: 16,
-  },
-  encabezado: {
+  cabecera: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  tituloModal: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '800',
-  },
-  subtituloModal: {
-    color: '#8D8D8D',
-    fontSize: 12,
-    marginTop: 2,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: TOKENS.colors.borderDefault,
+    backgroundColor: TOKENS.colors.surface,
   },
   botonCerrar: {
-    backgroundColor: '#2A2A2A',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#383838',
-  },
-  textoBotonCerrar: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  contenedorBuscador: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1E1E1E',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#2E2E2E',
-  },
-  iconoBuscador: {
-    fontSize: 14,
-    marginRight: 8,
-  },
-  inputBuscador: {
-    flex: 1,
-    color: '#FFFFFF',
-    fontSize: 15,
-    paddingVertical: 10,
-  },
-  botonLimpiarBusqueda: {
     padding: 6,
   },
-  textoLimpiarBusqueda: {
-    color: '#8D8D8D',
-    fontSize: 14,
+  tituloModal: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 17,
     fontWeight: '700',
+    letterSpacing: -0.3,
   },
-  contenedorFiltros: {
-    marginBottom: 10,
+  botonCrearRapido: {
+    padding: 6,
   },
-  scrollFiltros: {
-    paddingRight: 10,
-  },
-  chipFiltro: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#2E2E2E',
-  },
-  textoChipFiltro: {
-    color: '#B0B0B0',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  textoChipFiltroActivo: {
-    color: '#121212',
-    fontWeight: '800',
-  },
-  botonCrearPersonalizado: {
+  barraBusqueda: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1E2D24',
-    borderWidth: 1.5,
-    borderColor: '#00E676',
-    borderRadius: 12,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 8,
+    borderRadius: TOKENS.radii.sm,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+  },
+  inputBusqueda: {
+    flex: 1,
+    color: TOKENS.colors.textPrimary,
+    fontSize: 14,
     paddingVertical: 10,
-    marginBottom: 12,
   },
-  iconoMas: {
-    color: '#00E676',
-    fontSize: 16,
-    fontWeight: '900',
+  contenedorFiltros: {
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: TOKENS.colors.borderSubtle,
+  },
+  scrollFiltros: {
+    paddingHorizontal: 16,
+  },
+  chipFiltro: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     marginRight: 6,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
   },
-  textoCrearPersonalizado: {
-    color: '#00E676',
-    fontSize: 13,
+  chipFiltroActivo: {
+    backgroundColor: TOKENS.colors.accentWhite,
+    borderColor: TOKENS.colors.accentWhite,
+  },
+  textoChipFiltro: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  textoChipFiltroActivo: {
+    color: TOKENS.colors.textInverse,
     fontWeight: '800',
   },
-  listaContenido: {
-    paddingBottom: 24,
+  listaEjercicios: {
+    padding: 16,
+    paddingBottom: 40,
   },
   tarjetaEjercicio: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E1E1E',
-    borderRadius: 12,
+    justifyContent: 'space-between',
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.sm,
+    padding: 14,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#2E2E2E',
-    overflow: 'hidden',
+    borderColor: TOKENS.colors.borderDefault,
   },
-  barraColor: {
-    width: 6,
-    alignSelf: 'stretch',
-  },
-  contenidoTarjeta: {
+  infoEjercicio: {
     flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  filaSuperiorTarjeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  badgeGrupo: {
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    marginRight: 6,
-  },
-  textoBadgeGrupo: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  badgeImplemento: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2A2A2A',
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    marginRight: 6,
-  },
-  iconoImplemento: {
-    fontSize: 10,
-    marginRight: 3,
-  },
-  textoBadgeImplemento: {
-    color: '#B0B0B0',
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  badgePersonalizado: {
-    backgroundColor: '#FFAB0033',
-    borderRadius: 6,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderWidth: 1,
-    borderColor: '#FFAB00',
-  },
-  textoBadgePersonalizado: {
-    color: '#FFAB00',
-    fontSize: 9,
-    fontWeight: '800',
+    marginRight: 12,
   },
   nombreEjercicio: {
-    color: '#FFFFFF',
+    color: TOKENS.colors.textPrimary,
     fontSize: 15,
     fontWeight: '700',
-    marginTop: 2,
+    marginBottom: 4,
   },
-  flechaSeleccion: {
-    paddingRight: 14,
+  filaSubinfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  textoFlecha: {
-    color: '#757575',
-    fontSize: 16,
+  grupoMuscular: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  puntoSeparador: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: TOKENS.colors.textMuted,
+    marginHorizontal: 6,
+  },
+  implemento: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 11,
   },
   estadoVacio: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 14,
-    padding: 24,
     alignItems: 'center',
-    marginTop: 20,
-    borderWidth: 1,
-    borderColor: '#2E2E2E',
+    justifyContent: 'center',
+    paddingVertical: 48,
   },
-  textoVacioTitulo: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-    marginBottom: 6,
+  textoVacio: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 14,
   },
-  textoVacioSub: {
-    color: '#8D8D8D',
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-
-  // Sub-modal
   overlaySubModal: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.75)',
     justifyContent: 'center',
-    padding: 16,
+    padding: 20,
   },
-  tarjetaSubModal: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 16,
+  cajaSubModal: {
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#383838',
+    borderColor: TOKENS.colors.borderStrong,
+  },
+  cabeceraSubModal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
   },
   tituloSubModal: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '800',
+    color: TOKENS.colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '700',
   },
-  descripcionSubModal: {
-    color: '#8D8D8D',
+  errorSubModal: {
+    color: TOKENS.colors.danger,
     fontSize: 12,
-    marginTop: 2,
+    marginBottom: 10,
+  },
+  inputNombrePersonalizado: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.sm,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    color: TOKENS.colors.textPrimary,
+    fontSize: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     marginBottom: 14,
   },
   etiquetaCampo: {
-    color: '#B0B0B0',
-    fontSize: 12,
+    color: TOKENS.colors.textMuted,
+    fontSize: 10,
     fontWeight: '700',
+    letterSpacing: 0.6,
     marginBottom: 6,
   },
-  inputNombrePersonalizado: {
-    backgroundColor: '#2A2A2A',
-    color: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#383838',
-  },
-  grillaOpciones: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-  opcionBoton: {
-    backgroundColor: '#2A2A2A',
-    borderRadius: 8,
+  chipOpcion: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.sm,
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginRight: 6,
-    marginBottom: 6,
     borderWidth: 1,
-    borderColor: '#383838',
+    borderColor: TOKENS.colors.borderDefault,
   },
-  opcionBotonSeleccionado: {
-    backgroundColor: '#223026',
-    borderColor: '#00E676',
+  chipOpcionActivo: {
+    backgroundColor: TOKENS.colors.accentWhite,
+    borderColor: TOKENS.colors.accentWhite,
   },
-  textoOpcionBoton: {
-    color: '#B0B0B0',
+  textoChipOpcion: {
+    color: TOKENS.colors.textSecondary,
     fontSize: 11,
     fontWeight: '600',
   },
-  textoOpcionBotonSeleccionado: {
-    color: '#00E676',
+  textoChipOpcionActivo: {
+    color: TOKENS.colors.textInverse,
     fontWeight: '800',
   },
-  textoErrorSubModal: {
-    color: '#FF5252',
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 10,
+  botonConfirmarCreacion: {
+    backgroundColor: TOKENS.colors.accentWhite,
+    borderRadius: TOKENS.radii.sm,
+    paddingVertical: 12,
+    alignItems: 'center',
   },
-  filaBotonesSubModal: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 6,
-  },
-  botonCancelarSubModal: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginRight: 8,
-  },
-  textoCancelarSubModal: {
-    color: '#B0B0B0',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  botonGuardarSubModal: {
-    backgroundColor: '#00E676',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  textoGuardarSubModal: {
-    color: '#121212',
-    fontSize: 13,
+  textoBotonConfirmar: {
+    color: TOKENS.colors.textInverse,
+    fontSize: 14,
     fontWeight: '800',
   },
 });

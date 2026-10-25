@@ -9,7 +9,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
+import { Feather } from '@expo/vector-icons';
 import { analizarComidaConGemini } from '../services/gemini';
 import {
   cargarComidas,
@@ -20,10 +26,62 @@ import {
 import {
   vibrarConfirmacionBorrado,
   vibrarInicioPresionBorrado,
+  vibrarSeleccionBascula,
 } from '../services/haptics';
+import { TOKENS } from '../theme/tokens';
 
 const TIPOS_COMIDA = ['Desayuno', 'Comida', 'Cena', 'Snack'];
 const DURACION_PULSACION_BORRADO_MS = 1000;
+
+function CapsulaBorradoSeguroNutricion({ onBorrar, onAvisoCorto }) {
+  const progreso = useSharedValue(0);
+  const timerRef = useRef(null);
+  const presionadoLargoRef = useRef(false);
+
+  const handlePressIn = () => {
+    presionadoLargoRef.current = false;
+    vibrarInicioPresionBorrado();
+    progreso.value = withTiming(1, { duration: DURACION_PULSACION_BORRADO_MS });
+    timerRef.current = setTimeout(() => {
+      presionadoLargoRef.current = true;
+      vibrarConfirmacionBorrado();
+      onBorrar();
+      progreso.value = withTiming(0, { duration: 150 });
+    }, DURACION_PULSACION_BORRADO_MS);
+  };
+
+  const handlePressOut = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    if (!presionadoLargoRef.current) {
+      progreso.value = withTiming(0, { duration: 180 });
+      if (typeof onAvisoCorto === 'function') {
+        onAvisoCorto();
+      }
+    }
+  };
+
+  const estiloFill = useAnimatedStyle(() => ({
+    width: `${progreso.value * 100}%`,
+  }));
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={styles.capsulaBorradoContenedor}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+    >
+      <Animated.View style={[styles.capsulaBorradoFill, estiloFill]} />
+      <View style={styles.capsulaBorradoContenido}>
+        <Feather name="trash-2" size={12} color={TOKENS.colors.danger} />
+        <Text style={styles.capsulaBorradoTexto}>1s</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 export default function NutricionView({
   comidasExternas,
@@ -99,28 +157,26 @@ export default function NutricionView({
   const ejecutarBorradoComida = async (idComida) => {
     try {
       const listaActualizada = await eliminarComida(idComida);
-      setComidasInternas(listaActualizada);
       setAvisoBorradoId(null);
-
       if (typeof onComidaRegistrada === 'function') {
-        await onComidaRegistrada(listaActualizada);
+        onComidaRegistrada(listaActualizada);
+      } else {
+        setComidasInternas(listaActualizada);
       }
     } catch (error) {
-      const mensaje =
-        error?.message || 'No se pudo eliminar la comida seleccionada.';
-      setMensajeError(mensaje);
-      Alert.alert('Error al eliminar', mensaje, [
-        { text: 'Entendido', style: 'cancel' },
-      ]);
+      Alert.alert(
+        'Error al eliminar',
+        error?.message || 'No se pudo eliminar la comida.',
+        [{ text: 'Entendido', style: 'cancel' }]
+      );
     }
   };
 
   const solicitarConfirmacionBorrado = (item) => {
     setAvisoBorradoId(null);
-    vibrarConfirmacionBorrado();
     Alert.alert(
-      '⚠️ Eliminar comida registrada',
-      `¿Estás seguro de eliminar "${item.nombre}" (${item.calorias} kcal)?\n\nEsta acción borrará el registro definitivamente y actualizará tus macros del día.`,
+      'Eliminar registro de comida',
+      `¿Deseas eliminar "${item.descripcion || item.tipo}"?\n\nEsta acción borrará el registro de calorías y macros de tu historial.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -132,234 +188,142 @@ export default function NutricionView({
     );
   };
 
-  const procesarResultadoImagen = async (resultadoPicker) => {
-    if (resultadoPicker.canceled || !resultadoPicker.assets?.length) {
-      return;
-    }
+  const solicitarPermisoCamara = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    return status === 'granted';
+  };
 
-    const asset = resultadoPicker.assets[0];
-    if (!asset?.base64) {
-      setMensajeError('No se pudo obtener la imagen en formato Base64.');
-      return;
-    }
-
-    setMensajeError('');
-    setAnalizando(true);
-
+  const procesarFotoSeleccionada = async (uri, base64) => {
     try {
-      const analisis = await analizarComidaConGemini(
-        asset.base64,
-        tipoSeleccionado,
-        {
-          onProgreso: ({ modelo, indice, total, falloAnterior }) => {
-            setTextoProgreso(
-              falloAnterior
-                ? `${falloAnterior.modelo} falló (${falloAnterior.status}). Probando ${modelo} (${indice}/${total})...`
-                : `Consultando ${modelo} (${indice}/${total})...`
-            );
-          },
-        }
-      );
+      setAnalizando(true);
+      setMensajeError('');
+      setTextoProgreso('Analizando nutrientes con Gemini Vision...');
 
-      const registroNuevo = {
-        fecha: obtenerFechaLocal(),
+      const resultado = await analizarComidaConGemini(base64);
+
+      setTextoProgreso('Guardando comida...');
+      const nuevaComida = {
         tipo: tipoSeleccionado,
-        nombre: analisis.nombre,
-        calorias: analisis.calorias,
-        proteinas: analisis.proteinas,
-        carbohidratos: analisis.carbohidratos,
-        grasas: analisis.grasas,
-        uriFoto: asset.uri || '',
+        descripcion: resultado.descripcion,
+        calorias: resultado.calorias,
+        proteinas: resultado.macros.proteinas,
+        carbohidratos: resultado.macros.carbohidratos,
+        grasas: resultado.macros.grasas,
+        detalles: resultado.detalles,
+        fotoUri: uri,
       };
 
-      const listaActualizada = await guardarComida(registroNuevo);
-      setComidasInternas(listaActualizada);
+      const listaActualizada = await guardarComida(nuevaComida);
 
       if (typeof onComidaRegistrada === 'function') {
-        await onComidaRegistrada(listaActualizada);
+        onComidaRegistrada(listaActualizada);
+      } else {
+        setComidasInternas(listaActualizada);
       }
     } catch (error) {
-      console.warn('Error al analizar o guardar la comida:', error?.message);
-      const mensaje =
-        error?.message ||
-        'No se pudo analizar la foto con Gemini. Verifica tu clave de API.';
-      setMensajeError(mensaje);
-      Alert.alert('No se pudo analizar la comida', mensaje, [
-        { text: 'Entendido', style: 'cancel' },
-      ]);
+      setMensajeError(
+        error.message || 'No se pudo analizar la foto. Intenta de nuevo.'
+      );
     } finally {
       setAnalizando(false);
       setTextoProgreso('');
     }
   };
 
-  const abrirCamara = async () => {
-    try {
-      setMensajeError('');
-      const permiso = await ImagePicker.requestCameraPermissionsAsync();
-      if (!permiso.granted) {
-        setMensajeError('Se requiere permiso para acceder a la cámara.');
-        return;
-      }
+  const tomarFoto = async () => {
+    const tienePermiso = await solicitarPermisoCamara();
+    if (!tienePermiso) {
+      Alert.alert(
+        'Permiso denegado',
+        'Se necesita acceso a la cámara para capturar tus platos.'
+      );
+      return;
+    }
 
-      const resultado = await ImagePicker.launchCameraAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        quality: 1,
-        base64: true,
-      });
+    const resultado = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+      base64: true,
+    });
 
-      await procesarResultadoImagen(resultado);
-    } catch (error) {
-      console.error('Error al abrir cámara:', error);
-      setMensajeError('No fue posible abrir la cámara del dispositivo.');
+    if (!resultado.canceled && resultado.assets?.[0]) {
+      const asset = resultado.assets[0];
+      await procesarFotoSeleccionada(asset.uri, asset.base64);
     }
   };
 
-  const abrirGaleria = async () => {
-    try {
-      setMensajeError('');
-      const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permiso.granted) {
-        setMensajeError('Se requiere permiso para acceder a la galería.');
-        return;
-      }
+  const seleccionarDeGaleria = async () => {
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+      base64: true,
+    });
 
-      const resultado = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        quality: 1,
-        base64: true,
-      });
-
-      await procesarResultadoImagen(resultado);
-    } catch (error) {
-      console.error('Error al abrir galería:', error);
-      setMensajeError('No fue posible abrir la galería de imágenes.');
+    if (!resultado.canceled && resultado.assets?.[0]) {
+      const asset = resultado.assets[0];
+      await procesarFotoSeleccionada(asset.uri, asset.base64);
     }
-  };
-
-  const renderizarComida = ({ item }) => {
-    const mostrandoAviso = avisoBorradoId === item.id;
-
-    return (
-      <View style={styles.tarjetaComida}>
-        <View style={styles.filaSuperiorComida}>
-          {item.uriFoto ? (
-            <Image source={{ uri: item.uriFoto }} style={styles.miniaturaFoto} />
-          ) : (
-            <View style={[styles.miniaturaFoto, styles.miniaturaPlaceholder]}>
-              <Text style={styles.textoPlaceholder}>🍽</Text>
-            </View>
-          )}
-
-          <View style={styles.infoComida}>
-            <View style={styles.filaTipoCalorias}>
-              <View style={styles.insigniaTipo}>
-                <Text style={styles.textoInsigniaTipo}>{item.tipo}</Text>
-              </View>
-              <Text style={styles.caloriasItem}>{item.calorias} kcal</Text>
-            </View>
-            <Text style={styles.nombrePlatillo} numberOfLines={2}>
-              {item.nombre}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.filaMacrosItem}>
-          <View style={styles.chipMacro}>
-            <Text style={styles.etiquetaChipMacro}>PROT</Text>
-            <Text style={styles.valorChipMacro}>{item.proteinas}g</Text>
-          </View>
-          <View style={styles.chipMacro}>
-            <Text style={styles.etiquetaChipMacro}>CARBS</Text>
-            <Text style={styles.valorChipMacro}>{item.carbohidratos}g</Text>
-          </View>
-          <View style={styles.chipMacro}>
-            <Text style={styles.etiquetaChipMacro}>GRASAS</Text>
-            <Text style={styles.valorChipMacro}>{item.grasas}g</Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.botonEliminar}
-            activeOpacity={0.7}
-            delayLongPress={DURACION_PULSACION_BORRADO_MS}
-            onPressIn={vibrarInicioPresionBorrado}
-            onPress={() => mostrarAvisoToqueCorto(item.id)}
-            onLongPress={() => solicitarConfirmacionBorrado(item)}
-          >
-            <Text style={styles.iconoEliminar}>🗑</Text>
-            <Text style={styles.textoBotonEliminar}>1s</Text>
-          </TouchableOpacity>
-        </View>
-
-        {mostrandoAviso ? (
-          <View style={styles.bannerAvisoBorrado}>
-            <Text style={styles.textoAvisoBorrado}>
-              ⚠️ Mantén presionado 1 segundo para eliminar esta comida
-            </Text>
-          </View>
-        ) : null}
-      </View>
-    );
   };
 
   return (
     <View style={styles.contenedor}>
       <View style={styles.encabezado}>
-        <Text style={styles.tituloVista}>Ojo Nutricional IA</Text>
-        <Text style={styles.subtituloFecha}>Hoy: {fechaHoy}</Text>
+        <Text style={styles.titulo}>Nutrición Editorial</Text>
+        <Text style={styles.subtitulo}>
+          Ojo Nutricional Multimodal con Gemini · Fecha: {fechaHoy}
+        </Text>
       </View>
 
-      <View style={styles.tarjetaResumenTotales}>
-        <View style={styles.bloqueCalorias}>
-          <Text style={styles.etiquetaResumen}>CALORÍAS DIARIAS</Text>
-          <Text style={styles.valorCaloriasGrandes}>
-            {totalesHoy.calorias}{' '}
-            <Text style={styles.unidadCalorias}>kcal</Text>
-          </Text>
+      <View style={styles.tarjetaTotales}>
+        <View style={styles.bloqueTotalPrincipal}>
+          <Text style={styles.etiquetaTotalPrincipal}>CALORÍAS TOTALES</Text>
+          <Text style={styles.valorTotalPrincipal}>{totalesHoy.calorias}</Text>
+          <Text style={styles.unidadTotalPrincipal}>kcal consumidas hoy</Text>
         </View>
 
-        <View style={styles.filaMacrosTotales}>
-          <View style={styles.cajaMacroTotal}>
-            <Text style={styles.valorMacroTotal}>{totalesHoy.proteinas}g</Text>
-            <Text style={styles.etiquetaMacroTotal}>Proteínas</Text>
+        <View style={styles.filaMacros}>
+          <View style={styles.bloqueMacro}>
+            <Text style={styles.etiquetaMacro}>PROTEÍNAS</Text>
+            <Text style={styles.valorMacro}>{totalesHoy.proteinas}g</Text>
           </View>
-          <View style={styles.cajaMacroTotal}>
-            <Text style={styles.valorMacroTotal}>
-              {totalesHoy.carbohidratos}g
-            </Text>
-            <Text style={styles.etiquetaMacroTotal}>Carbohidratos</Text>
+          <View style={styles.divisorMacro} />
+          <View style={styles.bloqueMacro}>
+            <Text style={styles.etiquetaMacro}>CARBOHIDRATOS</Text>
+            <Text style={styles.valorMacro}>{totalesHoy.carbohidratos}g</Text>
           </View>
-          <View style={styles.cajaMacroTotal}>
-            <Text style={styles.valorMacroTotal}>{totalesHoy.grasas}g</Text>
-            <Text style={styles.etiquetaMacroTotal}>Grasas</Text>
+          <View style={styles.divisorMacro} />
+          <View style={styles.bloqueMacro}>
+            <Text style={styles.etiquetaMacro}>GRASAS</Text>
+            <Text style={styles.valorMacro}>{totalesHoy.grasas}g</Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.tarjetaCaptura}>
-        <Text style={styles.tituloSeccion}>1. Selecciona el tiempo de comida</Text>
-        <View style={styles.filaSelectorTipos}>
+      <View style={styles.seccionTipoComida}>
+        <Text style={styles.etiquetaSeccion}>TIPO DE COMIDA A ESCANEAR</Text>
+        <View style={styles.filaTiposComida}>
           {TIPOS_COMIDA.map((tipo) => {
-            const activo = tipo === tipoSeleccionado;
+            const activo = tipoSeleccionado === tipo;
             return (
               <TouchableOpacity
                 key={tipo}
                 style={[
-                  styles.botonTipo,
-                  activo ? styles.botonTipoActivo : styles.botonTipoInactivo,
+                  styles.botonTipoComida,
+                  activo && styles.botonTipoComidaActivo,
                 ]}
-                activeOpacity={0.85}
-                disabled={analizando}
-                onPress={() => setTipoSeleccionado(tipo)}
+                onPress={() => {
+                  vibrarSeleccionBascula();
+                  setTipoSeleccionado(tipo);
+                }}
               >
                 <Text
                   style={[
-                    styles.textoBotonTipo,
-                    activo
-                      ? styles.textoBotonTipoActivo
-                      : styles.textoBotonTipoInactivo,
+                    styles.textoTipoComida,
+                    activo && styles.textoTipoComidaActivo,
                   ]}
                 >
                   {tipo}
@@ -368,69 +332,125 @@ export default function NutricionView({
             );
           })}
         </View>
-
-        <Text style={styles.tituloSeccion}>
-          2. Escanea tu plato con Gemini Vision
-        </Text>
-
-        {analizando ? (
-          <View style={styles.contenedorCarga}>
-            <ActivityIndicator size="large" color="#00E676" />
-            <Text style={styles.textoCarga}>Analizando macros...</Text>
-            <Text style={styles.subtextoCarga}>
-              {textoProgreso ||
-                'Inspeccionando ingredientes, porciones y densidad calórica'}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.filaBotonesCaptura}>
-            <TouchableOpacity
-              style={[styles.botonAccionFoto, styles.botonCamara]}
-              activeOpacity={0.85}
-              onPress={abrirCamara}
-            >
-              <Text style={styles.textoBotonCamara}>📷 Tomar Foto</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.botonAccionFoto, styles.botonGaleria]}
-              activeOpacity={0.85}
-              onPress={abrirGaleria}
-            >
-              <Text style={styles.textoBotonGaleria}>🖼 Galería</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {mensajeError ? (
-          <Text style={styles.textoError}>{mensajeError}</Text>
-        ) : null}
       </View>
 
-      <View style={styles.contenedorLista}>
-        <View style={styles.encabezadoLista}>
-          <Text style={styles.tituloSeccion}>Comidas Registradas Hoy</Text>
-          <Text style={styles.contadorLista}>
-            {comidasDeHoy.length} registro(s)
-          </Text>
-        </View>
+      <View style={styles.seccionAcciones}>
+        <TouchableOpacity
+          style={[styles.botonCaptura, styles.botonCamara]}
+          onPress={tomarFoto}
+          disabled={analizando}
+          activeOpacity={0.8}
+        >
+          <Feather
+            name="camera"
+            size={18}
+            color={TOKENS.colors.textInverse}
+            style={{ marginRight: 8 }}
+          />
+          <Text style={styles.textoBotonCamara}>Escanear con Cámara</Text>
+        </TouchableOpacity>
 
-        <FlatList
-          data={comidasDeHoy}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderizarComida}
-          contentContainerStyle={styles.contenidoFlatList}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.estadoVacio}>
-              <Text style={styles.textoVacio}>
-                Aún no has analizado comidas hoy ({fechaHoy}). Selecciona el
-                tipo de comida y captura una foto.
+        <TouchableOpacity
+          style={[styles.botonCaptura, styles.botonGaleria]}
+          onPress={seleccionarDeGaleria}
+          disabled={analizando}
+          activeOpacity={0.8}
+        >
+          <Feather
+            name="image"
+            size={18}
+            color={TOKENS.colors.textPrimary}
+            style={{ marginRight: 8 }}
+          />
+          <Text style={styles.textoBotonGaleria}>Galería</Text>
+        </TouchableOpacity>
+      </View>
+
+      {analizando ? (
+        <View style={styles.bloqueCarga}>
+          <ActivityIndicator size="small" color={TOKENS.colors.accentWhite} />
+          <Text style={styles.textoCarga}>{textoProgreso}</Text>
+        </View>
+      ) : null}
+
+      {mensajeError ? (
+        <View style={styles.bloqueError}>
+          <Feather
+            name="alert-circle"
+            size={14}
+            color={TOKENS.colors.danger}
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.textoError}>{mensajeError}</Text>
+        </View>
+      ) : null}
+
+      <View style={styles.seccionHistorial}>
+        <Text style={styles.etiquetaSeccion}>
+          REGISTROS DE HOY ({comidasDeHoy.length})
+        </Text>
+      </View>
+
+      <FlatList
+        data={comidasDeHoy}
+        keyExtractor={(item) => String(item.id)}
+        contentContainerStyle={styles.listaContenido}
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => (
+          <View style={styles.tarjetaComida}>
+            <View style={styles.cabeceraComida}>
+              <View style={styles.badgeTipoComida}>
+                <Text style={styles.textoBadgeTipoComida}>
+                  {item.tipo?.toUpperCase()}
+                </Text>
+              </View>
+              <CapsulaBorradoSeguroNutricion
+                onBorrar={() => solicitarConfirmacionBorrado(item)}
+                onAvisoCorto={() => mostrarAvisoToqueCorto(item.id)}
+              />
+            </View>
+
+            <Text style={styles.descripcionComida}>{item.descripcion}</Text>
+
+            <View style={styles.filaMetricasComida}>
+              <View style={styles.bloqueKcalComida}>
+                <Text style={styles.valorKcalComida}>{item.calorias} kcal</Text>
+              </View>
+              <Text style={styles.textoMacrosDesglose}>
+                P: {item.proteinas}g · C: {item.carbohidratos}g · G: {item.grasas}g
               </Text>
             </View>
-          }
-        />
-      </View>
+
+            {avisoBorradoId === item.id ? (
+              <View style={styles.bannerAvisoBorrado}>
+                <Feather
+                  name="alert-circle"
+                  size={12}
+                  color={TOKENS.colors.danger}
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={styles.textoAvisoBorrado}>
+                  Mantén presionado 1 segundo para eliminar esta comida
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        )}
+        ListEmptyComponent={
+          <View style={styles.estadoVacio}>
+            <Feather
+              name="pie-chart"
+              size={32}
+              color={TOKENS.colors.textMuted}
+              style={{ marginBottom: 12 }}
+            />
+            <Text style={styles.textoVacio}>No hay comidas registradas hoy.</Text>
+            <Text style={styles.subtextoVacio}>
+              Toma una foto de tu plato para desglosar calorías y macros con IA.
+            </Text>
+          </View>
+        }
+      />
     </View>
   );
 }
@@ -438,325 +458,304 @@ export default function NutricionView({
 const styles = StyleSheet.create({
   contenedor: {
     flex: 1,
+    backgroundColor: TOKENS.colors.canvas,
   },
   encabezado: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  tituloVista: {
-    color: '#FFFFFF',
-    fontSize: 24,
+  titulo: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 22,
     fontWeight: '800',
+    letterSpacing: -0.4,
   },
-  subtituloFecha: {
-    color: '#00E676',
-    fontSize: 13,
-    fontWeight: '600',
+  subtitulo: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 12,
+    marginTop: 2,
   },
-  tarjetaResumenTotales: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 12,
+  tarjetaTotales: {
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
+    padding: 16,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#2E2E2E',
+    borderColor: TOKENS.colors.borderDefault,
+    elevation: 2,
   },
-  bloqueCalorias: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: 12,
+  bloqueTotalPrincipal: {
+    alignItems: 'center',
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: TOKENS.colors.borderSubtle,
   },
-  etiquetaResumen: {
-    color: '#9E9E9E',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.7,
-  },
-  valorCaloriasGrandes: {
-    color: '#00E676',
-    fontSize: 26,
+  etiquetaTotalPrincipal: {
+    color: TOKENS.colors.textMuted,
+    fontSize: 10,
     fontWeight: '800',
+    letterSpacing: 0.8,
   },
-  unidadCalorias: {
-    color: '#B0B0B0',
-    fontSize: 13,
-    fontWeight: '600',
+  valorTotalPrincipal: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 34,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    marginVertical: 2,
   },
-  filaMacrosTotales: {
+  unidadTotalPrincipal: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 11,
+  },
+  filaMacros: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 12,
   },
-  cajaMacroTotal: {
+  bloqueMacro: {
     flex: 1,
-    backgroundColor: '#262626',
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    marginHorizontal: 3,
     alignItems: 'center',
   },
-  valorMacroTotal: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '800',
-    marginBottom: 2,
+  divisorMacro: {
+    width: 1,
+    height: 24,
+    backgroundColor: TOKENS.colors.borderSubtle,
   },
-  etiquetaMacroTotal: {
-    color: '#9E9E9E',
+  etiquetaMacro: {
+    color: TOKENS.colors.textMuted,
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+  valorMacro: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  seccionTipoComida: {
+    marginBottom: 14,
+  },
+  etiquetaSeccion: {
+    color: TOKENS.colors.textMuted,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    marginBottom: 8,
+  },
+  filaTiposComida: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  botonTipoComida: {
+    flex: 1,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.sm,
+    paddingVertical: 8,
+    marginHorizontal: 2,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+  },
+  botonTipoComidaActivo: {
+    backgroundColor: TOKENS.colors.accentWhite,
+    borderColor: TOKENS.colors.accentWhite,
+  },
+  textoTipoComida: {
+    color: TOKENS.colors.textSecondary,
     fontSize: 11,
     fontWeight: '600',
   },
-  tarjetaCaptura: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#2E2E2E',
+  textoTipoComidaActivo: {
+    color: TOKENS.colors.textInverse,
+    fontWeight: '800',
   },
-  tituloSeccion: {
-    color: '#FFFFFF',
-    fontSize: 14,
+  seccionAcciones: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  botonCaptura: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: TOKENS.radii.md,
+    elevation: 2,
+  },
+  botonCamara: {
+    backgroundColor: TOKENS.colors.accentWhite,
+    marginRight: 8,
+  },
+  textoBotonCamara: {
+    color: TOKENS.colors.textInverse,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  botonGaleria: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+  },
+  textoBotonGaleria: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  bloqueCarga: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.sm,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+  },
+  textoCarga: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  bloqueError: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.dangerBg,
+    borderRadius: TOKENS.radii.sm,
+    padding: 12,
+    marginBottom: 14,
+  },
+  textoError: {
+    color: TOKENS.colors.danger,
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
+  },
+  seccionHistorial: {
+    marginBottom: 8,
+  },
+  listaContenido: {
+    paddingBottom: 110, // Scroll clearance mandatorio para barra inferior flotante
+  },
+  tarjetaComida: {
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+  },
+  cabeceraComida: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  badgeTipoComida: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderStrong,
+  },
+  textoBadgeTipoComida: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  capsulaBorradoContenedor: {
+    width: 58,
+    height: 28,
+    borderRadius: TOKENS.radii.pill,
+    backgroundColor: TOKENS.colors.dangerBg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 69, 58, 0.4)',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  capsulaBorradoFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    backgroundColor: TOKENS.colors.danger,
+    borderRadius: TOKENS.radii.pill,
+  },
+  capsulaBorradoContenido: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  capsulaBorradoTexto: {
+    color: TOKENS.colors.danger,
+    fontSize: 11,
+    fontWeight: '800',
+    marginLeft: 4,
+  },
+  descripcionComida: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 15,
     fontWeight: '700',
     marginBottom: 8,
   },
-  filaSelectorTipos: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  botonTipo: {
-    flex: 1,
-    paddingVertical: 8,
-    marginHorizontal: 3,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-  },
-  botonTipoActivo: {
-    backgroundColor: '#00E676',
-    borderColor: '#00E676',
-  },
-  botonTipoInactivo: {
-    backgroundColor: '#2A2A2A',
-    borderColor: '#383838',
-  },
-  textoBotonTipo: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  textoBotonTipoActivo: {
-    color: '#121212',
-  },
-  textoBotonTipoInactivo: {
-    color: '#D0D0D0',
-  },
-  filaBotonesCaptura: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  botonAccionFoto: {
-    flex: 1,
-    borderRadius: 10,
-    paddingVertical: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 3,
-  },
-  botonCamara: {
-    backgroundColor: '#00E676',
-  },
-  botonGaleria: {
-    backgroundColor: '#2A2A2A',
-    borderWidth: 1,
-    borderColor: '#00E676',
-  },
-  textoBotonCamara: {
-    color: '#121212',
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  textoBotonGaleria: {
-    color: '#00E676',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  contenedorCarga: {
-    backgroundColor: '#242424',
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textoCarga: {
-    color: '#00E676',
-    fontSize: 14,
-    fontWeight: '800',
-    marginTop: 8,
-  },
-  subtextoCarga: {
-    color: '#9E9E9E',
-    fontSize: 11,
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  textoError: {
-    color: '#FF5252',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 8,
-  },
-  contenedorLista: {
-    flex: 1,
-  },
-  encabezadoLista: {
+  filaMetricasComida: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
   },
-  contadorLista: {
-    color: '#9E9E9E',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  contenidoFlatList: {
-    paddingBottom: 12,
-  },
-  tarjetaComida: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: '#00E676',
-  },
-  filaSuperiorComida: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  miniaturaFoto: {
-    width: 54,
-    height: 54,
-    borderRadius: 10,
-    marginRight: 12,
-    backgroundColor: '#2A2A2A',
-  },
-  miniaturaPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textoPlaceholder: {
-    fontSize: 22,
-  },
-  infoComida: {
-    flex: 1,
-  },
-  filaTipoCalorias: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  insigniaTipo: {
-    backgroundColor: '#2A2A2A',
+  bloqueKcalComida: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
   },
-  textoInsigniaTipo: {
-    color: '#00E676',
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  caloriasItem: {
-    color: '#00E676',
-    fontSize: 14,
+  valorKcalComida: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 12,
     fontWeight: '800',
   },
-  nombrePlatillo: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  filaMacrosItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  chipMacro: {
-    flex: 1,
-    backgroundColor: '#262626',
-    borderRadius: 8,
-    paddingVertical: 5,
-    marginHorizontal: 3,
-    alignItems: 'center',
-  },
-  etiquetaChipMacro: {
-    color: '#8D8D8D',
-    fontSize: 9,
-    fontWeight: '700',
-  },
-  valorChipMacro: {
-    color: '#E0E0E0',
-    fontSize: 13,
-    fontWeight: '700',
-    marginTop: 1,
-  },
-  botonEliminar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2C1518',
-    borderWidth: 1.5,
-    borderColor: '#FF5252',
-    borderRadius: 8,
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    marginLeft: 6,
-  },
-  iconoEliminar: {
-    fontSize: 13,
-    marginRight: 4,
-  },
-  textoBotonEliminar: {
-    color: '#FF5252',
+  textoMacrosDesglose: {
+    color: TOKENS.colors.textSecondary,
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '600',
   },
   bannerAvisoBorrado: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.dangerBg,
+    borderRadius: TOKENS.radii.xs,
+    padding: 6,
     marginTop: 8,
-    backgroundColor: '#2C1518',
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: '#FF5252',
   },
   textoAvisoBorrado: {
-    color: '#FF8A80',
+    color: TOKENS.colors.danger,
     fontSize: 11,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: '600',
+    flex: 1,
   },
   estadoVacio: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 12,
-    padding: 20,
     alignItems: 'center',
-    marginTop: 4,
+    justifyContent: 'center',
+    paddingVertical: 48,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderSubtle,
+    marginTop: 8,
   },
   textoVacio: {
-    color: '#8D8D8D',
-    fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 18,
+    color: TOKENS.colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  subtextoVacio: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 12,
+    marginTop: 4,
   },
 });

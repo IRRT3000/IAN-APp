@@ -1,5 +1,19 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+import { Feather } from '@expo/vector-icons';
+import { vibrarSeleccionBascula } from '../services/haptics';
 
 export default function BarraNavegacionInferior({
   vistaActiva,
@@ -8,241 +22,187 @@ export default function BarraNavegacionInferior({
   contadorComidasHoy = 0,
   contadorFisicoHoy = 0,
 }) {
-  const esBienvenida = vistaActiva === 'bienvenida';
-  const esTracker = vistaActiva === 'tracker';
-  const esNutricion = vistaActiva === 'nutricion';
-  const esFisico = vistaActiva === 'fisico';
-  const esHeatmap = vistaActiva === 'heatmap';
+  const { width: anchoPantalla } = useWindowDimensions();
+
+  // 5 Pestañas oficiales con iconografía Feather exclusiva (CERO EMOJIS)
+  const PESTANAS = [
+    { id: 'bienvenida', etiqueta: 'Inicio', icono: 'home' },
+    { id: 'tracker', etiqueta: 'Entrenos', icono: 'activity', contador: contadorHoy },
+    { id: 'nutricion', etiqueta: 'Nutrición', icono: 'pie-chart', contador: contadorComidasHoy },
+    { id: 'fisico', etiqueta: 'Físico', icono: 'camera', contador: contadorFisicoHoy },
+    { id: 'heatmap', etiqueta: 'Heatmap', icono: 'calendar' },
+  ];
+
+  // Cálculo de ancho inicial inmediato para 0ms de parpadeo (FOUC)
+  const anchoContenedorEstimado = Math.max(300, anchoPantalla - 32 - 8);
+  const [anchoTab, setAnchoTab] = useState(anchoContenedorEstimado / PESTANAS.length);
+
+  const indiceActivo = Math.max(
+    0,
+    PESTANAS.findIndex((item) => item.id === vistaActiva)
+  );
+
+  const translateX = useSharedValue(indiceActivo * anchoTab);
+
+  // Sincronización del resorte numérico en UI Thread sin rebote desbordado
+  useEffect(() => {
+    translateX.value = withSpring(indiceActivo * anchoTab, {
+      duration: 240,
+      dampingRatio: 1,
+      overshootClamping: true,
+    });
+  }, [indiceActivo, anchoTab, translateX]);
+
+  const estiloPillAnimado = useAnimatedStyle(() => ({
+    width: anchoTab,
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const manejarMedicionContenedor = (e) => {
+    const anchoReal = e.nativeEvent.layout.width - 8; // Restar padding interno
+    if (anchoReal > 0) {
+      setAnchoTab(anchoReal / PESTANAS.length);
+    }
+  };
+
+  const manejarPulsarTab = (id) => {
+    if (id !== vistaActiva) {
+      vibrarSeleccionBascula();
+      onCambiarVista(id);
+    }
+  };
 
   return (
-    <View style={styles.contenedorBarra}>
-      <TouchableOpacity
-        style={[styles.botonTab, esBienvenida && styles.botonTabActivo]}
-        activeOpacity={0.85}
-        onPress={() => onCambiarVista('bienvenida')}
+    <View style={styles.envoltorioFlotante} pointerEvents="box-none">
+      <View
+        style={styles.contenedorBarra}
+        onLayout={manejarMedicionContenedor}
       >
-        <View
-          style={[
-            styles.indicadorSuperior,
-            esBienvenida && styles.indicadorSuperiorActivo,
-          ]}
-        />
-        <Text style={[styles.iconoTexto, esBienvenida && styles.textoTabActivo]}>
-          ⌂
-        </Text>
-        <Text
-          numberOfLines={1}
-          style={[
-            styles.etiquetaTab,
-            esBienvenida ? styles.textoTabActivo : styles.textoTabInactivo,
-          ]}
-        >
-          Inicio
-        </Text>
-      </TouchableOpacity>
+        {/* Pastilla deslizante animada con físicas de resorte en UI Thread */}
+        <Animated.View style={[styles.pillDeslizante, estiloPillAnimado]} />
 
-      <TouchableOpacity
-        style={[styles.botonTab, esTracker && styles.botonTabActivo]}
-        activeOpacity={0.85}
-        onPress={() => onCambiarVista('tracker')}
-      >
-        <View
-          style={[
-            styles.indicadorSuperior,
-            esTracker && styles.indicadorSuperiorActivo,
-          ]}
-        />
-        <View style={styles.filaIconoConInsignia}>
-          <Text style={[styles.iconoTexto, esTracker && styles.textoTabActivo]}>
-            ⚡
-          </Text>
-          {contadorHoy > 0 ? (
-            <View style={styles.insigniaContador}>
-              <Text style={styles.textoInsigniaContador}>{contadorHoy}</Text>
-            </View>
-          ) : null}
-        </View>
-        <Text
-          numberOfLines={1}
-          style={[
-            styles.etiquetaTab,
-            esTracker ? styles.textoTabActivo : styles.textoTabInactivo,
-          ]}
-        >
-          Entrenos
-        </Text>
-      </TouchableOpacity>
+        {PESTANAS.map((tab) => {
+          const esActivo = vistaActiva === tab.id;
+          const tieneContador = tab.contador && tab.contador > 0;
 
-      <TouchableOpacity
-        style={[styles.botonTab, esNutricion && styles.botonTabActivo]}
-        activeOpacity={0.85}
-        onPress={() => onCambiarVista('nutricion')}
-      >
-        <View
-          style={[
-            styles.indicadorSuperior,
-            esNutricion && styles.indicadorSuperiorActivo,
-          ]}
-        />
-        <View style={styles.filaIconoConInsignia}>
-          <Text
-            style={[styles.iconoTexto, esNutricion && styles.textoTabActivo]}
-          >
-            🥗
-          </Text>
-          {contadorComidasHoy > 0 ? (
-            <View style={styles.insigniaContador}>
-              <Text style={styles.textoInsigniaContador}>
-                {contadorComidasHoy}
+          return (
+            <TouchableOpacity
+              key={tab.id}
+              style={styles.botonTab}
+              activeOpacity={0.75}
+              onPress={() => manejarPulsarTab(tab.id)}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+            >
+              <View style={styles.filaIcono}>
+                <Feather
+                  name={tab.icono}
+                  size={18}
+                  color={esActivo ? '#FFFFFF' : '#666666'}
+                />
+                {tieneContador ? (
+                  <View style={styles.badgeContador}>
+                    <Text style={styles.textoBadge}>{tab.contador}</Text>
+                  </View>
+                ) : null}
+              </View>
+
+              <Text
+                numberOfLines={1}
+                style={[
+                  styles.etiquetaTab,
+                  esActivo ? styles.etiquetaActiva : styles.etiquetaInactiva,
+                ]}
+              >
+                {tab.etiqueta}
               </Text>
-            </View>
-          ) : null}
-        </View>
-        <Text
-          numberOfLines={1}
-          style={[
-            styles.etiquetaTab,
-            esNutricion ? styles.textoTabActivo : styles.textoTabInactivo,
-          ]}
-        >
-          Nutrición
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.botonTab, esFisico && styles.botonTabActivo]}
-        activeOpacity={0.85}
-        onPress={() => onCambiarVista('fisico')}
-      >
-        <View
-          style={[
-            styles.indicadorSuperior,
-            esFisico && styles.indicadorSuperiorActivo,
-          ]}
-        />
-        <View style={styles.filaIconoConInsignia}>
-          <Text style={[styles.iconoTexto, esFisico && styles.textoTabActivo]}>
-            💪
-          </Text>
-          {contadorFisicoHoy > 0 ? (
-            <View style={styles.insigniaContador}>
-              <Text style={styles.textoInsigniaContador}>
-                {contadorFisicoHoy}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-        <Text
-          numberOfLines={1}
-          style={[
-            styles.etiquetaTab,
-            esFisico ? styles.textoTabActivo : styles.textoTabInactivo,
-          ]}
-        >
-          Físico
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.botonTab, esHeatmap && styles.botonTabActivo]}
-        activeOpacity={0.85}
-        onPress={() => onCambiarVista('heatmap')}
-      >
-        <View
-          style={[
-            styles.indicadorSuperior,
-            esHeatmap && styles.indicadorSuperiorActivo,
-          ]}
-        />
-        <View style={styles.filaIconoConInsignia}>
-          <Text
-            style={[styles.iconoTexto, esHeatmap && styles.textoTabActivo]}
-          >
-            🔥
-          </Text>
-        </View>
-        <Text
-          numberOfLines={1}
-          style={[
-            styles.etiquetaTab,
-            esHeatmap ? styles.textoTabActivo : styles.textoTabInactivo,
-          ]}
-        >
-          Heatmap
-        </Text>
-      </TouchableOpacity>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  envoltorioFlotante: {
+    position: 'absolute',
+    bottom: Platform.OS === 'android' ? 14 : 20,
+    left: 16,
+    right: 16,
+    zIndex: 999,
+  },
   contenedorBarra: {
+    height: 58,
     flexDirection: 'row',
-    backgroundColor: '#181818',
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 2,
-    marginBottom: 10,
-    marginTop: 6,
+    alignItems: 'center',
+    backgroundColor: '#141414',
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#2A2A2A',
-    justifyContent: 'space-between',
+    borderColor: '#262626',
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    // Elevación nativa para Android y sombra sutil
+    elevation: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+  },
+  pillDeslizante: {
+    position: 'absolute',
+    top: 4,
+    bottom: 4,
+    left: 4,
+    backgroundColor: '#222222',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#2E2E2E',
   },
   botonTab: {
     flex: 1,
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
-    borderRadius: 10,
-    marginHorizontal: 1,
+    zIndex: 1,
   },
-  botonTabActivo: {
-    backgroundColor: '#242424',
-  },
-  indicadorSuperior: {
-    width: 20,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: 'transparent',
-    marginBottom: 3,
-  },
-  indicadorSuperiorActivo: {
-    backgroundColor: '#00E676',
-  },
-  filaIconoConInsignia: {
+  filaIcono: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  iconoTexto: {
-    color: '#8D8D8D',
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 2,
+    justifyContent: 'center',
+    position: 'relative',
+    height: 22,
   },
   etiquetaTab: {
     fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+    marginTop: 2,
+  },
+  etiquetaActiva: {
+    color: '#FFFFFF',
     fontWeight: '700',
-    letterSpacing: 0.1,
   },
-  textoTabActivo: {
-    color: '#00E676',
+  etiquetaInactiva: {
+    color: '#666666',
   },
-  textoTabInactivo: {
-    color: '#8D8D8D',
-  },
-  insigniaContador: {
-    backgroundColor: '#00E676',
-    borderRadius: 8,
+  badgeContador: {
+    position: 'absolute',
+    top: -4,
+    right: -10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 6,
     minWidth: 14,
     height: 14,
     paddingHorizontal: 3,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 3,
+    borderWidth: 1,
+    borderColor: '#0A0A0A',
   },
-  textoInsigniaContador: {
-    color: '#121212',
+  textoBadge: {
+    color: '#0A0A0A',
     fontSize: 9,
     fontWeight: '800',
+    lineHeight: 11,
   },
 });

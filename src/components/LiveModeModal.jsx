@@ -12,10 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {
-  obtenerColorGrupo,
-  obtenerIconoImplemento,
-} from '../constants/catalogoEjercicios';
+import { Feather } from '@expo/vector-icons';
 import {
   eliminarSesionActivaDraft,
   guardarSesionActivaDraft,
@@ -23,7 +20,9 @@ import {
 import {
   vibrarEjercicioCompletado,
   vibrarSerieAgregada,
+  vibrarSeleccionBascula,
 } from '../services/haptics';
+import { TOKENS } from '../theme/tokens';
 
 export default function LiveModeModal({
   visible,
@@ -36,7 +35,6 @@ export default function LiveModeModal({
   const [errorValidacion, setErrorValidacion] = useState('');
   const autoSaveTimerRef = useRef(null);
 
-  // Inicializar o restaurar series al abrir el modal
   useEffect(() => {
     if (!visible || !ejercicioActivo) {
       return;
@@ -60,7 +58,6 @@ export default function LiveModeModal({
     setErrorValidacion('');
   }, [visible, ejercicioActivo, draftInicial]);
 
-  // Cancelar timers al desmontar
   useEffect(() => {
     return () => {
       if (autoSaveTimerRef.current) {
@@ -69,7 +66,6 @@ export default function LiveModeModal({
     };
   }, []);
 
-  // Guardado seguro inmediato en storage
   const persistirDraftInmediato = useCallback(
     async (nuevasSeries) => {
       if (!ejercicioActivo) return;
@@ -89,7 +85,6 @@ export default function LiveModeModal({
     [ejercicioActivo, draftInicial]
   );
 
-  // Guardado diferido (Debounce ~350ms) para inputs de texto (Directriz 3)
   const programarAutoSaveDebounce = useCallback(
     (nuevasSeries) => {
       if (autoSaveTimerRef.current) {
@@ -102,179 +97,146 @@ export default function LiveModeModal({
     [persistirDraftInmediato]
   );
 
-  // Manejo de confirmación de descarte (Directriz 1)
-  const confirmarDescarte = useCallback(() => {
+  const agregarSerie = () => {
+    vibrarSerieAgregada();
+    setSeries((prev) => {
+      const ultimaSerie = prev.length > 0 ? prev[prev.length - 1] : null;
+      const nuevaSerie = {
+        serie: prev.length + 1,
+        peso: ultimaSerie ? String(ultimaSerie.peso ?? '') : '',
+        repeticiones: ultimaSerie
+          ? String(ultimaSerie.repeticiones ?? '')
+          : '',
+      };
+      const actualizadas = [...prev, nuevaSerie];
+      persistirDraftInmediato(actualizadas);
+      return actualizadas;
+    });
+    setErrorValidacion('');
+  };
+
+  const eliminarSerie = (indice) => {
+    vibrarSeleccionBascula();
+    setSeries((prev) => {
+      if (prev.length <= 1) return prev;
+      const filtradas = prev.filter((_, idx) => idx !== indice);
+      const renumeradas = filtradas.map((item, idx) => ({
+        ...item,
+        serie: idx + 1,
+      }));
+      persistirDraftInmediato(renumeradas);
+      return renumeradas;
+    });
+    setErrorValidacion('');
+  };
+
+  const actualizarCampoSerie = (indice, campo, valor) => {
+    setSeries((prev) => {
+      const actualizadas = prev.map((item, idx) => {
+        if (idx !== indice) return item;
+        return {
+          ...item,
+          [campo]: valor.replace(/[^0-9.]/g, ''),
+        };
+      });
+      programarAutoSaveDebounce(actualizadas);
+      return actualizadas;
+    });
+    setErrorValidacion('');
+  };
+
+  const confirmarDescarte = () => {
     Alert.alert(
-      '¿Descartar ejercicio?',
-      'Se perderán las series registradas en esta sesión y no se guardará en tu historial.',
+      'Descartar sesión activa',
+      '¿Deseas descartar este ejercicio? Los datos de la sesión actual no se guardarán en tu historial.',
       [
-        {
-          text: 'Continuar entrenando',
-          style: 'cancel',
-        },
+        { text: 'Continuar sesión', style: 'cancel' },
         {
           text: 'Descartar',
           style: 'destructive',
           onPress: async () => {
-            if (autoSaveTimerRef.current) {
-              clearTimeout(autoSaveTimerRef.current);
-            }
-            await eliminarSesionActivaDraft();
-            if (typeof onDescartarEjercicio === 'function') {
-              onDescartarEjercicio();
+            try {
+              await eliminarSesionActivaDraft();
+              if (typeof onDescartarEjercicio === 'function') {
+                onDescartarEjercicio();
+              }
+            } catch (err) {
+              console.error('Error al descartar sesión activa:', err);
             }
           },
         },
       ]
     );
-  }, [onDescartarEjercicio]);
+  };
 
-  // Intercepción de botón físico Atrás en Android (Directriz 1)
   useEffect(() => {
-    if (!visible || Platform.OS === 'web') {
-      return;
-    }
+    if (!visible) return;
 
-    const backAction = () => {
+    const onBackPress = () => {
       confirmarDescarte();
-      return true; // Previene que Android cierre la pantalla
+      return true;
     };
 
-    const backHandler = BackHandler.addEventListener(
+    const suscripcion = BackHandler.addEventListener(
       'hardwareBackPress',
-      backAction
+      onBackPress
     );
 
     return () => {
-      backHandler.remove();
+      suscripcion.remove();
     };
-  }, [visible, confirmarDescarte]);
+  }, [visible]);
 
-  // Añadir nueva serie con autorrelleno rápido de la serie previa (RF-10)
-  const agregarSerie = () => {
-    vibrarSerieAgregada();
-    const ultimaSerie = series[series.length - 1];
-    const nuevaSerie = {
-      serie: series.length + 1,
-      peso: ultimaSerie?.peso ?? '',
-      repeticiones: ultimaSerie?.repeticiones ?? '',
-    };
-
-    const nuevasSeries = [...series, nuevaSerie];
-    setSeries(nuevasSeries);
-    setErrorValidacion('');
-    persistirDraftInmediato(nuevasSeries);
-  };
-
-  // Eliminar una serie si hay más de 1
-  const eliminarSerie = (indice) => {
-    if (series.length <= 1) {
-      return;
-    }
-
-    const filtradas = series
-      .filter((_, idx) => idx !== indice)
-      .map((item, idx) => ({
-        ...item,
-        serie: idx + 1,
-      }));
-
-    setSeries(filtradas);
-    setErrorValidacion('');
-    persistirDraftInmediato(filtradas);
-  };
-
-  // Modificar peso o repeticiones de una serie
-  const actualizarCampoSerie = (indice, campo, valor) => {
-    // Sanitizar caracteres inválidos (permitir solo números y punto decimal en peso)
-    let valorLimpio = valor;
-    if (campo === 'peso') {
-      valorLimpio = valor.replace(/[^0-9.]/g, '');
-      // Evitar más de un punto decimal
-      const partes = valorLimpio.split('.');
-      if (partes.length > 2) {
-        valorLimpio = `${partes[0]}.${partes.slice(1).join('')}`;
-      }
-    } else if (campo === 'repeticiones') {
-      valorLimpio = valor.replace(/[^0-9]/g, '');
-    }
-
-    const nuevasSeries = series.map((s, idx) => {
-      if (idx !== indice) return s;
-      return {
-        ...s,
-        [campo]: valorLimpio,
-      };
-    });
-
-    setSeries(nuevasSeries);
-    if (errorValidacion) setErrorValidacion('');
-    programarAutoSaveDebounce(nuevasSeries);
-  };
-
-  // Guardado en pérdida de foco (onBlur)
-  const manejarBlurInput = () => {
-    persistirDraftInmediato(series);
-  };
-
-  // Validación estricta y terminación del ejercicio (RF-14, Directriz 4)
-  const manejarTerminarEjercicio = async () => {
+  const terminarSesion = () => {
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
     }
 
-    if (!Array.isArray(series) || series.length === 0) {
-      setErrorValidacion('Debes registrar al menos una serie.');
+    if (!series || series.length === 0) {
+      setErrorValidacion('Debes registrar al menos 1 serie para guardar.');
       return;
     }
 
-    const seriesSanitizadas = [];
+    const seriesIncompletas = series.some((s) => {
+      const pesoNum = Number(s.peso);
+      const repsNum = Number(s.repeticiones);
+      return (
+        isNaN(pesoNum) ||
+        pesoNum < 0 ||
+        isNaN(repsNum) ||
+        repsNum <= 0 ||
+        s.peso === '' ||
+        s.repeticiones === ''
+      );
+    });
 
-    for (let i = 0; i < series.length; i++) {
-      const s = series[i];
-      const pesoStr = String(s.peso ?? '').trim();
-      const repsStr = String(s.repeticiones ?? '').trim();
-
-      const pesoNum = Math.max(0, parseFloat(pesoStr) || 0);
-      const repsNum = Math.max(0, parseInt(repsStr, 10) || 0);
-
-      if (pesoStr === '' && pesoNum === 0) {
-        // Permitir 0 kg si es ejercicio corporal
-      }
-
-      if (!Number.isFinite(repsNum) || repsNum <= 0) {
-        setErrorValidacion(
-          `La Serie ${i + 1} debe tener al menos 1 repetición válida.`
-        );
-        return;
-      }
-
-      seriesSanitizadas.push({
-        serie: i + 1,
-        peso: pesoNum,
-        repeticiones: repsNum,
-      });
+    if (seriesIncompletas) {
+      setErrorValidacion(
+        'Todas las series deben tener peso (>= 0 kg) y repeticiones (> 0).'
+      );
+      return;
     }
 
-    setErrorValidacion('');
-    await vibrarEjercicioCompletado();
+    const seriesLimpias = series.map((s) => ({
+      serie: s.serie,
+      peso: Math.round(Number(s.peso) * 10) / 10,
+      repeticiones: Math.round(Number(s.repeticiones)),
+    }));
 
+    vibrarEjercicioCompletado();
     if (typeof onTerminarEjercicio === 'function') {
       onTerminarEjercicio({
         ejercicio: ejercicioActivo.nombre,
         grupoMuscular: ejercicioActivo.grupoMuscular,
         implemento: ejercicioActivo.implemento,
-        seriesDetalle: seriesSanitizadas,
+        seriesDetalle: seriesLimpias,
       });
     }
   };
 
-  if (!ejercicioActivo) {
+  if (!visible || !ejercicioActivo) {
     return null;
   }
-
-  const colorGrupo = obtenerColorGrupo(ejercicioActivo.grupoMuscular);
-  const iconoImplemento = obtenerIconoImplemento(ejercicioActivo.implemento);
 
   return (
     <Modal
@@ -283,419 +245,338 @@ export default function LiveModeModal({
       transparent={false}
       onRequestClose={confirmarDescarte}
     >
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.contenedor}>
-          {/* Encabezado Live Mode */}
-          <View style={styles.encabezado}>
-            <View style={styles.bloqueTitulo}>
-              <View style={styles.filaInsigniaLive}>
-                <View style={styles.puntoLive} />
-                <Text style={styles.textoLive}>LIVE MODE · EN CURSO</Text>
-              </View>
-              <Text style={styles.nombreEjercicio}>
-                {ejercicioActivo.nombre}
-              </Text>
-              <View style={styles.filaBadges}>
-                <View
-                  style={[
-                    styles.badgeGrupo,
-                    {
-                      borderColor: colorGrupo,
-                      backgroundColor: `${colorGrupo}22`,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.textoBadgeGrupo, { color: colorGrupo }]}>
-                    {ejercicioActivo.grupoMuscular}
-                  </Text>
-                </View>
-                <View style={styles.badgeImplemento}>
-                  <Text style={styles.iconoImplemento}>{iconoImplemento}</Text>
-                  <Text style={styles.textoBadgeImplemento}>
-                    {ejercicioActivo.implemento || 'Implemento'}
-                  </Text>
-                </View>
-              </View>
-            </View>
+      <SafeAreaView style={styles.contenedorSafeArea}>
+        <View style={styles.cabeceraLive}>
+          <TouchableOpacity
+            style={styles.botonDescartar}
+            onPress={confirmarDescarte}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Feather name="x" size={20} color={TOKENS.colors.textSecondary} />
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.botonDescartar}
-              activeOpacity={0.75}
-              onPress={confirmarDescarte}
-            >
-              <Text style={styles.textoBotonDescartar}>✕ Salir</Text>
-            </TouchableOpacity>
+          <View style={styles.badgeLiveMode}>
+            <View style={styles.puntoLiveAnimado} />
+            <Text style={styles.textoBadgeLiveMode}>LIVE MODE</Text>
           </View>
 
-          {/* Tabla de Series */}
-          <ScrollView
-            style={styles.areaScroll}
-            contentContainerStyle={styles.contenidoScroll}
-            keyboardShouldPersistTaps="handled"
+          <TouchableOpacity
+            style={styles.botonTerminar}
+            onPress={terminarSesion}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <View style={styles.cabeceraTabla}>
-              <Text style={[styles.textoColumna, styles.colSerie]}>SERIE</Text>
-              <Text style={[styles.textoColumna, styles.colInput]}>
-                PESO (KG)
-              </Text>
-              <Text style={[styles.textoColumna, styles.colInput]}>REPS</Text>
+            <Feather name="check" size={20} color={TOKENS.colors.textInverse} />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          style={styles.scrollContenido}
+          contentContainerStyle={styles.scrollInterior}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.tarjetaEjercicioActivo}>
+            <View style={styles.filaBadgesEjercicio}>
+              <View style={styles.badgeGrupo}>
+                <Text style={styles.textoBadgeGrupo}>
+                  {ejercicioActivo.grupoMuscular?.toUpperCase()}
+                </Text>
+              </View>
+              <View style={styles.badgeImplemento}>
+                <Text style={styles.textoBadgeImplemento}>
+                  {ejercicioActivo.implemento}
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.nombreEjercicio}>{ejercicioActivo.nombre}</Text>
+          </View>
+
+          {errorValidacion ? (
+            <View style={styles.bannerError}>
+              <Feather
+                name="alert-circle"
+                size={14}
+                color={TOKENS.colors.danger}
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.textoError}>{errorValidacion}</Text>
+            </View>
+          ) : null}
+
+          <View style={styles.tablaSeries}>
+            <View style={styles.filaEncabezadoTabla}>
+              <Text style={[styles.textoEncabezado, styles.colSerie]}>SERIE</Text>
+              <Text style={[styles.textoEncabezado, styles.colInput]}>PESO (KG)</Text>
+              <Text style={[styles.textoEncabezado, styles.colInput]}>REPS</Text>
               <View style={styles.colAccion} />
             </View>
 
-            {series.map((item, index) => {
-              return (
-                <View key={String(index)} style={styles.filaSerie}>
-                  <View style={styles.bloqueNumeroSerie}>
-                    <Text style={styles.textoNumeroSerie}>{item.serie}</Text>
-                  </View>
-
-                  <View style={styles.colInput}>
-                    <TextInput
-                      style={styles.inputSerie}
-                      placeholder="0"
-                      placeholderTextColor="#666666"
-                      keyboardType={
-                        Platform.OS === 'ios' ? 'decimal-pad' : 'numeric'
-                      }
-                      value={String(item.peso ?? '')}
-                      onChangeText={(val) =>
-                        actualizarCampoSerie(index, 'peso', val)
-                      }
-                      onBlur={manejarBlurInput}
-                      selectTextOnFocus
-                    />
-                  </View>
-
-                  <View style={styles.colInput}>
-                    <TextInput
-                      style={styles.inputSerie}
-                      placeholder="10"
-                      placeholderTextColor="#666666"
-                      keyboardType="number-pad"
-                      value={String(item.repeticiones ?? '')}
-                      onChangeText={(val) =>
-                        actualizarCampoSerie(index, 'repeticiones', val)
-                      }
-                      onBlur={manejarBlurInput}
-                      selectTextOnFocus
-                    />
-                  </View>
-
-                  <View style={styles.colAccion}>
-                    {series.length > 1 ? (
-                      <TouchableOpacity
-                        style={styles.botonQuitarSerie}
-                        activeOpacity={0.7}
-                        onPress={() => eliminarSerie(index)}
-                      >
-                        <Text style={styles.textoQuitarSerie}>✕</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <View style={styles.espaciadorQuitar} />
-                    )}
+            {series.map((item, idx) => (
+              <View key={`serie-${idx}`} style={styles.filaSerie}>
+                <View style={styles.colSerie}>
+                  <View style={styles.circuloSerie}>
+                    <Text style={styles.numeroSerie}>{item.serie}</Text>
                   </View>
                 </View>
-              );
-            })}
 
-            {/* Botón para añadir serie con autorrelleno */}
-            <TouchableOpacity
-              style={styles.botonAnadirSerie}
-              activeOpacity={0.8}
-              onPress={agregarSerie}
-            >
-              <Text style={styles.iconoAnadirSerie}>＋</Text>
-              <Text style={styles.textoAnadirSerie}>
-                Añadir Serie (Autorrellena última carga)
-              </Text>
-            </TouchableOpacity>
+                <View style={styles.colInput}>
+                  <TextInput
+                    style={styles.inputSerie}
+                    keyboardType="numeric"
+                    placeholder="0"
+                    placeholderTextColor={TOKENS.colors.textMuted}
+                    value={String(item.peso)}
+                    onChangeText={(v) => actualizarCampoSerie(idx, 'peso', v)}
+                    selectTextOnFocus
+                  />
+                </View>
 
-            {errorValidacion ? (
-              <View style={styles.bannerError}>
-                <Text style={styles.textoError}>⚠️ {errorValidacion}</Text>
+                <View style={styles.colInput}>
+                  <TextInput
+                    style={styles.inputSerie}
+                    keyboardType="number-pad"
+                    placeholder="0"
+                    placeholderTextColor={TOKENS.colors.textMuted}
+                    value={String(item.repeticiones)}
+                    onChangeText={(v) => actualizarCampoSerie(idx, 'repeticiones', v)}
+                    selectTextOnFocus
+                  />
+                </View>
+
+                <View style={styles.colAccion}>
+                  {series.length > 1 ? (
+                    <TouchableOpacity
+                      style={styles.botonEliminarFila}
+                      onPress={() => eliminarSerie(idx)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Feather name="trash-2" size={14} color={TOKENS.colors.textMuted} />
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={styles.botonEliminarFila} />
+                  )}
+                </View>
               </View>
-            ) : null}
-          </ScrollView>
-
-          {/* Barra inferior fija de acciones */}
-          <View style={styles.barraAccionesInferior}>
-            <TouchableOpacity
-              style={styles.botonDescartarSecundario}
-              activeOpacity={0.75}
-              onPress={confirmarDescarte}
-            >
-              <Text style={styles.textoDescartarSecundario}>
-                Descartar
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.botonTerminar}
-              activeOpacity={0.85}
-              onPress={manejarTerminarEjercicio}
-            >
-              <Text style={styles.textoBotonTerminar}>
-                ✓ Terminar Ejercicio
-              </Text>
-            </TouchableOpacity>
+            ))}
           </View>
-        </View>
+
+          <TouchableOpacity
+            style={styles.botonAgregarSerie}
+            activeOpacity={0.8}
+            onPress={agregarSerie}
+          >
+            <Feather
+              name="plus"
+              size={16}
+              color={TOKENS.colors.textPrimary}
+              style={{ marginRight: 6 }}
+            />
+            <Text style={styles.textoAgregarSerie}>Agregar Serie</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </SafeAreaView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  contenedorSafeArea: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: TOKENS.colors.canvas,
   },
-  contenedor: {
-    flex: 1,
-    backgroundColor: '#121212',
-    paddingTop: Platform.OS === 'android' ? 36 : 10,
-  },
-  encabezado: {
+  cabeceraLive: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#262626',
+    borderBottomColor: TOKENS.colors.borderDefault,
+    backgroundColor: TOKENS.colors.surface,
   },
-  bloqueTitulo: {
-    flex: 1,
-    marginRight: 10,
+  botonDescartar: {
+    padding: 8,
   },
-  filaInsigniaLive: {
+  badgeLiveMode: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: TOKENS.radii.pill,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderStrong,
   },
-  puntoLive: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#00E676',
+  puntoLiveAnimado: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: TOKENS.colors.accentWhite,
     marginRight: 6,
   },
-  textoLive: {
-    color: '#00E676',
+  textoBadgeLiveMode: {
+    color: TOKENS.colors.textPrimary,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
-  nombreEjercicio: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '800',
-    marginBottom: 6,
+  botonTerminar: {
+    backgroundColor: TOKENS.colors.accentWhite,
+    borderRadius: TOKENS.radii.pill,
+    padding: 8,
   },
-  filaBadges: {
+  scrollContenido: {
+    flex: 1,
+  },
+  scrollInterior: {
+    padding: 16,
+    paddingBottom: 60,
+  },
+  tarjetaEjercicioActivo: {
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+  },
+  filaBadgesEjercicio: {
     flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: 8,
   },
   badgeGrupo: {
-    borderWidth: 1,
-    borderRadius: 6,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    marginRight: 6,
+    paddingVertical: 3,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderStrong,
   },
   textoBadgeGrupo: {
-    fontSize: 11,
-    fontWeight: '700',
+    color: TOKENS.colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.6,
   },
   badgeImplemento: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1E1E1E',
-    borderRadius: 6,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderWidth: 1,
-    borderColor: '#333333',
-  },
-  iconoImplemento: {
-    fontSize: 11,
-    marginRight: 4,
+    borderColor: TOKENS.colors.borderSubtle,
   },
   textoBadgeImplemento: {
-    color: '#B0B0B0',
-    fontSize: 11,
+    color: TOKENS.colors.textSecondary,
+    fontSize: 10,
     fontWeight: '600',
   },
-  botonDescartar: {
-    backgroundColor: '#2A181A',
+  nombreEjercicio: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.4,
+  },
+  bannerError: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.dangerBg,
+    borderRadius: TOKENS.radii.sm,
+    padding: 12,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#FF5252',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    borderColor: 'rgba(255, 69, 58, 0.4)',
   },
-  textoBotonDescartar: {
-    color: '#FF5252',
+  textoError: {
+    color: TOKENS.colors.danger,
     fontSize: 12,
-    fontWeight: '700',
-  },
-  areaScroll: {
+    fontWeight: '600',
     flex: 1,
-    paddingHorizontal: 16,
   },
-  contenidoScroll: {
-    paddingTop: 16,
-    paddingBottom: 24,
+  tablaSeries: {
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
   },
-  cabeceraTabla: {
+  filaEncabezadoTabla: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingBottom: 8,
-    marginBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#262626',
+    borderBottomColor: TOKENS.colors.borderSubtle,
+    marginBottom: 8,
   },
-  textoColumna: {
-    color: '#8D8D8D',
-    fontSize: 11,
+  textoEncabezado: {
+    color: TOKENS.colors.textMuted,
+    fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
     textAlign: 'center',
-  },
-  colSerie: {
-    width: 60,
-  },
-  colInput: {
-    flex: 1,
-    marginHorizontal: 6,
-  },
-  colAccion: {
-    width: 36,
-    alignItems: 'center',
   },
   filaSerie: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E1E1E',
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#2A2A2A',
+    paddingVertical: 6,
   },
-  bloqueNumeroSerie: {
-    width: 50,
+  colSerie: {
+    width: 44,
+    alignItems: 'center',
+  },
+  circuloSerie: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: TOKENS.colors.surfaceElevated,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderStrong,
   },
-  textoNumeroSerie: {
-    color: '#00E676',
-    fontSize: 16,
+  numeroSerie: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 11,
     fontWeight: '800',
+  },
+  colInput: {
+    flex: 1,
+    paddingHorizontal: 6,
   },
   inputSerie: {
-    backgroundColor: '#2A2A2A',
-    color: '#FFFFFF',
-    fontSize: 18,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.sm,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    color: TOKENS.colors.textPrimary,
+    fontSize: 15,
     fontWeight: '700',
     textAlign: 'center',
     paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#383838',
   },
-  botonQuitarSerie: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#30181A',
+  colAccion: {
+    width: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#FF5252',
   },
-  textoQuitarSerie: {
-    color: '#FF5252',
-    fontSize: 13,
-    fontWeight: '800',
+  botonEliminarFila: {
+    padding: 6,
   },
-  espaciadorQuitar: {
-    width: 28,
-    height: 28,
-  },
-  botonAnadirSerie: {
+  botonAgregarSerie: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1E2D24',
-    borderWidth: 1.5,
-    borderColor: '#00E676',
-    borderRadius: 12,
-    paddingVertical: 12,
-    marginTop: 10,
-    marginBottom: 14,
-  },
-  iconoAnadirSerie: {
-    color: '#00E676',
-    fontSize: 16,
-    fontWeight: '900',
-    marginRight: 8,
-  },
-  textoAnadirSerie: {
-    color: '#00E676',
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  bannerError: {
-    backgroundColor: '#30181A',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#FF5252',
-    marginTop: 6,
-  },
-  textoError: {
-    color: '#FF8A80',
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  barraAccionesInferior: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#181818',
-    borderTopWidth: 1,
-    borderTopColor: '#262626',
-  },
-  botonDescartarSecundario: {
-    backgroundColor: '#262626',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.md,
     paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginRight: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
   },
-  textoDescartarSecundario: {
-    color: '#B0B0B0',
+  textoAgregarSerie: {
+    color: TOKENS.colors.textPrimary,
     fontSize: 14,
     fontWeight: '700',
-  },
-  botonTerminar: {
-    flex: 1,
-    backgroundColor: '#00E676',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textoBotonTerminar: {
-    color: '#121212',
-    fontSize: 16,
-    fontWeight: '800',
   },
 });

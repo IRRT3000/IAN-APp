@@ -2,27 +2,23 @@
 Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o eliminar lo obsoleto.
 
 ## Estado Actual
-- Fase 1 completada: Registro de entrenamientos (`storage.js`), `HeatmapSemanal.jsx` y `MenuBienvenida.jsx`.
-- Fase 2 completada: Ojo Nutricional Multimodal con Gemini (`src/services/gemini.js`), `src/components/NutricionView.jsx`, persistencia de comidas y barra inferior.
-- Spec `001-borrar-registros` completada: Eliminación individual con botón `#FF5252` (`🗑 1s`), `delayLongPress={1000}`, doble pulso háptico y `Alert.alert`.
-- Spec `002-analisis-cambio-fisico` completada: 4ta pestaña `💪 Físico`, filtro contra `gemini-3.8`, perfil configurable, 1–10 fotos, báscula circular, hora 12h y veredicto `0/10`.
-- Spec `003-registro-entrenamientos-activo` completada: `SelectorSemanal.jsx` (7 días locales), inmutabilidad temporal, catálogo extendido (~45 ejercicios en 6 grupos), `LiveModeModal.jsx` (BackHandler dual, auto-save 350ms, botón `+`), consolidación híbrida.
-- Spec `004-mapa-calor-anual` completada: Motor proporcional "Vaso de Agua" (0.0 a 1.0) con soporte para descanso (`@fitness_tracker_dias_descanso_v1`), fotos como insignia, selector `< [Año] >`, desglose interactivo emergente y celdas memoizadas.
-- Spec `005-heatmap-tab-y-reactividad` completada (`specs/005-heatmap-tab-y-reactividad/{spec,plan,tasks}.md`): Reactividad inmediata de hábitos en `App.js` al agregar/eliminar comidas, entrenos, fotos o descanso; 5ª pestaña `🔥 Heatmap` en `BarraNavegacionInferior.jsx` con `HeatmapView.jsx` (12 meses, selector de año, leyenda y métricas anuales); widget mensual interactivo en `MenuBienvenida.jsx` (`MonthBlock` con celdas ampliadas 34x34 y `DaySummaryModal`).
-- Sistema Multi-Agente ampliado: `orquestador`, `planificador`, `revisor-critico`, `implementador`, más especialistas `subagente-ui` (Diseñador Visual) y `subagente-motion` (Ingeniero Animaciones).
-- Stack de rediseño y animación configurado: `react-native-reanimated` 4.x, `react-native-gesture-handler` 3.x, `react-native-worklets` y skills de élite instaladas (`ui-ux-pro-max`, `emilkowalski/skills` [animate-expo, emil-design-eng], `taste-skill` [design-taste-frontend], `frontend-design`). Verificación `npx expo-doctor` 20/20.
+- Specs previas completadas: 001 (borrado seguro), 002 (físico IA), 003 (live mode), 004 (mapa calor), 005 (pestaña heatmap y reactividad).
+- Spec 006 completada y auditada (`specs/006-rediseño-matte-luxury/`): Rediseño Total Monocromo Matte Luxury (Android-First Edition).
+- Sistema de Tokens (`src/theme/tokens.js`): Fondo `#0A0A0A`, superficies `#141414`/`#1C1C1E`, bordes hairline `#262626`, texto `#FFFFFF`/`#8E8E93`.
+- 100% Erradicación de Emojis: Cero glifos en UI, alertas y catálogo; uso exclusivo de `@expo/vector-icons` (`Feather`).
+- Arquitectura Android-First: Barra flotante (`elevation: 8`), `BackHandler` nativo retornando a Inicio en `App.js`, y scroll clearance mandatorio (`paddingBottom: 110`) en todas las listas.
+- Cápsula de Progreso Líquido (1000ms): Borrado en UI Thread con Reanimated 4 (`scaleX`) y hápticos unificados sin dependencias SVG.
+- Heatmap Monocromo de 5 Niveles: Inversión tipográfica automática a `#0A0A0A` en niveles 3 y 4 en pantallas AMOLED.
+- Inmunidad del Backend: Cero cambios en `storage.js`, `gemini.js`, `dateUtilsLocal.js` y fórmulas de `waterGlassEngine.js`.
+- Verificación técnica: `npx expo-doctor` 20/20 checks pasados, Metro bundle Android exportado con éxito (0 errores).
 
-## Decisiones Técnicas (y su justificación)
-- Flujo de trabajo (regla del usuario): Tanto **nuevas Specs** como **correcciones de bugs** usan obligatoriamente el equipo multi-agente (`orquestador` → `planificador` → `revisor-critico` → `implementador`). Prohibido realizar fixes directos sin pasar por el flujo multi-agente.
-- Prohibición estricta de `babel.config.js` externo: Expo SDK 58 gestiona internamente la transpilación; añadir `babel.config.js` en la raíz rompe la sintaxis JSX de Metro.
-- Dos resúmenes anuales (`App.js`): `resumenAnioActual` (widget mensual de Inicio, siempre año en curso) y `resumenAnual` (año explorado en Heatmap). `refrescarHabitosConcurrentes()` actualiza ambos tras cada cambio de comidas/entrenos/fotos/descanso.
-- Widget mensual responsivo (`MonthBlock.jsx`): tamaño de celda calculado con `useWindowDimensions` (máx. 34px) para que 7 columnas quepan en pantallas de 360dp sin desbordar. Contraste accesible `#121212` en verde (niveles 2-4).
-- Motor Vaso de Agua y Días de Descanso (`waterGlassEngine.js`, `storage.js`): Puntuación 0.0 a 1.0 dividida en 50% nutrición y 50% entreno/descanso; días de descanso persisten en `@fitness_tracker_dias_descanso_v1` sin penalización; fotos físicas computan como insignia visual sin degradar el score.
-- Aritmética local y cuadrícula anual (`dateUtilsLocal.js`, `MonthBlock.jsx`, `HeatmapDayCell.jsx`): Celdas memoizadas con `React.memo`, alineación L-D con `(day + 6) % 7`, indexación $O(1)$ en `obtenerResumenAnualHabitos` y `ScrollView` ergonómico.
-- Live Mode seguro y auto-save reactivo (`storage.js`, `LiveModeModal.jsx`): Intercepción dual `BackHandler` + `onRequestClose` con alerta destructiva; debounce de 350ms en inputs y guardado síncrono al agregar/quitar series; borrador en `@fitness_tracker_sesion_activa_draft_v1`.
-- Consolidación híbrida y retrocompatibilidad (`EntrenamientosView.jsx`, `storage.js`): Guarda `seriesDetalle` y a la vez calcula `series`, `repeticiones`, `peso`, `pesoMaximo` y `volumenTotal` para mantener intactos `MenuBienvenida` y el selector. Tarjetas adaptativas con soporte legacy.
-- Inmutabilidad temporal y aritmética local pura: Fechas calculadas con `new Date(y, m, d - i)` y `obtenerFechaLocal()`. Prohibido `toISOString()`.
+## Decisiones Técnicas Clave
+- Flujo de trabajo mandatorio: Nuevas specs y corrección de bugs pasan obligatoriamente por el equipo multi-agente (`orquestador` → `planificador`/`subagente-ui` → `subagente-motion`/`implementador` → `revisor-critico`).
+- Android-First sin blur de GPU: Superficies sólidas carbón mate (`#141414`) y elevación nativa en lugar de `BlurView` para evitar caídas de frames y esquinas rotas en Android.
+- Slider de Pestañas Numérico: Medición única en contenedor padre con `onLayout` y resorte amortiguado (`duration: 240, dampingRatio: 1, overshootClamping: true`) evitando advertencias en worklets.
+- Transición fluida `FadeIn.duration(180)` con `key={vistaActiva}` en `App.js`: Cero doble montaje, sin fugas de memoria y respuesta táctil inmediata.
+- Motor Vaso de Agua y Días de Descanso (`waterGlassEngine.js`, `storage.js`): 50% nutrición y 50% entreno/descanso; descanso persiste en `@fitness_tracker_dias_descanso_v1` sin penalización.
+- Inmutabilidad temporal y fechas locales: Fecha local estricta `YYYY-MM-DD` con `obtenerFechaLocal()`. Prohibido `toISOString()`.
 - Persistencia local inmutable sin Base64: Almacena URIs para prevenir `CursorWindow` overflow en Android.
 - Haptics unificados (`src/services/haptics.js`): Pulsos hápticos para borrado, series, fotos y báscula con fallback a `Vibration.vibrate`.
 - Failover en Gemini Vision (`src/services/gemini.js`): Principal `gemini-3-flash-preview`, respaldo `gemini-3.5-flash-lite`, timeout 60s con `AbortController`.
-- Motor de Animación y Estética Dark Luxury OLED: Animaciones 60fps en UI thread con Reanimated 4 + Worklets y resortes calculados; sincronización milimétrica con `haptics.js`; diseño basado en negro OLED (#000000), tarjetas #141414 y acento verde neón (#00E676).

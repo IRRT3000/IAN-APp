@@ -4,8 +4,8 @@ import { PALETA_NIVELES_VASO } from '../../utils/waterGlassEngine';
 
 /**
  * Celda individual de día en el mapa de calor anual.
+ * Spec 006: Monocromo Matte Luxury con inversión tipográfica automática.
  * Memoizada con React.memo para evitar re-renderizados innecesarios de las 365 celdas.
- * Admite modo compacto (14x14) para mapa anual y modo destacado (34x34 con número) para widget mensual.
  */
 function HeatmapDayCell({
   fechaStr,
@@ -47,6 +47,12 @@ function HeatmapDayCell({
     }
   };
 
+  const colorTextoDia = isFuture
+    ? '#444444'
+    : isToday
+    ? (nivelSeguro >= 3 ? '#0A0A0A' : '#FFFFFF')
+    : estiloNivel.texto;
+
   return (
     <TouchableOpacity
       activeOpacity={isFuture ? 1 : 0.7}
@@ -69,21 +75,20 @@ function HeatmapDayCell({
         isFuture && styles.celdaFutura,
       ]}
     >
-      {/* En modo grande mostramos el número del día con contraste accesible (Ajuste Revisor D) */}
+      {/* En modo grande mostramos el número del día con inversión de contraste automática */}
       {tamanoGrande ? (
         <Text
           style={[
             styles.textoDia,
-            nivelSeguro >= 2 ? styles.textoDiaOscuro : styles.textoDiaClaro,
+            { color: colorTextoDia },
             isToday && styles.textoDiaHoy,
-            isFuture && styles.textoDiaFuturo,
           ]}
         >
           {dia}
         </Text>
       ) : null}
 
-      {/* Insignia dorada si hay foto de progreso */}
+      {/* Micro-anillo de foto de progreso (Monocromo platino) */}
       {hasPhoto && !isFuture ? (
         <View
           style={[
@@ -136,33 +141,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   celdaFutura: {
-    opacity: 0.18,
-    backgroundColor: '#1E1E1E',
-    borderColor: '#262626',
+    opacity: 0.25,
+    backgroundColor: '#121212',
+    borderColor: '#1C1C1E',
   },
   textoDia: {
     fontSize: 10,
     fontWeight: '700',
   },
-  textoDiaClaro: {
-    color: '#D4D4D4',
-  },
-  textoDiaOscuro: {
-    color: '#121212',
-    fontWeight: '900',
-  },
   textoDiaHoy: {
-    color: '#FFFFFF',
     fontWeight: '900',
-  },
-  textoDiaFuturo: {
-    color: '#555555',
   },
   puntoFoto: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#FFD700',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0.5,
+    borderColor: '#0A0A0A',
   },
   puntoFotoGrande: {
     position: 'absolute',
@@ -176,7 +172,7 @@ const styles = StyleSheet.create({
     width: 3,
     height: 3,
     borderRadius: 1.5,
-    backgroundColor: '#60A5FA',
+    backgroundColor: '#8E8E93',
   },
   puntoDescansoGrande: {
     position: 'absolute',

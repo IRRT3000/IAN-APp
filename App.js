@@ -1,7 +1,8 @@
 // @refresh reset
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Platform, SafeAreaView, StyleSheet, View } from 'react-native';
+import { BackHandler, Platform, SafeAreaView, StyleSheet, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import BarraNavegacionInferior from './src/components/BarraNavegacionInferior';
 import CambioFisicoView from './src/components/CambioFisicoView';
 import EntrenamientosView from './src/components/EntrenamientosView';
@@ -19,6 +20,7 @@ import {
   obtenerFechaLocal,
   obtenerResumenAnualHabitos,
 } from './src/services/storage';
+import { TOKENS } from './src/theme/tokens';
 
 export default function App() {
   const [entrenamientos, setEntrenamientos] = useState([]);
@@ -79,6 +81,26 @@ export default function App() {
   useEffect(() => {
     sincronizarDatos();
   }, [sincronizarDatos]);
+
+  // Soporte Android-First: BackHandler retorna a bienvenida antes de salir de la app (RF-4)
+  useEffect(() => {
+    const onBackPress = () => {
+      if (enLiveMode) {
+        return false; // LiveModeModal intercepta su propio BackHandler
+      }
+      if (vistaActiva !== 'bienvenida') {
+        setVistaActiva('bienvenida');
+        return true; // Intercepta el botón Atrás y regresa al dashboard de inicio
+      }
+      return false; // Permite el comportamiento nativo de salida en 'bienvenida'
+    };
+
+    const suscripcion = BackHandler.addEventListener(
+      'hardwareBackPress',
+      onBackPress
+    );
+    return () => suscripcion.remove();
+  }, [vistaActiva, enLiveMode]);
 
   const manejarCambiarAnioHeatmap = useCallback(
     async (nuevoAnio) => {
@@ -232,9 +254,17 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
       <View style={styles.contenedorPrincipal}>
-        <View style={styles.areaContenido}>{renderizarVistaActiva()}</View>
+        <View style={styles.areaContenido}>
+          <Animated.View
+            key={vistaActiva}
+            entering={FadeIn.duration(180)}
+            style={styles.areaTransicion}
+          >
+            {renderizarVistaActiva()}
+          </Animated.View>
+        </View>
 
-        {/* La barra inferior se oculta dinámicamente si el Live Mode está activo (RF-9) */}
+        {/* La barra flotante se oculta dinámicamente si el Live Mode está activo */}
         {!enLiveMode ? (
           <BarraNavegacionInferior
             vistaActiva={vistaActiva}
@@ -252,16 +282,19 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: TOKENS.colors.canvas,
   },
   contenedorPrincipal: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: TOKENS.colors.canvas,
     paddingTop: Platform.OS === 'android' ? 42 : 16,
-    paddingBottom: Platform.OS === 'android' ? 24 : 10,
+    paddingBottom: 0, // Las vistas usan paddingBottom: 110 para scroll clearance
     paddingHorizontal: 16,
   },
   areaContenido: {
+    flex: 1,
+  },
+  areaTransicion: {
     flex: 1,
   },
 });
