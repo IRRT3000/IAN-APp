@@ -7,16 +7,19 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { formatearFechaLegible } from '../../utils/dateUtilsLocal';
 import { PALETA_NIVELES_VASO } from '../../utils/waterGlassEngine';
+import { TOKENS } from '../../theme/tokens';
 
 /**
- * Modal emergente interactivo que desglosa los hábitos del día seleccionado:
+ * Modal emergente interactivo que desglosa los hábitos del día seleccionado (Spec 006: Monocromo Matte Luxury):
  * - Vaso de Agua con porcentaje continuo y barra visual
  * - Nutrición (X/3 comidas registradas y Kcal)
  * - Entrenamiento / Descanso sin penalización
  * - Fotos de progreso corporal (insignia)
  * - Botón para alternar descanso únicamente si la fecha es hoy (Inmutabilidad temporal)
+ * - CERO EMOJIS: iconos Feather integrados con estética editorial.
  */
 export default function DaySummaryModal({
   visible = false,
@@ -58,7 +61,7 @@ export default function DaySummaryModal({
         <View style={styles.fondoOverlay}>
           <TouchableWithoutFeedback>
             <View style={styles.tarjetaModal}>
-              {/* Encabezado con fecha y badge */}
+              {/* Encabezado con fecha y botón cerrar */}
               <View style={styles.encabezado}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.fechaTexto}>
@@ -78,7 +81,7 @@ export default function DaySummaryModal({
                   onPress={onClose}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Text style={styles.textoCruz}>✕</Text>
+                  <Feather name="x" size={16} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
 
@@ -105,11 +108,13 @@ export default function DaySummaryModal({
                 </View>
               </View>
 
-              {/* Desglose de Hábitos */}
+              {/* Desglose de Hábitos Monocromo */}
               <View style={styles.contenedorDesglose}>
                 {/* 1. Nutrición */}
                 <View style={styles.filaHabito}>
-                  <Text style={styles.iconoHabito}>🥗</Text>
+                  <View style={styles.iconoHabitoContenedor}>
+                    <Feather name="pie-chart" size={16} color="#FFFFFF" />
+                  </View>
                   <View style={styles.infoHabito}>
                     <Text style={styles.tituloHabito}>Nutrición</Text>
                     <Text style={styles.detalleHabito}>
@@ -130,9 +135,13 @@ export default function DaySummaryModal({
 
                 {/* 2. Entrenamiento o Descanso */}
                 <View style={styles.filaHabito}>
-                  <Text style={styles.iconoHabito}>
-                    {hasWorkout ? '🏋️' : isRestDay ? '🛌' : '⏳'}
-                  </Text>
+                  <View style={styles.iconoHabitoContenedor}>
+                    <Feather
+                      name={hasWorkout ? 'activity' : isRestDay ? 'moon' : 'clock'}
+                      size={16}
+                      color="#FFFFFF"
+                    />
+                  </View>
                   <View style={styles.infoHabito}>
                     <Text style={styles.tituloHabito}>
                       {hasWorkout
@@ -160,8 +169,10 @@ export default function DaySummaryModal({
                 </View>
 
                 {/* 3. Fotos de Progreso (Insignia) */}
-                <View style={styles.filaHabito}>
-                  <Text style={styles.iconoHabito}>📸</Text>
+                <View style={[styles.filaHabito, { borderBottomWidth: 0 }]}>
+                  <View style={styles.iconoHabitoContenedor}>
+                    <Feather name="camera" size={16} color="#FFFFFF" />
+                  </View>
                   <View style={styles.infoHabito}>
                     <Text style={styles.tituloHabito}>Fotos de Progreso</Text>
                     <Text style={styles.detalleHabito}>
@@ -172,7 +183,8 @@ export default function DaySummaryModal({
                   </View>
                   {hasPhoto ? (
                     <View style={styles.badgeInsignia}>
-                      <Text style={styles.textoInsignia}>⭐ INSIGNIA</Text>
+                      <Feather name="award" size={10} color="#0A0A0A" style={{ marginRight: 3 }} />
+                      <Text style={styles.textoInsignia}>INSIGNIA</Text>
                     </View>
                   ) : (
                     <Text style={styles.scoreHabito}>Opcional</Text>
@@ -195,13 +207,19 @@ export default function DaySummaryModal({
                       }
                     }}
                   >
+                    <Feather
+                      name="moon"
+                      size={14}
+                      color={isRestDay ? '#FFFFFF' : '#8E8E93'}
+                      style={{ marginRight: 6 }}
+                    />
                     <Text
                       style={[
                         styles.textoBotonAccion,
                         isRestDay ? styles.textoDescansoActivo : styles.textoDescansoInactivo,
                       ]}
                     >
-                      {isRestDay ? '🛌 Quitar Día de Descanso' : '🛌 Marcar como Día de Descanso'}
+                      {isRestDay ? 'Quitar Día de Descanso' : 'Marcar como Día de Descanso'}
                     </Text>
                   </TouchableOpacity>
 
@@ -214,7 +232,8 @@ export default function DaySummaryModal({
                         if (typeof onIrAEntrenos === 'function') onIrAEntrenos();
                       }}
                     >
-                      <Text style={styles.textoBotonPrimario}>⚡ Entrenar</Text>
+                      <Feather name="activity" size={13} color="#0A0A0A" style={{ marginRight: 4 }} />
+                      <Text style={styles.textoBotonPrimario}>Entrenar</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -225,7 +244,8 @@ export default function DaySummaryModal({
                         if (typeof onIrANutricion === 'function') onIrANutricion();
                       }}
                     >
-                      <Text style={styles.textoBotonSecundario}>🥗 Comida</Text>
+                      <Feather name="pie-chart" size={13} color="#FFFFFF" style={{ marginRight: 4 }} />
+                      <Text style={styles.textoBotonSecundario}>Comida</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -255,17 +275,17 @@ export default function DaySummaryModal({
 const styles = StyleSheet.create({
   fondoOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.78)',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
   },
   tarjetaModal: {
     width: '100%',
-    backgroundColor: '#1E1E1E',
-    borderRadius: 18,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.lg,
     borderWidth: 1,
-    borderColor: '#2E2E2E',
+    borderColor: TOKENS.colors.borderDefault,
     padding: 20,
   },
   encabezado: {
@@ -275,35 +295,32 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   fechaTexto: {
-    color: '#FFFFFF',
-    fontSize: 17,
+    color: TOKENS.colors.textPrimary,
+    fontSize: 16,
     fontWeight: '800',
     marginBottom: 3,
   },
   subtituloModal: {
-    color: '#8D8D8D',
+    color: TOKENS.colors.textSecondary,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   botonCerrarCruz: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#2A2A2A',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: TOKENS.colors.surfaceElevated,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  textoCruz: {
-    color: '#B0B0B0',
-    fontSize: 13,
-    fontWeight: '700',
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
   },
   seccionVaso: {
-    backgroundColor: '#151515',
-    borderRadius: 12,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.md,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: TOKENS.colors.borderDefault,
     marginBottom: 16,
   },
   filaVasoHeader: {
@@ -313,149 +330,176 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   etiquetaVaso: {
-    color: '#888888',
-    fontSize: 11,
+    color: TOKENS.colors.textSecondary,
+    fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   porcentajeVaso: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
   },
   contenedorBarra: {
-    height: 8,
-    backgroundColor: '#2A2A2A',
-    borderRadius: 4,
+    height: 6,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: 3,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
   },
   barraProgreso: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 3,
   },
   contenedorDesglose: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.md,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
     marginBottom: 16,
   },
   filaHabito: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#262626',
+    borderBottomColor: TOKENS.colors.borderDefault,
   },
-  iconoHabito: {
-    fontSize: 20,
+  iconoHabitoContenedor: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: TOKENS.colors.surface,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
   infoHabito: {
     flex: 1,
   },
   tituloHabito: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    color: TOKENS.colors.textPrimary,
+    fontSize: 13,
     fontWeight: '700',
     marginBottom: 2,
   },
   detalleHabito: {
-    color: '#9E9E9E',
-    fontSize: 12,
+    color: TOKENS.colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '500',
   },
   scoreHabito: {
-    color: '#757575',
-    fontSize: 13,
+    color: TOKENS.colors.textMuted,
+    fontSize: 12,
     fontWeight: '700',
   },
   scoreHabitoPositivo: {
-    color: '#00E676',
+    color: TOKENS.colors.textPrimary,
   },
   badgeInsignia: {
-    backgroundColor: 'rgba(255, 215, 0, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.4)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: TOKENS.radii.xs,
   },
   textoInsignia: {
-    color: '#FFD700',
-    fontSize: 10,
+    color: '#0A0A0A',
+    fontSize: 9,
     fontWeight: '800',
+    letterSpacing: 0.5,
   },
   contenedorAcciones: {
     marginBottom: 12,
   },
   botonAccionModal: {
-    paddingVertical: 11,
-    borderRadius: 10,
+    flexDirection: 'row',
+    height: 44,
+    borderRadius: TOKENS.radii.md,
     alignItems: 'center',
-    marginBottom: 10,
+    justifyContent: 'center',
+    marginBottom: 8,
     borderWidth: 1,
   },
   botonDescansoInactivo: {
-    backgroundColor: '#2A2A2A',
-    borderColor: '#3B82F6',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderColor: TOKENS.colors.borderDefault,
   },
   botonDescansoActivo: {
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    borderColor: '#60A5FA',
+    backgroundColor: '#262626',
+    borderColor: '#FFFFFF',
   },
   textoBotonAccion: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
   },
   textoDescansoInactivo: {
-    color: '#60A5FA',
+    color: TOKENS.colors.textSecondary,
   },
   textoDescansoActivo: {
-    color: '#93C5FD',
+    color: '#FFFFFF',
   },
   filaBotonesAccesos: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 8,
   },
   botonAccesoPequeno: {
     flex: 1,
-    backgroundColor: '#262626',
-    borderRadius: 10,
-    paddingVertical: 10,
-    marginHorizontal: 3,
+    flexDirection: 'row',
+    height: 42,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.md,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#00E676',
+    borderColor: TOKENS.colors.borderDefault,
   },
   botonPrimario: {
-    backgroundColor: '#00E676',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
   },
   textoBotonPrimario: {
-    color: '#121212',
+    color: '#0A0A0A',
     fontSize: 12,
     fontWeight: '800',
   },
   textoBotonSecundario: {
-    color: '#00E676',
+    color: TOKENS.colors.textPrimary,
     fontSize: 12,
     fontWeight: '700',
   },
   bloqueSoloLectura: {
-    backgroundColor: '#151515',
+    backgroundColor: TOKENS.colors.surfaceElevated,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: TOKENS.radii.sm,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
     marginBottom: 12,
   },
   textoSoloLectura: {
-    color: '#757575',
+    color: TOKENS.colors.textSecondary,
     fontSize: 11,
     textAlign: 'center',
     fontStyle: 'italic',
   },
   botonCerrar: {
-    backgroundColor: '#2A2A2A',
-    borderRadius: 10,
-    paddingVertical: 11,
+    height: 42,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.md,
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
   },
   textoBotonCerrar: {
-    color: '#CCCCCC',
-    fontSize: 13,
+    color: TOKENS.colors.textSecondary,
+    fontSize: 12,
     fontWeight: '700',
   },
 });

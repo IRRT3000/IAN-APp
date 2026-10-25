@@ -1,51 +1,49 @@
-# Especificación 006: Rediseño Total Monocromo Matte Luxury
+# Especificación 006: Rediseño Total Monocromo Matte Luxury (Android-First Edition)
 
 ## 1. Visión y Dirección Estética
-Refundar la interfaz visual y la interacción táctil de la aplicación móvil Fitness Tracker hacia una experiencia **Monocromo Matte Luxury** de nivel editorial y comercial (*anti-AI slop*).
+Refundar la interfaz visual y la interacción táctil de la aplicación móvil Fitness Tracker hacia una experiencia **Monocromo Matte Luxury** de nivel editorial y comercial, **optimizada para la perfección en Android**.
 
 ### Reglas Críticas del Sistema
 1. **INMUTABILIDAD ABSOLUTA DEL BACKEND**: Prohibido alterar claves de `AsyncStorage`, esquemas de datos, funciones de `src/services/storage.js`, cálculos en `src/utils/waterGlassEngine.js`, fechas en `src/utils/dateUtilsLocal.js` o servicios de IA en `src/services/gemini.js`.
 2. **PROHIBICIÓN TOTAL DE EMOJIS**: Se eliminan todos los glifos emojis de la interfaz. La iconografía se implementa exclusivamente con `@expo/vector-icons` (`Feather`).
-3. **FÍSICAS DE RESORTE EN UI THREAD**: Todas las micro-animaciones (slider de tabs, compresión táctil, expansión de tarjetas, anillo de borrado) se ejecutan fuera del hilo de JavaScript utilizando `react-native-reanimated` y `worklets`.
+3. **ENFOQUE ANDROID-FIRST (PERFECCIÓN EN ANDROID)**:
+   - Superficies mate con bordes hairline de 1px (`#262626`) y elevación nativa en Android, evitando los artefactos de recorte de esquinas y caídas de frames del blur en dispositivos Android.
+   - Soporte nativo para el botón físico/gestual de Atrás (`BackHandler`): al pulsar Atrás en una pestaña secundaria, regresa a 'bienvenida' antes de salir.
+   - Holgura de navegación gestual inferior (`paddingBottom: 110` en todas las listas).
+4. **FÍSICAS DE RESORTE EN UI THREAD**: Todas las micro-animaciones (slider de tabs, compresión táctil, acordeones, cápsula de borrado) corren en el hilo de interfaz nativo con `react-native-reanimated` (4.x) y `react-native-worklets`.
 
 ---
 
-## 2. Los 12 Pilares del Rediseño
+## 2. Los Pilares de la Arquitectura Android
 
-| # | Pilar | Definición Técnica |
-| :---: | :--- | :--- |
-| **1** | **Paleta de Color** | Negro carbón `#0A0A0A`, superficies `#141414`, bordes grafito `#262626`, textos blanco hielo `#F2F2F7`. |
-| **2** | **Iconografía** | Exclusivamente `@expo/vector-icons` (`Feather`). Cero emojis. Placeholders HTTPS estables para imágenes. |
-| **3** | **Físicas de Movimiento** | Micro-animaciones ricas con físicas de resorte en UI Thread (`damping: 14–20`, `stiffness: 120–200`). |
-| **4** | **Heatmap Monocromo** | 5 niveles de contraste (`#141414`, `#262626`, `#404040`, `#757575`, `#F2F2F7`). |
-| **5** | **Slider de Navegación** | Cápsula flotante animada con inercia y resorte debajo del tab activo. |
-| **6** | **Estructura de Inicio** | Dashboard Editorial: Fecha/saludo -> Fila de 3 KPIs (divisores 1px) -> Widget mensual -> Acciones rápidas. |
-| **7** | **Borrado Seguro** | Anillo circular animado de 1000ms continuo alrededor del icono Feather `trash-2`, con desinflado elástico. |
-| **8** | **Superficies y Cristal** | *Frosted Dark Glass* (`BlurView`) para barra inferior flotante y encabezados, con bordes hairline grafito. |
-| **9** | **Transición de Pantallas** | Cross-fade sutil con micro-escala (180ms, escala 0.99 -> 1.0 en UI Thread). |
-| **10** | **Tipografía** | Editorial: tracking negativo (-0.5px) en títulos, mayúsculas con espaciado amplio (+1.2px) en `#8E8E93`. |
-| **11** | **Tarjetas de Ejercicios** | Tarjetas colapsables compactas con acordeón de resorte fluido (`4 series • 80 kg máx`). |
-| **12** | **Despliegue en 3 Fases** | Fase 1 (Tokens + Barra + Inicio), Fase 2 (Entrenamientos + Live Mode), Fase 3 (Nutrición + Físico + Heatmap). |
+| Componente | Especificación Técnica para Android |
+| :--- | :--- |
+| **Barra Inferior Flotante** | Superficie carbón mate sólida (`#141414`), `borderRadius: 24`, borde hairline `rgba(255, 255, 255, 0.08)`, elevación 8, slider animado numéricamente sin desbordes. |
+| **Borrado Seguro (1000ms)** | Cápsula de progreso líquido con `scaleX` animado en UI Thread y doble pulso háptico. Cero dependencias adicionales (sin `react-native-svg`). |
+| **Scroll Clearance** | `paddingBottom: 110` en todos los `ScrollView` y `FlatList` para que ningún botón o dato quede cubierto por la barra flotante. |
+| **Heatmap Monocromo** | 5 niveles de contraste (`#141414` a `#FFFFFF`) con inversión tipográfica automática a negro `#0A0A0A` en los niveles 3 y 4 para evitar empastamiento en pantallas AMOLED. |
+| **Iconografía** | Exclusivamente `@expo/vector-icons` (`Feather`). Cero emojis en toda la aplicación (incluyendo alertas nativas y catálogos). |
+| **Transición de Pantallas** | `FadeIn.duration(180)` sin montaje dual para garantizar 0% de consumo redundante de memoria y respuesta táctil inmediata. |
 
 ---
 
-## 3. Requerimientos Funcionales de la Fase 1
+## 3. Requerimientos de la Fase 1
 
-### RF-1: Tokens Centralizados (`src/theme/`)
-* Crear `src/theme/colors.js`, `src/theme/spacing.js`, `src/theme/typography.js` y `src/theme/radius.js`.
+### RF-1: Tokens Centralizados (`src/theme/tokens.js`)
+* Colores: `canvas: '#0A0A0A'`, `surface: '#141414'`, `border: '#262626'`, `textPrimary: '#FFFFFF'`, `textSecondary: '#8E8E93'`.
+* Escala de 5 niveles del heatmap con contraste WCAG AAA.
 
-### RF-2: Barra de Navegación Inferior Flotante (`BarraNavegacionInferior.jsx`)
-* Reemplazar todos los emojis con `Feather` (`home`, `activity`, `pie-chart`, `camera`, `calendar`).
-* Implementar cápsula deslizante animada con `react-native-reanimated` (`useAnimatedStyle`, `withSpring`).
-* Integrar `BlurView` ahumado (`tint="dark"`).
-* Insignia numérica minimalista para conteos de hoy.
+### RF-2: Barra Inferior Flotante Android (`BarraNavegacionInferior.jsx`)
+* Reemplazo de emojis por `Feather`: `home`, `activity`, `pie-chart`, `camera`, `calendar`.
+* Slider indicativo con `withSpring({ duration: 240, dampingRatio: 1, overshootClamping: true })`.
+* Altura ergonómica de 56dp y touch target mínimo de 48dp (estándar Material Design en Android).
 
 ### RF-3: Pantalla de Inicio Editorial (`MenuBienvenida.jsx`)
-* Encabezado tipográfico sobrio con fecha local formateada y saludo.
-* Caja horizontal de 3 métricas (Racha, Entrenamientos hoy, Comidas hoy) con bordes de 1px.
-* Widget `MonthBlock` adaptado a la escala monocromática de 5 niveles.
-* Lista compacta de accesos directos con iconos `Feather` y compresión de resorte en press (`scale: 0.97`).
+* Saludo sobrio con fecha local formateada.
+* Caja de 3 KPIs (Racha, Entrenamientos, Nutrición) con divisores finos.
+* Widget mensual adaptado a la escala monocroma.
+* `contentContainerStyle` con `paddingBottom: 110`.
 
-### RF-4: Contenedor Principal y Transición (`App.js`)
-* Contenedor con fondo `#0A0A0A`.
-* Transición de cambio de pestaña con `Cross-fade` y micro-escala (180ms) en UI Thread.
+### RF-4: Transición y BackHandler en `App.js`
+* Transición `FadeIn` de 180ms con `key={vistaActiva}`.
+* Intercepción de `BackHandler` en Android para volver a 'bienvenida' si está en otra vista.

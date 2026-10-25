@@ -41,12 +41,12 @@ export const IMPLEMENTOS = [
 ];
 
 export const ICONOS_IMPLEMENTOS = {
-  Barra: '🏋️',
-  Mancuerna: '🦾',
-  Polea: '⛓️',
-  Máquina: '⚙️',
-  Corporal: '🤸',
-  Otro: '⚡',
+  Barra: 'activity',
+  Mancuerna: 'disc',
+  Polea: 'sliders',
+  Máquina: 'settings',
+  Corporal: 'user',
+  Otro: 'zap',
 };
 
 export const CATALOGO_EJERCICIOS_BASE = [

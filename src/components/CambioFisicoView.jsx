@@ -11,7 +11,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
+import { Feather } from '@expo/vector-icons';
 import {
   analizarCambioFisicoConGemini,
   compararCambioFisicoConGemini,
@@ -35,16 +41,13 @@ import {
   vibrarSeleccionBascula,
   vibrarToqueComparacion,
 } from '../services/haptics';
+import { TOKENS } from '../theme/tokens';
 
 const MAX_FOTOS_POR_ANALISIS = 10;
 const DURACION_PULSACION_BORRADO_MS = 1000;
 const MOMENTOS_DIA = ['En ayunas', 'Mediodía', 'Post-entreno', 'Noche'];
 const PASOS_BASCULA = [-1.0, -0.5, -0.1, 0.1, 0.5, 1.0];
 
-/**
- * Obtiene la hora local actual desglosada en formato de 12 horas (hh:mm AM/PM)
- * y sugiere el momento del día según la franja horaria.
- */
 const obtenerEstadoHoraInicial = (fecha = new Date()) => {
   const horas24 = fecha.getHours();
   const minutos = fecha.getMinutes();
@@ -76,6 +79,56 @@ const formatearHora12h = (hora, minutos, periodo) => {
   return `${hh}:${mm} ${periodo}`;
 };
 
+function CapsulaBorradoSeguroFisico({ onBorrar, onAvisoCorto }) {
+  const progreso = useSharedValue(0);
+  const timerRef = useRef(null);
+  const presionadoLargoRef = useRef(false);
+
+  const handlePressIn = () => {
+    presionadoLargoRef.current = false;
+    vibrarInicioPresionBorrado();
+    progreso.value = withTiming(1, { duration: DURACION_PULSACION_BORRADO_MS });
+    timerRef.current = setTimeout(() => {
+      presionadoLargoRef.current = true;
+      vibrarConfirmacionBorrado();
+      onBorrar();
+      progreso.value = withTiming(0, { duration: 150 });
+    }, DURACION_PULSACION_BORRADO_MS);
+  };
+
+  const handlePressOut = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    if (!presionadoLargoRef.current) {
+      progreso.value = withTiming(0, { duration: 180 });
+      if (typeof onAvisoCorto === 'function') {
+        onAvisoCorto();
+      }
+    }
+  };
+
+  const estiloFill = useAnimatedStyle(() => ({
+    width: `${progreso.value * 100}%`,
+  }));
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={styles.capsulaBorradoContenedor}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+    >
+      <Animated.View style={[styles.capsulaBorradoFill, estiloFill]} />
+      <View style={styles.capsulaBorradoContenido}>
+        <Feather name="trash-2" size={12} color={TOKENS.colors.danger} />
+        <Text style={styles.capsulaBorradoTexto}>1s</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 export default function CambioFisicoView({
   cambiosExternos,
   entrenamientosHoy = [],
@@ -94,7 +147,6 @@ export default function CambioFisicoView({
   const [comparandoId, setComparandoId] = useState(null);
   const [avisoBorradoId, setAvisoBorradoId] = useState(null);
 
-  // Estado del menú interactivo pre-análisis (Báscula circular + Hora 12h)
   const [modalVisible, setModalVisible] = useState(false);
   const [pesoSeleccionadoKg, setPesoSeleccionadoKg] = useState(
     PERFIL_USUARIO_BASE.pesoKgBase
@@ -104,7 +156,6 @@ export default function CambioFisicoView({
   const [periodo12, setPeriodo12] = useState('AM');
   const [momentoDia, setMomentoDia] = useState('En ayunas');
 
-  // Caché en memoria de las fotos Base64 recién analizadas en la sesión actual (sin guardar Base64 en AsyncStorage)
   const fotosBase64PorRegistroRef = useRef({});
   const timerAvisoRef = useRef(null);
 
@@ -151,9 +202,7 @@ export default function CambioFisicoView({
   }, [listaRegistros, perfilActivo]);
 
   const cambiarObjetivo = async (nuevoObjetivo) => {
-    if (analizando) {
-      return;
-    }
+    if (analizando) return;
     vibrarSeleccionBascula();
     const actualizado = await actualizarObjetivoPerfil(nuevoObjetivo);
     setPerfilInterno(actualizado);
@@ -190,9 +239,7 @@ export default function CambioFisicoView({
   };
 
   const abrirCamara = async () => {
-    if (analizando) {
-      return;
-    }
+    if (analizando) return;
     if (fotosSeleccionadas.length >= MAX_FOTOS_POR_ANALISIS) {
       setAvisoLimiteFotos(
         `Ya tienes ${MAX_FOTOS_POR_ANALISIS} fotos seleccionadas (máximo permitido).`
@@ -224,9 +271,7 @@ export default function CambioFisicoView({
   };
 
   const abrirGaleria = async () => {
-    if (analizando) {
-      return;
-    }
+    if (analizando) return;
     const cupoRestante = MAX_FOTOS_POR_ANALISIS - fotosSeleccionadas.length;
     if (cupoRestante <= 0) {
       setAvisoLimiteFotos(
@@ -243,7 +288,6 @@ export default function CambioFisicoView({
         return;
       }
 
-      // Advertencia Crítica 2: NO usar allowsEditing junto con allowsMultipleSelection
       const resultado = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsMultipleSelection: true,
@@ -274,9 +318,7 @@ export default function CambioFisicoView({
   };
 
   const abrirMenuInteractivoPreAnalisis = () => {
-    if (fotosSeleccionadas.length === 0 || analizando) {
-      return;
-    }
+    if (fotosSeleccionadas.length === 0 || analizando) return;
     const estadoHora = obtenerEstadoHoraInicial(new Date());
     setPesoSeleccionadoKg(ultimoPesoConocido);
     setHora12(estadoHora.hora);
@@ -298,10 +340,7 @@ export default function CambioFisicoView({
 
   const ajustarHora12 = (delta) => {
     vibrarSeleccionBascula();
-    setHora12((prev) => {
-      const siguiente = ((prev - 1 + delta + 12) % 12) + 1;
-      return siguiente;
-    });
+    setHora12((prev) => ((prev - 1 + delta + 12) % 12) + 1);
   };
 
   const ajustarMinutos12 = (delta) => {
@@ -315,9 +354,7 @@ export default function CambioFisicoView({
   };
 
   const confirmarYAnalizarCambioFisico = async () => {
-    if (analizando || fotosSeleccionadas.length === 0) {
-      return;
-    }
+    if (analizando || fotosSeleccionadas.length === 0) return;
 
     const horaFormateada = formatearHora12h(hora12, minutos12, periodo12);
     const imagenesBase64 = fotosSeleccionadas
@@ -360,7 +397,7 @@ export default function CambioFisicoView({
           onProgreso: ({ modelo, indice, total, falloAnterior }) => {
             setTextoProgreso(
               falloAnterior
-                ? `${falloAnterior.modelo} falló (${falloAnterior.status}). Probando ${modelo} (${indice}/${total})...`
+                ? `${falloAnterior.modelo} falló. Probando ${modelo} (${indice}/${total})...`
                 : `Evaluando ${imagenesBase64.length} foto(s) con ${modelo} (${indice}/${total})...`
             );
           },
@@ -371,7 +408,6 @@ export default function CambioFisicoView({
         .toString(36)
         .substring(2, 8)}`;
 
-      // Guardar Base64 sólo en memoria de sesión para comparación inmediata (nunca en AsyncStorage)
       fotosBase64PorRegistroRef.current = {
         ...fotosBase64PorRegistroRef.current,
         [idNuevoRegistro]: imagenesBase64,
@@ -426,18 +462,10 @@ export default function CambioFisicoView({
     }
   };
 
-  /**
-   * Un solo toque (onPress): dispara simultáneamente vibración háptica y la comparativa con Gemini (RF-14, RF-15).
-   */
   const manejarComparacionEnUnToque = async (registroActual, registroAnterior) => {
-    if (!registroActual || !registroAnterior || Boolean(comparandoId)) {
-      return;
-    }
+    if (!registroActual || !registroAnterior || Boolean(comparandoId)) return;
 
-    // 1. Pulso háptico inmediato en el mismo toque (RF-15)
     vibrarToqueComparacion();
-
-    // 2. Bloqueo contra doble toque e inicio de comparación
     setComparandoId(registroActual.id);
     setMensajeError('');
 
@@ -513,10 +541,9 @@ export default function CambioFisicoView({
 
   const solicitarConfirmacionBorrado = (item) => {
     setAvisoBorradoId(null);
-    vibrarConfirmacionBorrado();
     Alert.alert(
-      '⚠️ Eliminar chequeo físico',
-      `¿Estás seguro de eliminar el análisis del ${item.fecha} (${item.pesoKg} kg · Veredicto ${item.veredicto}/10)?\n\nEsta acción borrará el registro definitivamente.`,
+      'Eliminar chequeo físico',
+      `¿Deseas eliminar el análisis del ${item.fecha} (${item.pesoKg} kg · Veredicto ${item.veredicto}/10)?\n\nEsta acción borrará el registro definitivamente.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -546,13 +573,25 @@ export default function CambioFisicoView({
                 <Text style={styles.textoChipContexto}>{item.momentoDia}</Text>
               </View>
               <View style={styles.chipContexto}>
+                <Feather
+                  name="sliders"
+                  size={10}
+                  color={TOKENS.colors.textSecondary}
+                  style={{ marginRight: 4 }}
+                />
                 <Text style={styles.textoChipContexto}>
-                  ⚖️ {Number(item.pesoKg).toFixed(1)} kg
+                  {Number(item.pesoKg).toFixed(1)} kg
                 </Text>
               </View>
               <View style={styles.chipContexto}>
+                <Feather
+                  name="target"
+                  size={10}
+                  color={TOKENS.colors.textSecondary}
+                  style={{ marginRight: 4 }}
+                />
                 <Text style={styles.textoChipContexto}>
-                  🎯 {item.objetivo || 'Mantenimiento'}
+                  {item.objetivo || 'Mantenimiento'}
                 </Text>
               </View>
             </View>
@@ -585,7 +624,6 @@ export default function CambioFisicoView({
           </ScrollView>
         ) : null}
 
-        {/* RF-13: Se muestra resumenSimple y balanceDelDia; resumenDetallado permanece guardado en AsyncStorage para futura Spec */}
         <View style={styles.bloqueResumenSimple}>
           <Text style={styles.etiquetaBloque}>RESUMEN GENERAL</Text>
           <Text style={styles.textoResumenSimple}>{item.resumenSimple}</Text>
@@ -593,9 +631,17 @@ export default function CambioFisicoView({
 
         {item.balanceDelDia ? (
           <View style={styles.bloqueBalanceDia}>
-            <Text style={styles.etiquetaBalanceDia}>
-              ⚡ BALANCE DEL DÍA (COMIDAS Y ENTRENAMIENTOS HOY)
-            </Text>
+            <View style={styles.filaTituloBalance}>
+              <Feather
+                name="activity"
+                size={12}
+                color={TOKENS.colors.textSecondary}
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.etiquetaBalanceDia}>
+                BALANCE DEL DÍA
+              </Text>
+            </View>
             <Text style={styles.textoBalanceDia}>{item.balanceDelDia}</Text>
           </View>
         ) : null}
@@ -616,7 +662,7 @@ export default function CambioFisicoView({
         {item.comparacionAnterior ? (
           <View style={styles.bloqueComparacionResultado}>
             <Text style={styles.tituloComparacionResultado}>
-              🔄 COMPARATIVA VS {item.comparacionAnterior.fechaAnterior} (
+              COMPARATIVA VS {item.comparacionAnterior.fechaAnterior} (
               {Number(item.comparacionAnterior.pesoAnteriorKg).toFixed(1)} kg)
             </Text>
             <Text style={styles.textoEvolucion}>
@@ -653,45 +699,51 @@ export default function CambioFisicoView({
             >
               {estaComparandoEste ? (
                 <View style={styles.filaComparando}>
-                  <ActivityIndicator size="small" color="#121212" />
+                  <ActivityIndicator size="small" color={TOKENS.colors.textPrimary} />
                   <Text style={styles.textoBotonComparar}>
-                    {' '}
-                    Comparando con anterior...
+                    Comparando...
                   </Text>
                 </View>
               ) : (
-                <Text style={styles.textoBotonComparar}>
-                  {item.comparacionAnterior
-                    ? '🔄 Re-comparar con anterior'
-                    : '🔄 Comparar con registro anterior'}
-                </Text>
+                <View style={styles.filaComparando}>
+                  <Feather
+                    name="refresh-cw"
+                    size={13}
+                    color={TOKENS.colors.textPrimary}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text style={styles.textoBotonComparar}>
+                    {item.comparacionAnterior
+                      ? 'Re-comparar con anterior'
+                      : 'Comparar con registro anterior'}
+                  </Text>
+                </View>
               )}
             </TouchableOpacity>
           ) : (
             <View style={styles.insigniaPrimerRegistro}>
               <Text style={styles.textoPrimerRegistro}>
-                🏁 Primer registro físico base
+                Primer registro base
               </Text>
             </View>
           )}
 
-          <TouchableOpacity
-            style={styles.botonEliminar}
-            activeOpacity={0.7}
-            delayLongPress={DURACION_PULSACION_BORRADO_MS}
-            onPressIn={vibrarInicioPresionBorrado}
-            onPress={() => mostrarAvisoToqueCorto(item.id)}
-            onLongPress={() => solicitarConfirmacionBorrado(item)}
-          >
-            <Text style={styles.iconoEliminar}>🗑</Text>
-            <Text style={styles.textoBotonEliminar}>1s</Text>
-          </TouchableOpacity>
+          <CapsulaBorradoSeguroFisico
+            onBorrar={() => solicitarConfirmacionBorrado(item)}
+            onAvisoCorto={() => mostrarAvisoToqueCorto(item.id)}
+          />
         </View>
 
         {mostrandoAviso ? (
           <View style={styles.bannerAvisoBorrado}>
+            <Feather
+              name="alert-circle"
+              size={12}
+              color={TOKENS.colors.danger}
+              style={{ marginRight: 6 }}
+            />
             <Text style={styles.textoAvisoBorrado}>
-              ⚠️ Mantén presionado 1 segundo para eliminar este chequeo físico
+              Mantén presionado 1 segundo para eliminar este chequeo físico
             </Text>
           </View>
         ) : null}
@@ -711,7 +763,7 @@ export default function CambioFisicoView({
   return (
     <View style={styles.contenedor}>
       <View style={styles.encabezado}>
-        <Text style={styles.tituloVista}>Cambio Físico IA</Text>
+        <Text style={styles.tituloVista}>Cambio Físico Editorial</Text>
         <Text style={styles.subtituloFecha}>Hoy: {fechaHoy}</Text>
       </View>
 
@@ -723,7 +775,6 @@ export default function CambioFisicoView({
         contentContainerStyle={styles.contenidoLista}
         ListHeaderComponent={
           <View>
-            {/* Ficha Biológica O(1) y Objetivo configurable (RF-2, RF-3, RF-4) */}
             <View style={styles.tarjetaPerfil}>
               <View style={styles.filaMetricasBio}>
                 <View style={styles.itemBio}>
@@ -745,19 +796,17 @@ export default function CambioFisicoView({
                 <View style={styles.itemBio}>
                   <Text style={styles.etiquetaBio}>PERFIL FÍSICO</Text>
                   <Text style={styles.valorBio}>
-                    {PERFIL_USUARIO_BASE.alturaCm} cm ·{' '}
-                    {ultimoPesoConocido.toFixed(1)} kg
+                    {PERFIL_USUARIO_BASE.alturaCm} cm · {ultimoPesoConocido.toFixed(1)} kg
                   </Text>
                   <Text style={styles.subvalorBio}>
-                    {PERFIL_USUARIO_BASE.sexo} ({PERFIL_USUARIO_BASE.alturaMetros}{' '}
-                    m)
+                    {PERFIL_USUARIO_BASE.sexo} ({PERFIL_USUARIO_BASE.alturaMetros} m)
                   </Text>
                 </View>
               </View>
 
               <View style={styles.bloqueObjetivo}>
                 <Text style={styles.etiquetaObjetivo}>
-                  OBJETIVO ACTUAL (PREPARADO PARA CAMBIO):
+                  OBJETIVO ACTUAL:
                 </Text>
                 <View style={styles.filaObjetivos}>
                   {OBJETIVOS_PERFIL_VALIDOS.map((obj) => {
@@ -793,11 +842,10 @@ export default function CambioFisicoView({
               </View>
             </View>
 
-            {/* Captura de 1 a 10 Fotografías (RF-6, RF-7) */}
             <View style={styles.tarjetaCaptura}>
               <View style={styles.filaTituloCaptura}>
                 <Text style={styles.tituloSeccion}>
-                  1. Selecciona de 1 a 10 fotografías
+                  Selecciona de 1 a 10 fotografías
                 </Text>
                 <View style={styles.insigniaContadorFotos}>
                   <Text style={styles.textoContadorFotos}>
@@ -822,7 +870,13 @@ export default function CambioFisicoView({
                   }
                   onPress={abrirCamara}
                 >
-                  <Text style={styles.textoBotonCamara}>📷 Cámara</Text>
+                  <Feather
+                    name="camera"
+                    size={16}
+                    color={TOKENS.colors.textInverse}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text style={styles.textoBotonCamara}>Cámara</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -840,9 +894,13 @@ export default function CambioFisicoView({
                   }
                   onPress={abrirGaleria}
                 >
-                  <Text style={styles.textoBotonGaleria}>
-                    🖼 Galería (1–10)
-                  </Text>
+                  <Feather
+                    name="image"
+                    size={16}
+                    color={TOKENS.colors.textPrimary}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text style={styles.textoBotonGaleria}>Galería (1–10)</Text>
                 </TouchableOpacity>
               </View>
 
@@ -875,7 +933,7 @@ export default function CambioFisicoView({
                           style={styles.botonQuitarFoto}
                           onPress={() => quitarFotoSeleccionada(foto.idTemp)}
                         >
-                          <Text style={styles.textoQuitarFoto}>✕</Text>
+                          <Feather name="x" size={12} color="#FFFFFF" />
                         </TouchableOpacity>
                       </View>
                     ))}
@@ -891,9 +949,14 @@ export default function CambioFisicoView({
                       disabled={analizando}
                       onPress={abrirMenuInteractivoPreAnalisis}
                     >
+                      <Feather
+                        name="sliders"
+                        size={16}
+                        color={TOKENS.colors.textInverse}
+                        style={{ marginRight: 6 }}
+                      />
                       <Text style={styles.textoBotonContinuarBascula}>
-                        ⚖️ Continuar a Báscula y Hora · Analizar (
-                        {fotosSeleccionadas.length})
+                        Continuar a Báscula y Hora ({fotosSeleccionadas.length})
                       </Text>
                     </TouchableOpacity>
 
@@ -910,7 +973,7 @@ export default function CambioFisicoView({
 
               {analizando ? (
                 <View style={styles.contenedorCarga}>
-                  <ActivityIndicator size="large" color="#00E676" />
+                  <ActivityIndicator size="large" color={TOKENS.colors.accentWhite} />
                   <Text style={styles.textoCarga}>
                     Analizando cambio físico y balance del día...
                   </Text>
@@ -938,6 +1001,12 @@ export default function CambioFisicoView({
         }
         ListEmptyComponent={
           <View style={styles.estadoVacio}>
+            <Feather
+              name="camera"
+              size={32}
+              color={TOKENS.colors.textMuted}
+              style={{ marginBottom: 12 }}
+            />
             <Text style={styles.textoVacio}>
               Aún no tienes análisis de cambio físico registrados. Adjunta entre
               1 y 10 fotografías para abrir la báscula circular y obtener tu
@@ -947,7 +1016,6 @@ export default function CambioFisicoView({
         }
       />
 
-      {/* Menú Interactivo Pre-Análisis: Báscula Circular Moderna + Hora 12h AM/PM (RF-8, RF-9, RF-10) */}
       <Modal
         visible={modalVisible}
         transparent
@@ -964,10 +1032,9 @@ export default function CambioFisicoView({
               Ajusta tu peso en la báscula circular y la hora de la toma
             </Text>
 
-            {/* Báscula Moderna Circular (RF-9) */}
+            {/* Báscula Moderna Circular Monocroma */}
             <View style={styles.contenedorBasculaExterior}>
               <View style={styles.anilloBasculaExterno}>
-                <View style={styles.agujaSuperiorBascula} />
                 <View style={styles.circuloCentralBascula}>
                   <Text style={styles.etiquetaInteriorBascula}>
                     BÁSCULA DIGITAL
@@ -990,12 +1057,7 @@ export default function CambioFisicoView({
                   return (
                     <TouchableOpacity
                       key={etiqueta}
-                      style={[
-                        styles.botonPasoPeso,
-                        paso > 0
-                          ? styles.botonPasoPositivo
-                          : styles.botonPasoNegativo,
-                      ]}
+                      style={styles.botonPasoPeso}
                       activeOpacity={0.8}
                       onPress={() => ajustarPesoBascula(paso)}
                     >
@@ -1006,7 +1068,7 @@ export default function CambioFisicoView({
               </View>
             </View>
 
-            {/* Selector de Hora 12h (AM/PM) + Momento del Día (RF-10) */}
+            {/* Selector de Hora 12h */}
             <View style={styles.bloqueSelectorHora}>
               <Text style={styles.etiquetaSeccionModal}>
                 HORA DE LA TOMA (FORMATO 12 HORAS)
@@ -1018,7 +1080,7 @@ export default function CambioFisicoView({
                     style={styles.botonFlechaTiempo}
                     onPress={() => ajustarHora12(1)}
                   >
-                    <Text style={styles.textoFlechaTiempo}>▲</Text>
+                    <Feather name="chevron-up" size={16} color={TOKENS.colors.textPrimary} />
                   </TouchableOpacity>
                   <Text style={styles.valorTiempoDigital}>
                     {String(hora12).padStart(2, '0')}
@@ -1027,7 +1089,7 @@ export default function CambioFisicoView({
                     style={styles.botonFlechaTiempo}
                     onPress={() => ajustarHora12(-1)}
                   >
-                    <Text style={styles.textoFlechaTiempo}>▼</Text>
+                    <Feather name="chevron-down" size={16} color={TOKENS.colors.textPrimary} />
                   </TouchableOpacity>
                 </View>
 
@@ -1131,7 +1193,7 @@ export default function CambioFisicoView({
                 onPress={confirmarYAnalizarCambioFisico}
               >
                 <Text style={styles.textoConfirmarModal}>
-                  ✨ Analizar con Gemini
+                  Analizar con Gemini
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1145,33 +1207,35 @@ export default function CambioFisicoView({
 const styles = StyleSheet.create({
   contenedor: {
     flex: 1,
+    backgroundColor: TOKENS.colors.canvas,
   },
   encabezado: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   tituloVista: {
-    color: '#FFFFFF',
-    fontSize: 24,
+    color: TOKENS.colors.textPrimary,
+    fontSize: 22,
     fontWeight: '800',
+    letterSpacing: -0.4,
   },
   subtituloFecha: {
-    color: '#00E676',
-    fontSize: 13,
+    color: TOKENS.colors.textSecondary,
+    fontSize: 12,
     fontWeight: '600',
   },
   contenidoLista: {
-    paddingBottom: 16,
+    paddingBottom: 110, // Scroll clearance mandatorio
   },
   tarjetaPerfil: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 14,
-    padding: 12,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
+    padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#2E2E2E',
+    borderColor: TOKENS.colors.borderDefault,
   },
   filaMetricasBio: {
     flexDirection: 'row',
@@ -1180,35 +1244,37 @@ const styles = StyleSheet.create({
   },
   itemBio: {
     flex: 1,
-    backgroundColor: '#262626',
-    borderRadius: 10,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.sm,
     paddingVertical: 8,
     paddingHorizontal: 6,
-    marginHorizontal: 3,
+    marginHorizontal: 2,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderSubtle,
   },
   etiquetaBio: {
-    color: '#9E9E9E',
+    color: TOKENS.colors.textMuted,
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.4,
   },
   valorBio: {
-    color: '#00E676',
+    color: TOKENS.colors.textPrimary,
     fontSize: 13,
     fontWeight: '800',
     marginTop: 2,
   },
   subvalorBio: {
-    color: '#8D8D8D',
+    color: TOKENS.colors.textSecondary,
     fontSize: 10,
     marginTop: 1,
   },
   bloqueObjetivo: {
-    marginTop: 2,
+    marginTop: 4,
   },
   etiquetaObjetivo: {
-    color: '#9E9E9E',
+    color: TOKENS.colors.textMuted,
     fontSize: 10,
     fontWeight: '700',
     marginBottom: 6,
@@ -1222,35 +1288,35 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 6,
     marginHorizontal: 2,
-    borderRadius: 8,
+    borderRadius: TOKENS.radii.xs,
     alignItems: 'center',
     borderWidth: 1,
   },
   chipObjetivoActivo: {
-    backgroundColor: '#00E676',
-    borderColor: '#00E676',
+    backgroundColor: TOKENS.colors.accentWhite,
+    borderColor: TOKENS.colors.accentWhite,
   },
   chipObjetivoInactivo: {
-    backgroundColor: '#262626',
-    borderColor: '#383838',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderColor: TOKENS.colors.borderDefault,
   },
   textoChipObjetivo: {
     fontSize: 10,
     fontWeight: '700',
   },
   textoChipObjetivoActivo: {
-    color: '#121212',
+    color: TOKENS.colors.textInverse,
   },
   textoChipObjetivoInactivo: {
-    color: '#CFCFCF',
+    color: TOKENS.colors.textSecondary,
   },
   tarjetaCaptura: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 14,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
     padding: 14,
-    marginBottom: 12,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#2E2E2E',
+    borderColor: TOKENS.colors.borderDefault,
   },
   filaTituloCaptura: {
     flexDirection: 'row',
@@ -1259,61 +1325,58 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   tituloSeccion: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    color: TOKENS.colors.textPrimary,
+    fontSize: 15,
     fontWeight: '700',
   },
   insigniaContadorFotos: {
-    backgroundColor: '#262626',
-    borderRadius: 10,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: '#00E676',
   },
   textoContadorFotos: {
-    color: '#00E676',
+    color: TOKENS.colors.textSecondary,
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '600',
   },
   filaBotonesCaptura: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
   },
   botonCaptura: {
     flex: 1,
-    borderRadius: 10,
-    paddingVertical: 11,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 3,
+    paddingVertical: 12,
+    borderRadius: TOKENS.radii.sm,
   },
   botonCamara: {
-    backgroundColor: '#00E676',
-  },
-  botonGaleria: {
-    backgroundColor: '#2A2A2A',
-    borderWidth: 1,
-    borderColor: '#00E676',
-  },
-  botonDeshabilitado: {
-    opacity: 0.5,
+    backgroundColor: TOKENS.colors.accentWhite,
+    marginRight: 8,
   },
   textoBotonCamara: {
-    color: '#121212',
+    color: TOKENS.colors.textInverse,
     fontSize: 13,
     fontWeight: '800',
   },
+  botonGaleria: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+  },
   textoBotonGaleria: {
-    color: '#00E676',
+    color: TOKENS.colors.textPrimary,
     fontSize: 13,
     fontWeight: '700',
   },
+  botonDeshabilitado: {
+    opacity: 0.4,
+  },
   textoAvisoLimite: {
-    color: '#FFD54F',
+    color: TOKENS.colors.textSecondary,
     fontSize: 11,
-    fontWeight: '600',
-    marginTop: 8,
+    marginTop: 6,
   },
   contenedorPreviaFotos: {
     marginTop: 12,
@@ -1322,47 +1385,40 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   contenedorMiniaturaPrevia: {
-    width: 68,
-    height: 68,
-    marginRight: 8,
-    borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: '#2A2A2A',
     position: 'relative',
+    marginRight: 8,
   },
   imagenMiniaturaPrevia: {
-    width: '100%',
-    height: '100%',
+    width: 68,
+    height: 68,
+    borderRadius: TOKENS.radii.sm,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderStrong,
   },
   badgeIndiceFoto: {
     position: 'absolute',
     bottom: 4,
     left: 4,
-    backgroundColor: 'rgba(18, 18, 18, 0.8)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 1,
   },
   textoBadgeIndice: {
-    color: '#00E676',
+    color: '#FFFFFF',
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   botonQuitarFoto: {
     position: 'absolute',
-    top: 3,
-    right: 3,
-    backgroundColor: 'rgba(255, 82, 82, 0.9)',
+    top: 4,
+    right: 4,
     width: 18,
     height: 18,
     borderRadius: 9,
+    backgroundColor: 'rgba(0,0,0,0.8)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  textoQuitarFoto: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '800',
   },
   filaAccionesPreAnalisis: {
     flexDirection: 'row',
@@ -1370,561 +1426,542 @@ const styles = StyleSheet.create({
   },
   botonContinuarBascula: {
     flex: 1,
-    backgroundColor: '#00E676',
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: TOKENS.colors.accentWhite,
+    borderRadius: TOKENS.radii.sm,
+    paddingVertical: 12,
     marginRight: 8,
   },
   textoBotonContinuarBascula: {
-    color: '#121212',
+    color: TOKENS.colors.textInverse,
     fontSize: 13,
     fontWeight: '800',
   },
   botonLimpiarSeleccion: {
-    backgroundColor: '#2A2A2A',
-    borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 12,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.sm,
     borderWidth: 1,
-    borderColor: '#383838',
+    borderColor: TOKENS.colors.borderDefault,
   },
   textoLimpiarSeleccion: {
-    color: '#B0B0B0',
+    color: TOKENS.colors.textSecondary,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   contenedorCarga: {
-    backgroundColor: '#242424',
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
     alignItems: 'center',
-    marginTop: 10,
+    paddingVertical: 16,
   },
   textoCarga: {
-    color: '#00E676',
+    color: TOKENS.colors.textPrimary,
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     marginTop: 8,
   },
   subtextoCarga: {
-    color: '#9E9E9E',
+    color: TOKENS.colors.textSecondary,
     fontSize: 11,
     marginTop: 4,
-    textAlign: 'center',
   },
   textoError: {
-    color: '#FF5252',
+    color: TOKENS.colors.danger,
     fontSize: 12,
-    fontWeight: '600',
-    marginTop: 8,
+    marginTop: 6,
   },
   encabezadoHistorial: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
+    marginTop: 6,
   },
   contadorLista: {
-    color: '#9E9E9E',
+    color: TOKENS.colors.textSecondary,
     fontSize: 12,
-    fontWeight: '600',
   },
   tarjetaRegistro: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 14,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
     padding: 14,
     marginBottom: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#00E676',
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
   },
   filaEncabezadoTarjeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 10,
   },
   columnaFechaHora: {
     flex: 1,
-    marginRight: 10,
   },
   fechaTarjeta: {
-    color: '#FFFFFF',
+    color: TOKENS.colors.textPrimary,
     fontSize: 14,
-    fontWeight: '800',
-    marginBottom: 6,
+    fontWeight: '700',
+    marginBottom: 4,
   },
   filaEtiquetasContexto: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 4,
   },
   chipContexto: {
-    backgroundColor: '#2A2A2A',
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    marginRight: 6,
-    marginBottom: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderSubtle,
   },
   textoChipContexto: {
-    color: '#D0D0D0',
+    color: TOKENS.colors.textSecondary,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   circuloVeredicto: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: '#14261D',
-    borderWidth: 2,
-    borderColor: '#00E676',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderStrong,
   },
   etiquetaVeredicto: {
-    color: '#9E9E9E',
-    fontSize: 8,
-    fontWeight: '800',
+    color: TOKENS.colors.textMuted,
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   valorVeredicto: {
-    color: '#00E676',
-    fontSize: 18,
-    fontWeight: '900',
+    color: TOKENS.colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '800',
   },
   escalaVeredicto: {
-    color: '#B0B0B0',
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
+    color: TOKENS.colors.textSecondary,
   },
   tiraFotosRegistro: {
-    marginBottom: 10,
+    marginVertical: 10,
   },
   miniaturaTarjeta: {
     width: 60,
     height: 60,
-    borderRadius: 8,
-    marginRight: 8,
-    backgroundColor: '#2A2A2A',
+    borderRadius: TOKENS.radii.xs,
+    marginRight: 6,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
   },
   bloqueResumenSimple: {
-    backgroundColor: '#252525',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 8,
-  },
-  etiquetaBloque: {
-    color: '#00E676',
-    fontSize: 10,
-    fontWeight: '800',
-    marginBottom: 4,
-    letterSpacing: 0.4,
-  },
-  textoResumenSimple: {
-    color: '#F0F0F0',
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  bloqueBalanceDia: {
-    backgroundColor: '#1B2520',
-    borderRadius: 10,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.sm,
     padding: 10,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#284636',
+    borderColor: TOKENS.colors.borderSubtle,
   },
-  etiquetaBalanceDia: {
-    color: '#00E676',
-    fontSize: 10,
-    fontWeight: '800',
+  etiquetaBloque: {
+    color: TOKENS.colors.textMuted,
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5,
     marginBottom: 4,
   },
-  textoBalanceDia: {
-    color: '#D8F3DC',
+  textoResumenSimple: {
+    color: TOKENS.colors.textPrimary,
     fontSize: 12,
-    lineHeight: 18,
+    lineHeight: 16,
+  },
+  bloqueBalanceDia: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.sm,
+    padding: 10,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderSubtle,
+  },
+  filaTituloBalance: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  etiquetaBalanceDia: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  textoBalanceDia: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 12,
+    lineHeight: 16,
   },
   filaPuntosClave: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     marginBottom: 8,
   },
   chipPuntoClave: {
-    backgroundColor: '#262626',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginRight: 6,
-    marginBottom: 4,
+    marginBottom: 3,
   },
   textoPuntoClave: {
-    color: '#BDBDBD',
+    color: TOKENS.colors.textSecondary,
     fontSize: 11,
-    fontWeight: '600',
+    lineHeight: 15,
   },
   bloqueComparacionResultado: {
-    backgroundColor: '#21262D',
-    borderRadius: 10,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.sm,
     padding: 10,
-    marginBottom: 10,
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#00E676',
+    borderColor: TOKENS.colors.borderStrong,
   },
   tituloComparacionResultado: {
-    color: '#00E676',
+    color: TOKENS.colors.textPrimary,
     fontSize: 10,
     fontWeight: '800',
+    letterSpacing: 0.5,
     marginBottom: 4,
   },
   textoEvolucion: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    lineHeight: 18,
-    marginBottom: 6,
+    color: TOKENS.colors.textSecondary,
+    fontSize: 11,
+    lineHeight: 15,
+    marginBottom: 4,
   },
   itemRecomendacion: {
-    color: '#CFE8D5',
-    fontSize: 11,
-    lineHeight: 16,
-    marginBottom: 2,
+    color: TOKENS.colors.textPrimary,
+    fontSize: 10,
+    lineHeight: 14,
   },
   filaAccionesTarjeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 8,
   },
   botonComparar: {
-    flex: 1,
-    backgroundColor: '#00E676',
-    borderRadius: 8,
-    paddingVertical: 9,
-    paddingHorizontal: 10,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
   },
   filaComparando: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   textoBotonComparar: {
-    color: '#121212',
-    fontSize: 12,
-    fontWeight: '800',
+    color: TOKENS.colors.textPrimary,
+    fontSize: 11,
+    fontWeight: '600',
   },
   insigniaPrimerRegistro: {
-    flex: 1,
-    backgroundColor: '#262626',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    marginRight: 8,
-    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   textoPrimerRegistro: {
-    color: '#9E9E9E',
-    fontSize: 11,
-    fontWeight: '700',
+    color: TOKENS.colors.textMuted,
+    fontSize: 10,
+    fontWeight: '600',
   },
-  botonEliminar: {
+  capsulaBorradoContenedor: {
+    width: 58,
+    height: 28,
+    borderRadius: TOKENS.radii.pill,
+    backgroundColor: TOKENS.colors.dangerBg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 69, 58, 0.4)',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  capsulaBorradoFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    backgroundColor: TOKENS.colors.danger,
+    borderRadius: TOKENS.radii.pill,
+  },
+  capsulaBorradoContenido: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2C1518',
-    borderWidth: 1.5,
-    borderColor: '#FF5252',
-    borderRadius: 8,
-    paddingVertical: 7,
-    paddingHorizontal: 10,
+    zIndex: 2,
   },
-  iconoEliminar: {
-    fontSize: 13,
-    marginRight: 4,
-  },
-  textoBotonEliminar: {
-    color: '#FF5252',
+  capsulaBorradoTexto: {
+    color: TOKENS.colors.danger,
     fontSize: 11,
     fontWeight: '800',
+    marginLeft: 4,
   },
   bannerAvisoBorrado: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.dangerBg,
+    borderRadius: TOKENS.radii.xs,
+    padding: 6,
     marginTop: 8,
-    backgroundColor: '#2C1518',
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: '#FF5252',
   },
   textoAvisoBorrado: {
-    color: '#FF8A80',
+    color: TOKENS.colors.danger,
     fontSize: 11,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: '600',
+    flex: 1,
   },
   estadoVacio: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 12,
-    padding: 20,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderSubtle,
+    marginTop: 8,
   },
   textoVacio: {
-    color: '#8D8D8D',
-    fontSize: 13,
+    color: TOKENS.colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
     textAlign: 'center',
-    lineHeight: 19,
   },
   fondoModal: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.82)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
   },
   contenedorModal: {
     width: '100%',
-    backgroundColor: '#1A1A1A',
-    borderRadius: 20,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.lg,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#2E2E2E',
+    borderColor: TOKENS.colors.borderDefault,
   },
   tituloModal: {
-    color: '#FFFFFF',
-    fontSize: 18,
+    color: TOKENS.colors.textPrimary,
+    fontSize: 16,
     fontWeight: '800',
-    textAlign: 'center',
+    marginBottom: 2,
   },
   subtituloModal: {
-    color: '#9E9E9E',
+    color: TOKENS.colors.textSecondary,
     fontSize: 12,
-    textAlign: 'center',
-    marginTop: 2,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   contenedorBasculaExterior: {
     alignItems: 'center',
     marginBottom: 16,
   },
   anilloBasculaExterno: {
-    width: 176,
-    height: 176,
-    borderRadius: 88,
-    backgroundColor: '#121212',
-    borderWidth: 5,
-    borderColor: '#00E676',
-    alignItems: 'center',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderWidth: 2,
+    borderColor: TOKENS.colors.borderStrong,
     justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 12,
-    position: 'relative',
-  },
-  agujaSuperiorBascula: {
-    position: 'absolute',
-    top: 6,
-    width: 6,
-    height: 14,
-    borderRadius: 3,
-    backgroundColor: '#00E676',
   },
   circuloCentralBascula: {
-    width: 142,
-    height: 142,
-    borderRadius: 71,
-    backgroundColor: '#1F2923',
-    borderWidth: 1.5,
-    borderColor: '#2E4F3B',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
   },
   etiquetaInteriorBascula: {
-    color: '#8D8D8D',
-    fontSize: 9,
+    color: TOKENS.colors.textMuted,
+    fontSize: 8,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
   filaValorPesoCircular: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginVertical: 2,
   },
   valorPesoCircular: {
-    color: '#FFFFFF',
-    fontSize: 34,
-    fontWeight: '900',
+    color: TOKENS.colors.textPrimary,
+    fontSize: 30,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   unidadPesoCircular: {
-    color: '#00E676',
-    fontSize: 15,
-    fontWeight: '800',
-    marginLeft: 4,
+    color: TOKENS.colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '700',
+    marginLeft: 2,
   },
   textoDiferenciaBascula: {
-    color: '#00E676',
-    fontSize: 10,
-    fontWeight: '700',
-    textAlign: 'center',
+    color: TOKENS.colors.textSecondary,
+    fontSize: 9,
+    fontWeight: '600',
   },
   filaBotonesPeso: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: 4,
   },
   botonPasoPeso: {
-    flex: 1,
-    paddingVertical: 8,
-    marginHorizontal: 2,
-    borderRadius: 8,
-    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: TOKENS.radii.xs,
     borderWidth: 1,
-  },
-  botonPasoNegativo: {
-    backgroundColor: '#262626',
-    borderColor: '#3A3A3A',
-  },
-  botonPasoPositivo: {
-    backgroundColor: '#193326',
-    borderColor: '#00E676',
+    borderColor: TOKENS.colors.borderDefault,
   },
   textoBotonPasoPeso: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800',
+    color: TOKENS.colors.textPrimary,
+    fontSize: 11,
+    fontWeight: '700',
   },
   bloqueSelectorHora: {
-    backgroundColor: '#222222',
-    borderRadius: 14,
-    padding: 12,
     marginBottom: 16,
   },
   etiquetaSeccionModal: {
-    color: '#9E9E9E',
-    fontSize: 10,
+    color: TOKENS.colors.textMuted,
+    fontSize: 9,
     fontWeight: '800',
-    textAlign: 'center',
-    marginBottom: 8,
     letterSpacing: 0.6,
+    marginBottom: 8,
   },
   filaReloj12h: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.md,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
     marginBottom: 10,
   },
   columnaControlTiempo: {
     alignItems: 'center',
-    marginHorizontal: 6,
+    paddingHorizontal: 12,
   },
   botonFlechaTiempo: {
-    backgroundColor: '#2E2E2E',
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    padding: 4,
   },
   textoFlechaTiempo: {
-    color: '#00E676',
-    fontSize: 11,
-    fontWeight: '800',
+    color: TOKENS.colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '700',
   },
   valorTiempoDigital: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: '900',
-    marginVertical: 4,
+    color: TOKENS.colors.textPrimary,
+    fontSize: 22,
+    fontWeight: '800',
+    marginVertical: 2,
   },
   dosPuntosReloj: {
-    color: '#00E676',
-    fontSize: 24,
-    fontWeight: '900',
-    marginHorizontal: 2,
+    color: TOKENS.colors.textPrimary,
+    fontSize: 22,
+    fontWeight: '800',
+    paddingBottom: 4,
   },
   columnaAmPm: {
-    marginLeft: 10,
+    marginLeft: 12,
+    gap: 4,
   },
   botonAmPm: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    marginVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: TOKENS.radii.xs,
     borderWidth: 1,
   },
   botonAmPmActivo: {
-    backgroundColor: '#00E676',
-    borderColor: '#00E676',
+    backgroundColor: TOKENS.colors.accentWhite,
+    borderColor: TOKENS.colors.accentWhite,
   },
   botonAmPmInactivo: {
-    backgroundColor: '#2C2C2C',
-    borderColor: '#3E3E3E',
+    backgroundColor: TOKENS.colors.surface,
+    borderColor: TOKENS.colors.borderDefault,
   },
   textoAmPm: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
   },
   textoAmPmActivo: {
-    color: '#121212',
+    color: TOKENS.colors.textInverse,
   },
   textoAmPmInactivo: {
-    color: '#B0B0B0',
+    color: TOKENS.colors.textSecondary,
   },
   filaMomentosDia: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 4,
   },
   chipMomentoModal: {
     flex: 1,
-    paddingVertical: 7,
-    marginHorizontal: 2,
-    borderRadius: 8,
+    paddingVertical: 6,
     alignItems: 'center',
+    borderRadius: TOKENS.radii.xs,
     borderWidth: 1,
   },
   chipMomentoActivo: {
-    backgroundColor: '#00E676',
-    borderColor: '#00E676',
+    backgroundColor: TOKENS.colors.accentWhite,
+    borderColor: TOKENS.colors.accentWhite,
   },
   chipMomentoInactivo: {
-    backgroundColor: '#2C2C2C',
-    borderColor: '#3A3A3A',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderColor: TOKENS.colors.borderDefault,
   },
   textoChipMomento: {
     fontSize: 10,
     fontWeight: '700',
   },
   textoChipMomentoActivo: {
-    color: '#121212',
+    color: TOKENS.colors.textInverse,
   },
   textoChipMomentoInactivo: {
-    color: '#D0D0D0',
+    color: TOKENS.colors.textSecondary,
   },
   filaBotonesModal: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 8,
   },
   botonCancelarModal: {
     flex: 1,
-    backgroundColor: '#2A2A2A',
-    borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
-    marginRight: 6,
+    borderRadius: TOKENS.radii.md,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
   },
   textoCancelarModal: {
-    color: '#CFCFCF',
+    color: TOKENS.colors.textSecondary,
     fontSize: 13,
     fontWeight: '700',
   },
   botonConfirmarModal: {
-    flex: 2,
-    backgroundColor: '#00E676',
-    borderRadius: 10,
+    flex: 1.5,
     paddingVertical: 12,
     alignItems: 'center',
-    marginLeft: 6,
+    borderRadius: TOKENS.radii.md,
+    backgroundColor: TOKENS.colors.accentWhite,
   },
   textoConfirmarModal: {
-    color: '#121212',
-    fontSize: 14,
-    fontWeight: '900',
+    color: TOKENS.colors.textInverse,
+    fontSize: 13,
+    fontWeight: '800',
   },
 });

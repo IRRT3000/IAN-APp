@@ -58,36 +58,41 @@ export function obtenerNivelColor(score) {
 
 /**
  * Paleta de colores para los 5 niveles del Vaso de Agua.
- * Basado en el verde primario del tema (#00E676).
+ * Spec 006: Escala Monocromo Matte Luxury con inversión tipográfica automática en niveles 3 y 4.
  */
 export const PALETA_NIVELES_VASO = {
   0: {
-    fondo: '#262626',
-    borde: '#333333',
+    fondo: '#141414',
+    borde: '#222222',
+    texto: '#666666',
     etiqueta: '0% Vacío',
     descripcion: 'Sin actividad',
   },
   1: {
-    fondo: 'rgba(0, 230, 118, 0.30)',
-    borde: 'rgba(0, 230, 118, 0.45)',
+    fondo: '#2C2C2C',
+    borde: '#3D3D3D',
+    texto: '#D4D4D4',
     etiqueta: '17% - 33%',
     descripcion: 'Progreso inicial',
   },
   2: {
-    fondo: 'rgba(0, 230, 118, 0.60)',
-    borde: 'rgba(0, 230, 118, 0.75)',
+    fondo: '#525252',
+    borde: '#666666',
+    texto: '#FFFFFF',
     etiqueta: '50% - 66%',
     descripcion: 'Medio vaso',
   },
   3: {
-    fondo: 'rgba(0, 230, 118, 0.85)',
-    borde: '#00E676',
+    fondo: '#9E9E9E',
+    borde: '#B8B8B8',
+    texto: '#0A0A0A',
     etiqueta: '67% - 83%',
     descripcion: 'Casi lleno',
   },
   4: {
-    fondo: '#00E676',
-    borde: '#69F0AE',
+    fondo: '#FFFFFF',
+    borde: '#FFFFFF',
+    texto: '#0A0A0A',
     etiqueta: '100% Vaso Lleno',
     descripcion: 'Meta diaria cumplida',
   },

@@ -16,8 +16,7 @@ const ANCHO_MAX_COLUMNA_GRANDE = 41; // Para celda de 34px
 
 /**
  * Bloque individual de un mes dentro del Mapa de Calor.
- * Renderiza encabezado, cabecera L-D de 7 columnas y celdas memoizadas.
- * Admite `anchoCompleto` y `tamanoGrande` con cálculo dinámico para el widget de Inicio.
+ * Spec 006: Monocromo Matte Luxury editorial.
  */
 export default function MonthBlock({
   year,
@@ -61,7 +60,7 @@ export default function MonthBlock({
             tamanoGrande && styles.tituloMesGrande,
           ]}
         >
-          {nombreMes}
+          {nombreMes.toUpperCase()}
         </Text>
       ) : null}
 
@@ -136,12 +135,12 @@ export default function MonthBlock({
 
 const styles = StyleSheet.create({
   contenedorMes: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 10,
+    backgroundColor: '#141414',
+    borderRadius: 14,
     padding: 8,
-    marginVertical: 5,
+    marginVertical: 4,
     borderWidth: 1,
-    borderColor: '#2A2A2A',
+    borderColor: '#262626',
     width: '48.5%',
     alignItems: 'center',
   },
@@ -151,21 +150,21 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 8,
     marginVertical: 0,
-    backgroundColor: '#181818',
-    borderColor: '#2A2A2A',
+    backgroundColor: '#141414',
+    borderColor: '#262626',
   },
   tituloMes: {
-    color: '#00E676',
+    color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.8,
+    fontWeight: '700',
+    letterSpacing: 1.2,
     marginBottom: 4,
     alignSelf: 'flex-start',
     paddingLeft: 2,
   },
   tituloMesGrande: {
-    fontSize: 14,
-    letterSpacing: 1,
+    fontSize: 13,
+    letterSpacing: 1.4,
     marginBottom: 8,
     alignSelf: 'center',
   },
@@ -183,15 +182,15 @@ const styles = StyleSheet.create({
     width: 14,
     marginHorizontal: 1.5,
     textAlign: 'center',
-    color: '#666666',
+    color: '#555555',
     fontSize: 8,
     fontWeight: '700',
   },
   textoDiaSemanaGrande: {
     marginHorizontal: 3.5,
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#8D8D8D',
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#8E8E93',
   },
   cuadriculaMes: {
     flexDirection: 'row',

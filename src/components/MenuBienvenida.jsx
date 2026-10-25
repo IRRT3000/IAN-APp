@@ -6,14 +6,20 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import DaySummaryModal from './heatmap/DaySummaryModal';
 import MonthBlock from './heatmap/MonthBlock';
-import { NOMBRES_MESES } from '../utils/dateUtilsLocal';
+import {
+  NOMBRES_MESES,
+  formatearFechaLegible,
+} from '../utils/dateUtilsLocal';
+import { TOKENS } from '../theme/tokens';
 
 /**
- * Pantalla principal de Inicio / Bienvenida (Spec 004, Spec 005).
- * Muestra el resumen del día, accesos directos, el widget interactivo del mes actual
- * y un acceso directo a la nueva 5ª pestaña "Heatmap".
+ * Pantalla principal de Inicio / Bienvenida (Spec 006: Rediseño Monocromo Matte Luxury).
+ * Editorial Dashboard con tipografía de alta jerarquía, KPIs en caja unificada con
+ * divisores hairline de 1px, acciones rápidas con iconos Feather (cero emojis) y
+ * widget interactivo del mes actual con scroll clearance inferior de 110dp.
  */
 export default function MenuBienvenida({
   fechaHoy,
@@ -42,117 +48,143 @@ export default function MenuBienvenida({
     setFechaSeleccionada(null);
   };
 
+  const fechaFormateadaEditorial = formatearFechaLegible(fechaHoy).toUpperCase();
+
   return (
     <ScrollView
       style={styles.scrollView}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
+      {/* 1. Encabezado Editorial Monocromo */}
       <View style={styles.bloqueSuperior}>
-        <View style={styles.insigniaEstado}>
-          <View
-            style={[
-              styles.puntoEstado,
-              metaCumplidaHoy ? styles.puntoActivo : styles.puntoPendiente,
-            ]}
-          />
-          <Text style={styles.textoInsignia}>
-            {metaCumplidaHoy ? 'ENTRENAMIENTO ACTIVO HOY' : 'LISTO PARA HOY'}
-          </Text>
+        <View style={styles.filaInsigniaFecha}>
+          <Text style={styles.etiquetaFecha}>{fechaFormateadaEditorial}</Text>
+          <View style={styles.insigniaEstado}>
+            <View
+              style={[
+                styles.puntoEstado,
+                metaCumplidaHoy ? styles.puntoActivo : styles.puntoInactivo,
+              ]}
+            />
+            <Text style={styles.textoInsignia}>
+              {metaCumplidaHoy ? 'ACTIVO' : 'EN ESPERA'}
+            </Text>
+          </View>
         </View>
 
-        <Text style={styles.fechaMinimalista}>{fechaHoy}</Text>
-        <Text style={styles.tituloBienvenida}>Fitness Tracker</Text>
-        <Text style={styles.subtituloBienvenida}>
-          Entrenamiento de fuerza, nutrición IA y análisis de cambio físico con
-          Gemini Vision.
+        <Text style={styles.tituloHero}>Fitness Tracker</Text>
+        <Text style={styles.subtituloEditorial}>
+          Entrenamiento de fuerza, nutrición IA y análisis físico de alta precisión.
         </Text>
       </View>
 
-      <View style={styles.filaMetricas}>
-        <View style={styles.tarjetaMetrica}>
-          <Text style={styles.valorMetrica}>{totalEjerciciosHoy}</Text>
-          <Text style={styles.etiquetaMetrica}>Ejercicios hoy</Text>
+      {/* 2. Caja de 3 KPIs con Divisores Hairline de 1px */}
+      <View style={styles.contenedorKpis}>
+        <View style={styles.celdaKpi}>
+          <Text style={styles.valorKpi}>{totalEjerciciosHoy}</Text>
+          <Text style={styles.etiquetaKpi}>Ejercicios</Text>
         </View>
 
-        <View style={styles.tarjetaMetrica}>
-          <Text style={[styles.valorMetrica, styles.valorAcento]}>
-            {totalDiasActivos}
-          </Text>
-          <Text style={styles.etiquetaMetrica}>Días activos</Text>
+        <View style={styles.divisorVertical} />
+
+        <View style={styles.celdaKpi}>
+          <Text style={styles.valorKpi}>{totalDiasActivos}</Text>
+          <Text style={styles.etiquetaKpi}>Días Activos</Text>
         </View>
 
-        <View style={styles.tarjetaMetrica}>
-          <Text style={styles.valorMetrica}>{caloriasHoy}</Text>
-          <Text style={styles.etiquetaMetrica}>Kcal hoy</Text>
+        <View style={styles.divisorVertical} />
+
+        <View style={styles.celdaKpi}>
+          <Text style={styles.valorKpi}>{caloriasHoy}</Text>
+          <Text style={styles.etiquetaKpi}>Kcal Hoy</Text>
         </View>
       </View>
 
-      <View style={styles.tarjetaResumenDia}>
-        <Text style={styles.etiquetaResumen}>ACCESO RÁPIDO</Text>
+      {/* 3. Acciones Rápidas y Último Ejercicio */}
+      <View style={styles.tarjetaAccesoRapido}>
+        <View style={styles.encabezadoSeccion}>
+          <Text style={styles.etiquetaCategoria}>ACCESO RÁPIDO</Text>
+          {ultimoEjercicioHoy ? (
+            <View style={styles.badgeUltimo}>
+              <Feather name="check" size={10} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <Text style={styles.textoBadgeUltimo}>ÚLTIMO REGISTRO</Text>
+            </View>
+          ) : null}
+        </View>
+
         {ultimoEjercicioHoy ? (
-          <View style={styles.detalleUltimo}>
-            <Text style={styles.tituloUltimo}>
-              Último ejercicio: {ultimoEjercicioHoy.ejercicio}
-            </Text>
-            <Text style={styles.subtituloUltimo}>
-              {ultimoEjercicioHoy.series} series ×{' '}
-              {ultimoEjercicioHoy.repeticiones} reps · {ultimoEjercicioHoy.peso}{' '}
-              kg
-            </Text>
+          <View style={styles.cajaUltimoEjercicio}>
+            <View style={styles.iconoUltimoContenedor}>
+              <Feather name="activity" size={16} color="#FFFFFF" />
+            </View>
+            <View style={styles.detallesUltimoEjercicio}>
+              <Text style={styles.nombreUltimoEjercicio} numberOfLines={1}>
+                {ultimoEjercicioHoy.ejercicio}
+              </Text>
+              <Text style={styles.subtextoUltimoEjercicio}>
+                {ultimoEjercicioHoy.series} series · {ultimoEjercicioHoy.repeticiones} reps ·{' '}
+                {ultimoEjercicioHoy.peso} kg
+              </Text>
+            </View>
           </View>
         ) : (
-          <Text style={styles.textoSinSesion}>
-            Registra tus series del día, analiza tus comidas o evalúa tu cambio
-            físico con báscula circular.
+          <Text style={styles.textoSinRegistro}>
+            Comienza tu jornada registrando series de fuerza, analizando comidas o
+            capturando tu progreso corporal.
           </Text>
         )}
 
         <View style={styles.filaBotonesAcceso}>
           <TouchableOpacity
-            style={[styles.botonAccesoDirecto, styles.botonPrimario]}
-            activeOpacity={0.85}
+            style={[styles.botonAcceso, styles.botonAccesoDestacado]}
+            activeOpacity={0.8}
             onPress={onIrAFitnessTracker}
           >
-            <Text style={styles.textoBotonPrimario}>⚡ Entrenos</Text>
+            <Feather name="activity" size={15} color="#0A0A0A" style={styles.iconoBoton} />
+            <Text style={styles.textoBotonDestacado}>Entrenos</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.botonAccesoDirecto}
-            activeOpacity={0.85}
+            style={styles.botonAcceso}
+            activeOpacity={0.8}
             onPress={onIrANutricion}
           >
-            <Text style={styles.textoBotonAcceso}>🥗 Nutrición</Text>
+            <Feather name="pie-chart" size={15} color="#FFFFFF" style={styles.iconoBoton} />
+            <Text style={styles.textoBotonNormal}>Nutrición</Text>
           </TouchableOpacity>
 
           {typeof onIrACambioFisico === 'function' ? (
             <TouchableOpacity
-              style={styles.botonAccesoDirecto}
-              activeOpacity={0.85}
+              style={styles.botonAcceso}
+              activeOpacity={0.8}
               onPress={onIrACambioFisico}
             >
-              <Text style={styles.textoBotonAcceso}>💪 Físico IA</Text>
+              <Feather name="camera" size={15} color="#FFFFFF" style={styles.iconoBoton} />
+              <Text style={styles.textoBotonNormal}>Físico</Text>
             </TouchableOpacity>
           ) : null}
         </View>
       </View>
 
-      {/* Widget Interactivo del Mes Actual (Spec 005) */}
+      {/* 4. Widget Interactivo de Consistencia Mensual */}
       <View style={styles.contenedorMesActual}>
         <View style={styles.encabezadoMesActual}>
           <View>
-            <Text style={styles.etiquetaMesActual}>CONSISTENCIA MENSUAL</Text>
+            <Text style={styles.etiquetaCategoria}>CONSISTENCIA MENSUAL</Text>
             <Text style={styles.tituloMesActual}>
               {NOMBRES_MESES[mesActualIndex]} {anioActual}
             </Text>
           </View>
+
           {typeof onIrAHeatmap === 'function' ? (
             <TouchableOpacity
-              style={styles.botonVerAnualLink}
+              style={styles.botonEnlaceAnual}
               activeOpacity={0.7}
               onPress={onIrAHeatmap}
             >
-              <Text style={styles.textoVerAnualLink}>Año completo →</Text>
+              <Text style={styles.textoEnlaceAnual}>Ver Año</Text>
+              <Feather name="arrow-right" size={12} color="#FFFFFF" style={{ marginLeft: 4 }} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -170,13 +202,15 @@ export default function MenuBienvenida({
 
         {typeof onIrAHeatmap === 'function' ? (
           <TouchableOpacity
-            style={styles.botonExplorarHeatmap}
+            style={styles.botonAbrirHeatmapCompleto}
             activeOpacity={0.85}
             onPress={onIrAHeatmap}
           >
-            <Text style={styles.textoBotonExplorarHeatmap}>
-              🔥 Abrir Heatmap Anual Completo (12 Meses) →
+            <Feather name="calendar" size={15} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Text style={styles.textoBotonHeatmapCompleto}>
+              Ver Heatmap Anual Completo
             </Text>
+            <Feather name="chevron-right" size={16} color="#8E8E93" style={{ marginLeft: 'auto' }} />
           </TouchableOpacity>
         ) : null}
       </View>
@@ -194,13 +228,6 @@ export default function MenuBienvenida({
           onIrANutricion={onIrANutricion}
         />
       ) : null}
-
-      <View style={styles.guiaInferior}>
-        <Text style={styles.textoGuiaInferior}>
-          Usa la barra inferior para alternar entre Inicio, Entrenos, Nutrición,
-          Físico y Heatmap
-        </Text>
-      </View>
     </ScrollView>
   );
 }
@@ -211,159 +238,220 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingVertical: 12,
-    paddingBottom: 24,
+    paddingBottom: 110, // Scroll clearance para barra inferior flotante (RF-3)
   },
   bloqueSuperior: {
-    marginTop: 8,
+    marginTop: 4,
+    marginBottom: TOKENS.spacing.md,
+  },
+  filaInsigniaFecha: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  etiquetaFecha: {
+    fontSize: TOKENS.typography.labelCategory.fontSize,
+    fontWeight: TOKENS.typography.labelCategory.fontWeight,
+    letterSpacing: TOKENS.typography.labelCategory.letterSpacing,
+    color: TOKENS.colors.textSecondary,
+    textTransform: 'uppercase',
   },
   insigniaEstado: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: '#1E1E1E',
+    backgroundColor: TOKENS.colors.surface,
     borderWidth: 1,
-    borderColor: '#2E2E2E',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginBottom: 16,
+    borderColor: TOKENS.colors.borderDefault,
+    borderRadius: TOKENS.radii.pill,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   puntoEstado: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
   },
   puntoActivo: {
-    backgroundColor: '#00E676',
+    backgroundColor: '#FFFFFF',
   },
-  puntoPendiente: {
-    backgroundColor: '#757575',
+  puntoInactivo: {
+    backgroundColor: TOKENS.colors.textMuted,
   },
   textoInsignia: {
-    color: '#B0B0B0',
-    fontSize: 11,
+    color: TOKENS.colors.textSecondary,
+    fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.8,
   },
-  fechaMinimalista: {
-    color: '#00E676',
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.6,
+  tituloHero: {
+    fontSize: TOKENS.typography.hero.fontSize,
+    fontWeight: TOKENS.typography.hero.fontWeight,
+    letterSpacing: TOKENS.typography.hero.letterSpacing,
+    color: TOKENS.colors.textPrimary,
     marginBottom: 6,
   },
-  tituloBienvenida: {
-    color: '#FFFFFF',
-    fontSize: 32,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    marginBottom: 8,
+  subtituloEditorial: {
+    fontSize: TOKENS.typography.subtitle.fontSize,
+    fontWeight: TOKENS.typography.subtitle.fontWeight,
+    color: TOKENS.colors.textSecondary,
+    lineHeight: 18,
   },
-  subtituloBienvenida: {
-    color: '#9E9E9E',
-    fontSize: 14,
-    lineHeight: 20,
+  contenedorKpis: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    paddingVertical: 14,
+    marginBottom: TOKENS.spacing.md,
   },
-  filaMetricas: {
+  celdaKpi: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  divisorVertical: {
+    width: 1,
+    height: 28,
+    backgroundColor: TOKENS.colors.borderDefault,
+  },
+  valorKpi: {
+    fontSize: TOKENS.typography.metricValue.fontSize,
+    fontWeight: TOKENS.typography.metricValue.fontWeight,
+    letterSpacing: TOKENS.typography.metricValue.letterSpacing,
+    color: TOKENS.colors.textPrimary,
+    marginBottom: 3,
+  },
+  etiquetaKpi: {
+    fontSize: TOKENS.typography.metricLabel.fontSize,
+    fontWeight: TOKENS.typography.metricLabel.fontWeight,
+    letterSpacing: TOKENS.typography.metricLabel.letterSpacing,
+    color: TOKENS.colors.textSecondary,
+    textTransform: 'uppercase',
+  },
+  tarjetaAccesoRapido: {
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.lg,
+    padding: TOKENS.spacing.md,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    marginBottom: TOKENS.spacing.md,
+  },
+  encabezadoSeccion: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 16,
-  },
-  tarjetaMetrica: {
-    flex: 1,
-    backgroundColor: '#1A1A1A',
-    borderRadius: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    marginHorizontal: 3,
     alignItems: 'center',
+    marginBottom: 10,
+  },
+  etiquetaCategoria: {
+    fontSize: TOKENS.typography.labelCategory.fontSize,
+    fontWeight: TOKENS.typography.labelCategory.fontWeight,
+    letterSpacing: TOKENS.typography.labelCategory.letterSpacing,
+    color: TOKENS.colors.textSecondary,
+    textTransform: 'uppercase',
+  },
+  badgeUltimo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
     borderWidth: 1,
-    borderColor: '#2A2A2A',
+    borderColor: TOKENS.colors.borderDefault,
   },
-  valorMetrica: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: '800',
-    marginBottom: 4,
+  textoBadgeUltimo: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: TOKENS.colors.textPrimary,
   },
-  valorAcento: {
-    color: '#00E676',
-  },
-  etiquetaMetrica: {
-    color: '#8D8D8D',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  tarjetaResumenDia: {
-    backgroundColor: '#1A1A1A',
-    borderRadius: 16,
-    padding: 16,
+  cajaUltimoEjercicio: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.md,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#2A2A2A',
-    marginBottom: 16,
+    borderColor: TOKENS.colors.borderDefault,
+    marginBottom: 12,
   },
-  etiquetaResumen: {
-    color: '#757575',
-    fontSize: 11,
+  iconoUltimoContenedor: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: '#2A2A2A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  detallesUltimoEjercicio: {
+    flex: 1,
+  },
+  nombreUltimoEjercicio: {
+    fontSize: 14,
     fontWeight: '700',
-    letterSpacing: 0.8,
-    marginBottom: 8,
+    color: TOKENS.colors.textPrimary,
+    marginBottom: 2,
   },
-  detalleUltimo: {
-    marginBottom: 14,
+  subtextoUltimoEjercicio: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: TOKENS.colors.textSecondary,
   },
-  tituloUltimo: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  subtituloUltimo: {
-    color: '#00E676',
+  textoSinRegistro: {
     fontSize: 13,
-    fontWeight: '600',
-  },
-  textoSinSesion: {
-    color: '#B0B0B0',
-    fontSize: 13,
+    color: TOKENS.colors.textSecondary,
     lineHeight: 18,
-    marginBottom: 14,
+    marginBottom: 12,
   },
   filaBotonesAcceso: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 8,
   },
-  botonAccesoDirecto: {
+  botonAcceso: {
     flex: 1,
-    backgroundColor: '#2A2A2A',
-    borderRadius: 10,
-    paddingVertical: 12,
-    marginHorizontal: 3,
+    flexDirection: 'row',
+    height: 44,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.md,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#00E676',
+    borderColor: TOKENS.colors.borderDefault,
+    paddingHorizontal: 6,
   },
-  botonPrimario: {
-    backgroundColor: '#00E676',
+  botonAccesoDestacado: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
   },
-  textoBotonPrimario: {
-    color: '#121212',
+  iconoBoton: {
+    marginRight: 6,
+  },
+  textoBotonDestacado: {
     fontSize: 12,
     fontWeight: '800',
+    color: '#0A0A0A',
+    letterSpacing: 0.2,
   },
-  textoBotonAcceso: {
-    color: '#00E676',
+  textoBotonNormal: {
     fontSize: 12,
     fontWeight: '700',
+    color: TOKENS.colors.textPrimary,
+    letterSpacing: 0.2,
   },
   contenedorMesActual: {
-    backgroundColor: '#1A1A1A',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.lg,
+    padding: TOKENS.spacing.md,
     borderWidth: 1,
-    borderColor: '#2A2A2A',
-    marginBottom: 16,
+    borderColor: TOKENS.colors.borderDefault,
+    marginBottom: TOKENS.spacing.md,
   },
   encabezadoMesActual: {
     flexDirection: 'row',
@@ -371,54 +459,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  etiquetaMesActual: {
-    color: '#757575',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginBottom: 2,
-  },
   tituloMesActual: {
-    color: '#00E676',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
+    letterSpacing: -0.3,
+    color: TOKENS.colors.textPrimary,
+    marginTop: 2,
   },
-  botonVerAnualLink: {
-    backgroundColor: '#242424',
+  botonEnlaceAnual: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: TOKENS.radii.pill,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: TOKENS.colors.borderDefault,
   },
-  textoVerAnualLink: {
-    color: '#00E676',
+  textoEnlaceAnual: {
     fontSize: 11,
     fontWeight: '700',
+    color: TOKENS.colors.textPrimary,
   },
-  botonExplorarHeatmap: {
-    backgroundColor: '#222222',
+  botonAbrirHeatmapCompleto: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 46,
+    backgroundColor: TOKENS.colors.surfaceElevated,
     borderWidth: 1,
-    borderColor: '#00E676',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    borderColor: TOKENS.colors.borderDefault,
+    borderRadius: TOKENS.radii.md,
+    paddingHorizontal: 14,
     marginTop: 14,
-    alignItems: 'center',
   },
-  textoBotonExplorarHeatmap: {
-    color: '#00E676',
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  guiaInferior: {
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  textoGuiaInferior: {
-    color: '#6E6E6E',
-    fontSize: 12,
-    textAlign: 'center',
+  textoBotonHeatmapCompleto: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
 });

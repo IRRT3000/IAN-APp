@@ -8,6 +8,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  withSpring,
+} from 'react-native-reanimated';
+import { Feather } from '@expo/vector-icons';
 import SelectorSemanal from './SelectorSemanal';
 import CatalogoEjerciciosModal from './CatalogoEjerciciosModal';
 import LiveModeModal from './LiveModeModal';
@@ -22,14 +29,229 @@ import {
 } from '../services/storage';
 import {
   obtenerColorGrupo,
-  obtenerIconoImplemento,
 } from '../constants/catalogoEjercicios';
 import {
   vibrarConfirmacionBorrado,
   vibrarInicioPresionBorrado,
+  vibrarSeleccionBascula,
 } from '../services/haptics';
+import { TOKENS } from '../theme/tokens';
 
 const DURACION_PULSACION_BORRADO_MS = 1000;
+
+const obtenerIconoImplementoFeather = (implemento) => {
+  switch (implemento) {
+    case 'Barra':
+      return 'activity';
+    case 'Mancuerna':
+      return 'disc';
+    case 'Polea':
+      return 'sliders';
+    case 'Máquina':
+      return 'settings';
+    case 'Corporal':
+      return 'user';
+    default:
+      return 'zap';
+  }
+};
+
+/**
+ * Cápsula de Progreso Líquido para borrado sostenido de 1000ms en UI Thread (Spec 006).
+ */
+function CapsulaBorradoSeguro({ onBorrar, onAvisoCorto }) {
+  const progreso = useSharedValue(0);
+  const timerRef = useRef(null);
+  const presionadoLargoRef = useRef(false);
+
+  const handlePressIn = () => {
+    presionadoLargoRef.current = false;
+    vibrarInicioPresionBorrado();
+    progreso.value = withTiming(1, { duration: DURACION_PULSACION_BORRADO_MS });
+    timerRef.current = setTimeout(() => {
+      presionadoLargoRef.current = true;
+      vibrarConfirmacionBorrado();
+      onBorrar();
+      progreso.value = withTiming(0, { duration: 150 });
+    }, DURACION_PULSACION_BORRADO_MS);
+  };
+
+  const handlePressOut = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    if (!presionadoLargoRef.current) {
+      progreso.value = withTiming(0, { duration: 180 });
+      if (typeof onAvisoCorto === 'function') {
+        onAvisoCorto();
+      }
+    }
+  };
+
+  const estiloFill = useAnimatedStyle(() => ({
+    width: `${progreso.value * 100}%`,
+  }));
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={styles.capsulaBorradoContenedor}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+    >
+      <Animated.View style={[styles.capsulaBorradoFill, estiloFill]} />
+      <View style={styles.capsulaBorradoContenido}>
+        <Feather name="trash-2" size={12} color={TOKENS.colors.danger} />
+        <Text style={styles.capsulaBorradoTexto}>1s</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+/**
+ * Tarjeta individual de entrenamiento con acordeón colapsable y resorte (Spec 006).
+ */
+function TarjetaEntrenamientoItem({
+  item,
+  esHoy,
+  mostrandoAviso,
+  onBorrar,
+  onAvisoCorto,
+}) {
+  const [expandido, setExpandido] = useState(false);
+  const tieneSeriesDetalle =
+    Array.isArray(item.seriesDetalle) && item.seriesDetalle.length > 0;
+  const colorGrupo = obtenerColorGrupo(item.grupoMuscular);
+  const iconoFeather = obtenerIconoImplementoFeather(item.implemento);
+
+  const alternarExpandido = () => {
+    vibrarSeleccionBascula();
+    setExpandido((prev) => !prev);
+  };
+
+  return (
+    <View style={styles.tarjetaEntrenamiento}>
+      <View style={styles.cabeceraTarjeta}>
+        <View style={styles.infoTituloEjercicio}>
+          <View style={styles.filaBadgesTarjeta}>
+            {item.grupoMuscular ? (
+              <View style={styles.badgeGrupoTarjeta}>
+                <Text style={styles.textoBadgeGrupoTarjeta}>
+                  {item.grupoMuscular.toUpperCase()}
+                </Text>
+              </View>
+            ) : null}
+
+            {item.implemento ? (
+              <View style={styles.badgeImplementoTarjeta}>
+                <Feather
+                  name={iconoFeather}
+                  size={10}
+                  color={TOKENS.colors.textSecondary}
+                  style={{ marginRight: 4 }}
+                />
+                <Text style={styles.textoBadgeImplementoTarjeta}>
+                  {item.implemento}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+
+          <Text style={styles.nombreEjercicioTarjeta}>{item.ejercicio}</Text>
+        </View>
+
+        {esHoy ? (
+          <CapsulaBorradoSeguro
+            onBorrar={() => onBorrar(item)}
+            onAvisoCorto={() => onAvisoCorto(item.id)}
+          />
+        ) : (
+          <View style={styles.badgeSoloLecturaItem}>
+            <Feather
+              name="lock"
+              size={10}
+              color={TOKENS.colors.textMuted}
+              style={{ marginRight: 4 }}
+            />
+            <Text style={styles.textoBadgeSoloLecturaItem}>Historial</Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.filaMetricasTarjeta}>
+        <View style={styles.bloqueMetrica}>
+          <Text style={styles.etiquetaMetrica}>SERIES</Text>
+          <Text style={styles.valorMetrica}>{item.series}</Text>
+        </View>
+        <View style={styles.bloqueMetrica}>
+          <Text style={styles.etiquetaMetrica}>REPS</Text>
+          <Text style={styles.valorMetrica}>{item.repeticiones}</Text>
+        </View>
+        <View style={[styles.bloqueMetrica, styles.bloqueMetricaAcento]}>
+          <Text style={styles.etiquetaMetrica}>PESO MÁX</Text>
+          <Text style={[styles.valorMetrica, styles.valorMetricaAcento]}>
+            {item.pesoMaximo ?? item.peso} kg
+          </Text>
+        </View>
+        {item.volumenTotal ? (
+          <View style={styles.bloqueMetrica}>
+            <Text style={styles.etiquetaMetrica}>VOLUMEN</Text>
+            <Text style={styles.valorMetrica}>{item.volumenTotal} kg</Text>
+          </View>
+        ) : null}
+      </View>
+
+      {tieneSeriesDetalle ? (
+        <View style={styles.seccionDesglose}>
+          <TouchableOpacity
+            style={styles.botonAlternarDesglose}
+            activeOpacity={0.7}
+            onPress={alternarExpandido}
+          >
+            <Text style={styles.textoAlternarDesglose}>
+              {expandido
+                ? 'Ocultar desglose de series'
+                : `Ver ${item.seriesDetalle.length} series registradas`}
+            </Text>
+            <Feather
+              name={expandido ? 'chevron-up' : 'chevron-down'}
+              size={14}
+              color={TOKENS.colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          {expandido ? (
+            <View style={styles.filaChipsSeries}>
+              {item.seriesDetalle.map((serieItem, sIdx) => (
+                <View key={String(sIdx)} style={styles.chipSerieDetalle}>
+                  <Text style={styles.numeroSerieChip}>S{serieItem.serie}</Text>
+                  <Text style={styles.textoSerieChip}>
+                    {serieItem.peso}kg × {serieItem.repeticiones}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+
+      {mostrandoAviso ? (
+        <View style={styles.bannerAvisoBorrado}>
+          <Feather
+            name="alert-circle"
+            size={12}
+            color={TOKENS.colors.danger}
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.textoAvisoBorrado}>
+            Mantén presionado 1 segundo para eliminar este ejercicio
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
 
 export default function EntrenamientosView({
   entrenamientos = [],
@@ -46,11 +268,9 @@ export default function EntrenamientosView({
   const [avisoBorradoId, setAvisoBorradoId] = useState(null);
   const timerAvisoRef = useRef(null);
 
-  // Fecha de hoy recalculada dinámicamente para soportar medianoche (Directriz 6)
   const hoyDinamico = obtenerFechaLocal();
   const esHoy = fechaSeleccionada === hoyDinamico;
 
-  // Notificar cambio de estado Live Mode hacia App.js (RF-9)
   const cambiarEstadoLiveMode = useCallback(
     (activo) => {
       setLiveModeVisible(activo);
@@ -61,7 +281,6 @@ export default function EntrenamientosView({
     [onLiveModeChange]
   );
 
-  // Cargar catálogo personalizado y restaurar sesión activa si hay draft (RF-12)
   useEffect(() => {
     let montado = true;
 
@@ -101,12 +320,10 @@ export default function EntrenamientosView({
     };
   }, [cambiarEstadoLiveMode]);
 
-  // Filtrar de forma inmutable los entrenamientos correspondientes a la fecha seleccionada (RF-2)
   const entrenamientosFecha = useMemo(() => {
     return entrenamientos.filter((item) => item.fecha === fechaSeleccionada);
   }, [entrenamientos, fechaSeleccionada]);
 
-  // Selección de ejercicio desde el catálogo
   const manejarSeleccionarEjercicio = (ejercicio) => {
     setCatalogoModalVisible(false);
     setDraftSesion(null);
@@ -114,7 +331,6 @@ export default function EntrenamientosView({
     cambiarEstadoLiveMode(true);
   };
 
-  // Finalización y consolidación híbrida de la sesión activa (RF-14, RF-15)
   const manejarTerminarLiveMode = async (datosEjercicio) => {
     try {
       const fechaConsolidacion = obtenerFechaLocal();
@@ -132,8 +348,6 @@ export default function EntrenamientosView({
       cambiarEstadoLiveMode(false);
       setEjercicioActivo(null);
       setDraftSesion(null);
-
-      // Si la sesión se terminó en hoy, sincronizar selección
       setFechaSeleccionada(fechaConsolidacion);
 
       if (typeof onEntrenamientosActualizados === 'function') {
@@ -148,14 +362,12 @@ export default function EntrenamientosView({
     }
   };
 
-  // Descarte de la sesión activa
   const manejarDescartarLiveMode = async () => {
     cambiarEstadoLiveMode(false);
     setEjercicioActivo(null);
     setDraftSesion(null);
   };
 
-  // Borrado seguro 1 segundo con doble pulso háptico (RF-16)
   const mostrarAvisoToqueCorto = (idEntrenamiento) => {
     if (!esHoy) return;
     setAvisoBorradoId(idEntrenamiento);
@@ -186,9 +398,8 @@ export default function EntrenamientosView({
   const solicitarConfirmacionBorrado = (item) => {
     if (!esHoy) return;
     setAvisoBorradoId(null);
-    vibrarConfirmacionBorrado();
     Alert.alert(
-      '⚠️ Eliminar entrenamiento',
+      'Eliminar entrenamiento',
       `¿Estás seguro de eliminar "${item.ejercicio}"?\n\nEsta acción borrará el registro definitivamente del historial.`,
       [
         { text: 'Cancelar', style: 'cancel' },
@@ -201,140 +412,22 @@ export default function EntrenamientosView({
     );
   };
 
-  // Renderizado adaptativo de tarjeta de entrenamiento (Directriz 2: Compatibilidad hacia atrás)
-  const renderizarTarjeta = ({ item }) => {
-    const mostrandoAviso = avisoBorradoId === item.id;
-    const tieneSeriesDetalle =
-      Array.isArray(item.seriesDetalle) && item.seriesDetalle.length > 0;
-    const colorGrupo = obtenerColorGrupo(item.grupoMuscular);
-    const icono = obtenerIconoImplemento(item.implemento);
-
-    return (
-      <View
-        style={[
-          styles.tarjetaEntrenamiento,
-          { borderLeftColor: colorGrupo || '#00E676' },
-        ]}
-      >
-        <View style={styles.cabeceraTarjeta}>
-          <View style={styles.infoTituloEjercicio}>
-            <View style={styles.filaBadgesTarjeta}>
-              {item.grupoMuscular ? (
-                <View
-                  style={[
-                    styles.badgeGrupoTarjeta,
-                    {
-                      borderColor: colorGrupo,
-                      backgroundColor: `${colorGrupo}22`,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[styles.textoBadgeGrupoTarjeta, { color: colorGrupo }]}
-                  >
-                    {item.grupoMuscular}
-                  </Text>
-                </View>
-              ) : null}
-
-              {item.implemento ? (
-                <View style={styles.badgeImplementoTarjeta}>
-                  <Text style={styles.iconoImplementoTarjeta}>{icono}</Text>
-                  <Text style={styles.textoBadgeImplementoTarjeta}>
-                    {item.implemento}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-
-            <Text style={styles.nombreEjercicioTarjeta}>{item.ejercicio}</Text>
-          </View>
-
-          {/* Botón de borrado seguro solo habilitado en el día actual (RF-3, RF-4, RF-16) */}
-          {esHoy ? (
-            <TouchableOpacity
-              style={styles.botonEliminar}
-              activeOpacity={0.7}
-              delayLongPress={DURACION_PULSACION_BORRADO_MS}
-              onPressIn={vibrarInicioPresionBorrado}
-              onPress={() => mostrarAvisoToqueCorto(item.id)}
-              onLongPress={() => solicitarConfirmacionBorrado(item)}
-            >
-              <Text style={styles.iconoEliminar}>🗑</Text>
-              <Text style={styles.textoBotonEliminar}>1s</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.badgeSoloLecturaItem}>
-              <Text style={styles.textoBadgeSoloLecturaItem}>Historial</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Métricas consolidadas */}
-        <View style={styles.filaMetricasTarjeta}>
-          <View style={styles.bloqueMetrica}>
-            <Text style={styles.etiquetaMetrica}>SERIES</Text>
-            <Text style={styles.valorMetrica}>{item.series}</Text>
-          </View>
-          <View style={styles.bloqueMetrica}>
-            <Text style={styles.etiquetaMetrica}>REPS TOTALES</Text>
-            <Text style={styles.valorMetrica}>{item.repeticiones}</Text>
-          </View>
-          <View style={[styles.bloqueMetrica, styles.bloqueMetricaAcento]}>
-            <Text style={styles.etiquetaMetrica}>PESO MÁX</Text>
-            <Text style={[styles.valorMetrica, styles.valorMetricaAcento]}>
-              {item.pesoMaximo ?? item.peso} kg
-            </Text>
-          </View>
-          {item.volumenTotal ? (
-            <View style={styles.bloqueMetrica}>
-              <Text style={styles.etiquetaMetrica}>VOLUMEN</Text>
-              <Text style={styles.valorMetrica}>{item.volumenTotal} kg</Text>
-            </View>
-          ) : null}
-        </View>
-
-        {/* Desglose de series si cuenta con la nueva estructura (Directriz 2) */}
-        {tieneSeriesDetalle ? (
-          <View style={styles.desgloseSeries}>
-            <Text style={styles.tituloDesglose}>Desglose de series:</Text>
-            <View style={styles.filaChipsSeries}>
-              {item.seriesDetalle.map((serieItem, sIdx) => (
-                <View key={String(sIdx)} style={styles.chipSerieDetalle}>
-                  <Text style={styles.numeroSerieChip}>S{serieItem.serie}</Text>
-                  <Text style={styles.textoSerieChip}>
-                    {serieItem.peso}kg × {serieItem.repeticiones}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        ) : null}
-
-        {mostrandoAviso ? (
-          <View style={styles.bannerAvisoBorrado}>
-            <Text style={styles.textoAvisoBorrado}>
-              ⚠️ Mantén presionado 1 segundo para eliminar este ejercicio
-            </Text>
-          </View>
-        ) : null}
-      </View>
-    );
-  };
-
   return (
     <View style={styles.contenedor}>
-      {/* Selector Semanal Superior (RF-1, RF-2) */}
       <SelectorSemanal
         fechaSeleccionada={fechaSeleccionada}
         onSeleccionarFecha={setFechaSeleccionada}
         diasConActividad={diasConActividad}
       />
 
-      {/* Banner de Modo Solo Lectura si la fecha no es hoy (RF-4) */}
       {!esHoy ? (
         <View style={styles.bannerSoloLectura}>
-          <Text style={styles.iconoBannerSoloLectura}>🔒</Text>
+          <Feather
+            name="lock"
+            size={13}
+            color={TOKENS.colors.textSecondary}
+            style={{ marginRight: 8 }}
+          />
           <Text style={styles.textoSoloLectura}>
             Historial ({fechaSeleccionada}) · Modo solo lectura. Días pasados no
             pueden modificarse.
@@ -342,21 +435,24 @@ export default function EntrenamientosView({
         </View>
       ) : null}
 
-      {/* Botón Iniciar Ejercicio únicamente visible hoy (RF-3) */}
       {esHoy ? (
         <TouchableOpacity
           style={styles.botonIniciarEjercicio}
           activeOpacity={0.85}
           onPress={() => setCatalogoModalVisible(true)}
         >
-          <Text style={styles.iconoIniciarEjercicio}>＋</Text>
+          <Feather
+            name="plus"
+            size={18}
+            color={TOKENS.colors.textInverse}
+            style={{ marginRight: 8 }}
+          />
           <Text style={styles.textoIniciarEjercicio}>
             Iniciar Nuevo Ejercicio
           </Text>
         </TouchableOpacity>
       ) : null}
 
-      {/* Encabezado del listado */}
       <View style={styles.encabezadoLista}>
         <Text style={styles.tituloSeccion}>
           {esHoy ? 'Entrenamientos de Hoy' : `Sesión del ${fechaSeleccionada}`}
@@ -366,16 +462,28 @@ export default function EntrenamientosView({
         </Text>
       </View>
 
-      {/* Listado de Entrenamientos */}
       <FlatList
         data={entrenamientosFecha}
         keyExtractor={(item) => String(item.id)}
-        renderItem={renderizarTarjeta}
+        renderItem={({ item }) => (
+          <TarjetaEntrenamientoItem
+            item={item}
+            esHoy={esHoy}
+            mostrandoAviso={avisoBorradoId === item.id}
+            onBorrar={solicitarConfirmacionBorrado}
+            onAvisoCorto={mostrarAvisoToqueCorto}
+          />
+        )}
         contentContainerStyle={styles.listaContenido}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.estadoVacio}>
-            <Text style={styles.iconoEstadoVacio}>🏋️‍♂️</Text>
+            <Feather
+              name="activity"
+              size={36}
+              color={TOKENS.colors.textMuted}
+              style={{ marginBottom: 12 }}
+            />
             <Text style={styles.textoEstadoVacio}>
               {esHoy
                 ? 'Aún no has registrado ejercicios hoy.'
@@ -391,7 +499,6 @@ export default function EntrenamientosView({
         }
       />
 
-      {/* Modal de Catálogo y Búsqueda */}
       <CatalogoEjerciciosModal
         visible={catalogoModalVisible}
         onCerrar={() => setCatalogoModalVisible(false)}
@@ -400,7 +507,6 @@ export default function EntrenamientosView({
         onEjercicioPersonalizadoCreado={setEjerciciosPersonalizados}
       />
 
-      {/* Modal de Live Mode a Pantalla Completa (RF-9 a RF-15) */}
       <LiveModeModal
         visible={liveModeVisible}
         ejercicioActivo={ejercicioActivo}
@@ -415,87 +521,76 @@ export default function EntrenamientosView({
 const styles = StyleSheet.create({
   contenedor: {
     flex: 1,
+    backgroundColor: TOKENS.colors.canvas,
   },
   bannerSoloLectura: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E232A',
-    borderRadius: 10,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.sm,
     paddingVertical: 10,
     paddingHorizontal: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#448AFF',
-  },
-  iconoBannerSoloLectura: {
-    fontSize: 14,
-    marginRight: 8,
+    borderColor: TOKENS.colors.borderDefault,
   },
   textoSoloLectura: {
     flex: 1,
-    color: '#90CAF9',
+    color: TOKENS.colors.textSecondary,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     lineHeight: 16,
   },
   botonIniciarEjercicio: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#00E676',
-    borderRadius: 12,
-    paddingVertical: 13,
-    marginBottom: 14,
-    shadowColor: '#00E676',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    backgroundColor: TOKENS.colors.accentWhite,
+    borderRadius: TOKENS.radii.md,
+    paddingVertical: 14,
+    marginBottom: 16,
     elevation: 3,
   },
-  iconoIniciarEjercicio: {
-    color: '#121212',
-    fontSize: 18,
-    fontWeight: '900',
-    marginRight: 8,
-  },
   textoIniciarEjercicio: {
-    color: '#121212',
+    color: TOKENS.colors.textInverse,
     fontSize: 15,
     fontWeight: '800',
+    letterSpacing: -0.2,
   },
   encabezadoLista: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   tituloSeccion: {
-    color: '#FFFFFF',
+    color: TOKENS.colors.textPrimary,
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
   contadorLista: {
-    color: '#8D8D8D',
+    color: TOKENS.colors.textSecondary,
     fontSize: 12,
     fontWeight: '600',
   },
   listaContenido: {
-    paddingBottom: 24,
+    paddingBottom: 110, // Scroll clearance mandatorio
   },
   tarjetaEntrenamiento: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
+    padding: 14,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#2A2A2A',
-    borderLeftWidth: 4,
+    borderColor: TOKENS.colors.borderDefault,
+    elevation: 2,
   },
   cabeceraTarjeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   infoTituloEjercicio: {
     flex: 1,
@@ -504,183 +599,205 @@ const styles = StyleSheet.create({
   filaBadgesTarjeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   badgeGrupoTarjeta: {
     borderWidth: 1,
-    borderRadius: 6,
+    borderColor: TOKENS.colors.borderStrong,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
     paddingHorizontal: 6,
     paddingVertical: 2,
     marginRight: 6,
   },
   textoBadgeGrupoTarjeta: {
-    fontSize: 10,
+    color: TOKENS.colors.textSecondary,
+    fontSize: 9,
     fontWeight: '700',
+    letterSpacing: 0.5,
   },
   badgeImplementoTarjeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2A2A2A',
-    borderRadius: 6,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderSubtle,
+    borderRadius: TOKENS.radii.xs,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
-  iconoImplementoTarjeta: {
-    fontSize: 10,
-    marginRight: 3,
-  },
   textoBadgeImplementoTarjeta: {
-    color: '#B0B0B0',
+    color: TOKENS.colors.textSecondary,
     fontSize: 10,
     fontWeight: '600',
   },
   nombreEjercicioTarjeta: {
-    color: '#FFFFFF',
+    color: TOKENS.colors.textPrimary,
     fontSize: 16,
-    fontWeight: '800',
-    marginTop: 2,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
-  botonEliminar: {
+  capsulaBorradoContenedor: {
+    width: 58,
+    height: 30,
+    borderRadius: TOKENS.radii.pill,
+    backgroundColor: TOKENS.colors.dangerBg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 69, 58, 0.4)',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  capsulaBorradoFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    backgroundColor: TOKENS.colors.danger,
+    borderRadius: TOKENS.radii.pill,
+  },
+  capsulaBorradoContenido: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2C1518',
-    borderWidth: 1.5,
-    borderColor: '#FF5252',
-    borderRadius: 8,
-    paddingVertical: 7,
-    paddingHorizontal: 9,
+    zIndex: 2,
   },
-  iconoEliminar: {
-    fontSize: 12,
-    marginRight: 4,
-  },
-  textoBotonEliminar: {
-    color: '#FF5252',
+  capsulaBorradoTexto: {
+    color: TOKENS.colors.danger,
     fontSize: 11,
     fontWeight: '800',
+    marginLeft: 4,
   },
   badgeSoloLecturaItem: {
-    backgroundColor: '#2A2A2A',
-    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderSubtle,
   },
   textoBadgeSoloLecturaItem: {
-    color: '#8D8D8D',
+    color: TOKENS.colors.textMuted,
     fontSize: 10,
     fontWeight: '700',
   },
   filaMetricasTarjeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 4,
+    marginVertical: 6,
   },
   bloqueMetrica: {
     flex: 1,
-    backgroundColor: '#262626',
-    borderRadius: 8,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.sm,
     paddingVertical: 6,
     paddingHorizontal: 6,
     marginHorizontal: 2,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderSubtle,
   },
   bloqueMetricaAcento: {
-    borderWidth: 1,
-    borderColor: '#00E676',
+    borderColor: TOKENS.colors.borderStrong,
   },
   etiquetaMetrica: {
-    color: '#8D8D8D',
+    color: TOKENS.colors.textMuted,
     fontSize: 9,
     fontWeight: '700',
+    letterSpacing: 0.5,
   },
   valorMetrica: {
-    color: '#FFFFFF',
+    color: TOKENS.colors.textPrimary,
     fontSize: 13,
     fontWeight: '800',
     marginTop: 2,
   },
   valorMetricaAcento: {
-    color: '#00E676',
+    color: TOKENS.colors.textPrimary,
   },
-  desgloseSeries: {
+  seccionDesglose: {
     marginTop: 8,
-    paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#282828',
+    borderTopColor: TOKENS.colors.borderSubtle,
+    paddingTop: 8,
   },
-  tituloDesglose: {
-    color: '#8D8D8D',
-    fontSize: 11,
-    fontWeight: '700',
-    marginBottom: 6,
+  botonAlternarDesglose: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  textoAlternarDesglose: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
   },
   filaChipsSeries: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    marginTop: 8,
   },
   chipSerieDetalle: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2A2A2A',
-    borderRadius: 6,
-    paddingVertical: 3,
-    paddingHorizontal: 7,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     marginRight: 6,
     marginBottom: 6,
     borderWidth: 1,
-    borderColor: '#383838',
+    borderColor: TOKENS.colors.borderDefault,
   },
   numeroSerieChip: {
-    color: '#00E676',
+    color: TOKENS.colors.textSecondary,
     fontSize: 10,
     fontWeight: '800',
     marginRight: 4,
   },
   textoSerieChip: {
-    color: '#E0E0E0',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  bannerAvisoBorrado: {
-    marginTop: 8,
-    backgroundColor: '#2C1518',
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: '#FF5252',
-  },
-  textoAvisoBorrado: {
-    color: '#FF8A80',
+    color: TOKENS.colors.textPrimary,
     fontSize: 11,
     fontWeight: '700',
-    textAlign: 'center',
+  },
+  bannerAvisoBorrado: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.dangerBg,
+    borderRadius: TOKENS.radii.xs,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    marginTop: 8,
+  },
+  textoAvisoBorrado: {
+    color: TOKENS.colors.danger,
+    fontSize: 11,
+    fontWeight: '600',
+    flex: 1,
   },
   estadoVacio: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 14,
-    padding: 28,
     alignItems: 'center',
-    marginTop: 10,
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
     borderWidth: 1,
-    borderColor: '#2A2A2A',
-  },
-  iconoEstadoVacio: {
-    fontSize: 32,
-    marginBottom: 8,
+    borderColor: TOKENS.colors.borderSubtle,
+    marginTop: 8,
   },
   textoEstadoVacio: {
-    color: '#FFFFFF',
+    color: TOKENS.colors.textPrimary,
     fontSize: 14,
     fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 4,
   },
   subtextoEstadoVacio: {
-    color: '#8D8D8D',
+    color: TOKENS.colors.textSecondary,
     fontSize: 12,
     textAlign: 'center',
+    marginTop: 6,
     lineHeight: 18,
   },
 });
