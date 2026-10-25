@@ -578,19 +578,48 @@ export const guardarComida = async (nuevaComida) => {
     const comidasActuales = await cargarComidas();
     const fechaLocal = nuevaComida?.fecha || obtenerFechaLocal(new Date());
 
+    const nombreFinal = String(
+      nuevaComida?.nombre || nuevaComida?.descripcion || 'Platillo registrado'
+    ).trim();
+    const uriFotoFinal = String(
+      nuevaComida?.uriFoto || nuevaComida?.fotoUri || ''
+    );
+    const caloriasFinal = Math.round(Number(nuevaComida?.calorias) || 0);
+    const proteinasFinal =
+      Math.round(
+        (Number(nuevaComida?.proteinas ?? nuevaComida?.macros?.proteinas) || 0) * 10
+      ) / 10;
+    const carbohidratosFinal =
+      Math.round(
+        (Number(
+          nuevaComida?.carbohidratos ?? nuevaComida?.macros?.carbohidratos
+        ) || 0) * 10
+      ) / 10;
+    const grasasFinal =
+      Math.round(
+        (Number(nuevaComida?.grasas ?? nuevaComida?.macros?.grasas) || 0) * 10
+      ) / 10;
+
     const comidaNormalizada = {
       id:
         nuevaComida?.id ||
         `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
       fecha: fechaLocal,
       tipo: String(nuevaComida?.tipo ?? 'Comida').trim(),
-      nombre: String(nuevaComida?.nombre ?? 'Platillo registrado').trim(),
-      calorias: Math.round(Number(nuevaComida?.calorias) || 0),
-      proteinas: Math.round((Number(nuevaComida?.proteinas) || 0) * 10) / 10,
-      carbohidratos:
-        Math.round((Number(nuevaComida?.carbohidratos) || 0) * 10) / 10,
-      grasas: Math.round((Number(nuevaComida?.grasas) || 0) * 10) / 10,
-      uriFoto: String(nuevaComida?.uriFoto ?? ''),
+      nombre: nombreFinal,
+      descripcion: nombreFinal,
+      calorias: caloriasFinal,
+      proteinas: proteinasFinal,
+      carbohidratos: carbohidratosFinal,
+      grasas: grasasFinal,
+      macros: {
+        proteinas: proteinasFinal,
+        carbohidratos: carbohidratosFinal,
+        grasas: grasasFinal,
+      },
+      detalles: String(nuevaComida?.detalles || '').trim(),
+      uriFoto: uriFotoFinal,
+      fotoUri: uriFotoFinal,
     };
 
     const nuevaListaInmutable = [

@@ -1,6 +1,13 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { obtenerFechaLocal } from '../services/storage';
+import { vibrarSeleccionBascula } from '../services/haptics';
+import { TOKENS } from '../theme/tokens';
 
 const INICIALES_DIA_SEMANA = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
@@ -36,6 +43,108 @@ const calcularDiasSemana = () => {
   });
 };
 
+/**
+ * Celda individual de día semanal memoizada con físicas de resorte en UI Thread (Reanimated 4).
+ */
+const CeldaDiaSemanal = React.memo(function CeldaDiaSemanal({
+  item,
+  estaSeleccionado,
+  tieneActividad,
+  onPress,
+}) {
+  const scale = useSharedValue(1);
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.94, { damping: 15, stiffness: 250 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1.0, { damping: 15, stiffness: 250 });
+  };
+
+  const estiloAnimado = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePress = () => {
+    vibrarSeleccionBascula();
+    onPress(item.fecha);
+  };
+
+  return (
+    <Animated.View style={[styles.envoltorioCelda, estiloAnimado]}>
+      <TouchableOpacity
+        style={[
+          styles.celda,
+          estaSeleccionado && styles.celdaSeleccionada,
+          item.esHoy && !estaSeleccionado && styles.celdaHoy,
+        ]}
+        activeOpacity={0.9}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={handlePress}
+      >
+        <Text
+          style={[
+            styles.textoInicial,
+            estaSeleccionado
+              ? styles.textoInicialSeleccionado
+              : item.esHoy
+                ? styles.textoInicialHoy
+                : styles.textoInicialNormal,
+          ]}
+        >
+          {item.inicial}
+        </Text>
+
+        <Text
+          style={[
+            styles.textoDiaMes,
+            estaSeleccionado
+              ? styles.textoDiaMesSeleccionado
+              : styles.textoDiaMesNormal,
+          ]}
+        >
+          {item.diaMes}
+        </Text>
+
+        <Text
+          style={[
+            styles.textoFechaCorta,
+            estaSeleccionado
+              ? styles.textoFechaCortaSeleccionado
+              : styles.textoFechaCortaNormal,
+          ]}
+        >
+          {item.fechaCorta}
+        </Text>
+
+        <View style={styles.contenedorIndicador}>
+          {tieneActividad ? (
+            <View
+              style={[
+                styles.puntoActividad,
+                estaSeleccionado && styles.puntoActividadSeleccionado,
+              ]}
+            />
+          ) : item.esHoy ? (
+            <Text
+              style={[
+                styles.badgeHoy,
+                estaSeleccionado && styles.badgeHoySeleccionado,
+              ]}
+            >
+              HOY
+            </Text>
+          ) : (
+            <View style={styles.espaciadorPunto} />
+          )}
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+});
+
 export default function SelectorSemanal({
   fechaSeleccionada,
   onSeleccionarFecha,
@@ -55,66 +164,13 @@ export default function SelectorSemanal({
           const tieneActividad = conjuntoActividad.has(item.fecha);
 
           return (
-            <TouchableOpacity
+            <CeldaDiaSemanal
               key={item.fecha}
-              style={[
-                styles.celda,
-                estaSeleccionado && styles.celdaSeleccionada,
-                item.esHoy && !estaSeleccionado && styles.celdaHoy,
-              ]}
-              activeOpacity={0.75}
-              onPress={() => onSeleccionarFecha(item.fecha)}
-            >
-              <Text
-                style={[
-                  styles.textoInicial,
-                  estaSeleccionado
-                    ? styles.textoInicialSeleccionado
-                    : item.esHoy
-                      ? styles.textoInicialHoy
-                      : styles.textoInicialNormal,
-                ]}
-              >
-                {item.inicial}
-              </Text>
-
-              <Text
-                style={[
-                  styles.textoDiaMes,
-                  estaSeleccionado
-                    ? styles.textoDiaMesSeleccionado
-                    : styles.textoDiaMesNormal,
-                ]}
-              >
-                {item.diaMes}
-              </Text>
-
-              <Text
-                style={[
-                  styles.textoFechaCorta,
-                  estaSeleccionado
-                    ? styles.textoFechaCortaSeleccionado
-                    : styles.textoFechaCortaNormal,
-                ]}
-              >
-                {item.fechaCorta}
-              </Text>
-
-              <View style={styles.contenedorIndicador}>
-                {tieneActividad ? (
-                  <View
-                    style={[
-                      styles.puntoActividad,
-                      estaSeleccionado && styles.puntoActividadSeleccionado,
-                    ]}
-                  />
-                ) : item.esHoy ? (
-                  <Text style={styles.badgeHoy}>HOY</Text>
-                ) : (
-                  <View style={styles.espaciadorPunto} />
-                )}
-              </View>
-            </TouchableOpacity>
+              item={item}
+              estaSeleccionado={estaSeleccionado}
+              tieneActividad={tieneActividad}
+              onPress={onSeleccionarFecha}
+            />
           );
         })}
       </View>
@@ -124,37 +180,39 @@ export default function SelectorSemanal({
 
 const styles = StyleSheet.create({
   contenedor: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 14,
+    backgroundColor: TOKENS.colors.surface, // #141414
+    borderRadius: TOKENS.radii.md,
     paddingVertical: 10,
     paddingHorizontal: 6,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#2E2E2E',
+    borderColor: TOKENS.colors.borderDefault, // #262626
   },
   filaDias: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  celda: {
+  envoltorioCelda: {
     flex: 1,
     marginHorizontal: 2,
+  },
+  celda: {
     paddingVertical: 8,
     paddingHorizontal: 2,
-    borderRadius: 10,
+    borderRadius: TOKENS.radii.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2A2A2A',
+    backgroundColor: TOKENS.colors.surfaceElevated, // #1C1C1E
     borderWidth: 1.5,
-    borderColor: 'transparent',
+    borderColor: TOKENS.colors.borderDefault, // #262626
   },
   celdaSeleccionada: {
-    backgroundColor: '#00E676',
-    borderColor: '#00E676',
+    backgroundColor: TOKENS.colors.accentWhite, // #FFFFFF
+    borderColor: TOKENS.colors.accentWhite,
   },
   celdaHoy: {
-    borderColor: '#00E676',
-    backgroundColor: '#223026',
+    backgroundColor: '#222224',
+    borderColor: TOKENS.colors.borderStrong, // #3A3A3A
   },
   textoInicial: {
     fontSize: 12,
@@ -162,24 +220,25 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   textoInicialNormal: {
-    color: '#B0B0B0',
+    color: TOKENS.colors.textSecondary, // #8E8E93
   },
   textoInicialHoy: {
-    color: '#00E676',
+    color: TOKENS.colors.textSecondary, // #8E8E93
   },
   textoInicialSeleccionado: {
-    color: '#121212',
+    color: TOKENS.colors.textInverse, // #0A0A0A
+    fontWeight: '900',
   },
   textoDiaMes: {
     fontSize: 14,
     fontWeight: '700',
   },
   textoDiaMesNormal: {
-    color: '#FFFFFF',
+    color: TOKENS.colors.textPrimary, // #FFFFFF
   },
   textoDiaMesSeleccionado: {
-    color: '#121212',
-    fontWeight: '800',
+    color: TOKENS.colors.textInverse, // #0A0A0A
+    fontWeight: '900',
   },
   textoFechaCorta: {
     fontSize: 9,
@@ -187,10 +246,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   textoFechaCortaNormal: {
-    color: '#8D8D8D',
+    color: TOKENS.colors.textMuted, // #666666
   },
   textoFechaCortaSeleccionado: {
-    color: '#1E3B2B',
+    color: TOKENS.colors.textInverse, // #0A0A0A
+    fontWeight: '700',
   },
   contenedorIndicador: {
     height: 12,
@@ -199,22 +259,25 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   puntoActividad: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#00E676',
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: TOKENS.colors.accentWhite, // #FFFFFF en inactiva
   },
   puntoActividadSeleccionado: {
-    backgroundColor: '#121212',
+    backgroundColor: TOKENS.colors.textInverse, // #0A0A0A en activa
   },
   badgeHoy: {
     fontSize: 8,
     fontWeight: '800',
-    color: '#00E676',
+    color: TOKENS.colors.textSecondary, // #8E8E93
     letterSpacing: 0.3,
   },
+  badgeHoySeleccionado: {
+    color: TOKENS.colors.textInverse, // #0A0A0A
+  },
   espaciadorPunto: {
-    width: 6,
-    height: 6,
+    width: 5,
+    height: 5,
   },
 });
