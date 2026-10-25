@@ -4,6 +4,7 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 ## Estado Actual
 - Fase 1 completada: Registro de entrenamientos (`storage.js`), `HeatmapSemanal.jsx` y `MenuBienvenida.jsx`.
 - Fase 2 completada: Ojo Nutricional Multimodal con Gemini (`src/services/gemini.js`), `src/components/NutricionView.jsx`, persistencia de comidas y barra inferior.
+- Spec 005 commitada (heatmap tab + reactividad) con bugfixes (modal props, Gemini inlineData, LiveMode debounce, storage throws) y tests mínimos (Jest).
 - Spec `001-borrar-registros` completada: Eliminación con botón `#FF5252` (`🗑 1s`), `delayLongPress={1000}`, pulso háptico y `Alert.alert`.
 - Spec `002-analisis-cambio-fisico` completada: 4ta pestaña `💪 Físico`, filtro contra `gemini-3.8`, perfil configurable, 1–10 fotos, báscula circular, hora 12h y veredicto `0/10`.
 - Spec `003-registro-entrenamientos-activo` completada: `SelectorSemanal.jsx` (7 días locales), inmutabilidad temporal, catálogo extendido (~45 ejercicios en 6 grupos), `LiveModeModal.jsx` (BackHandler dual, auto-save 350ms, botón `+`), consolidación híbrida.
