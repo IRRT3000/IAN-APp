@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -6,8 +6,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import MapaCalorAnual from './heatmap/MapaCalorAnual';
+import DaySummaryModal from './heatmap/DaySummaryModal';
+import MonthBlock from './heatmap/MonthBlock';
+import { NOMBRES_MESES } from '../utils/dateUtilsLocal';
 
+/**
+ * Pantalla principal de Inicio / Bienvenida (Spec 004, Spec 005).
+ * Muestra el resumen del día, accesos directos, el widget interactivo del mes actual
+ * y un acceso directo a la nueva 5ª pestaña "Heatmap".
+ */
 export default function MenuBienvenida({
   fechaHoy,
   totalEjerciciosHoy = 0,
@@ -15,14 +22,25 @@ export default function MenuBienvenida({
   caloriasHoy = 0,
   ultimoEjercicioHoy = null,
   resumenAnual = {},
-  anioSeleccionado = new Date().getFullYear(),
-  onCambiarAnio,
   onAlternarDescanso,
   onIrAFitnessTracker,
   onIrANutricion,
   onIrACambioFisico,
+  onIrAHeatmap,
 }) {
   const metaCumplidaHoy = totalEjerciciosHoy > 0;
+  const mesActualIndex = new Date().getMonth();
+  const anioActual = new Date().getFullYear();
+
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
+
+  const handleSelectDay = (fechaStr) => {
+    setFechaSeleccionada(fechaStr);
+  };
+
+  const handleCloseModal = () => {
+    setFechaSeleccionada(null);
+  };
 
   return (
     <ScrollView
@@ -119,21 +137,68 @@ export default function MenuBienvenida({
         </View>
       </View>
 
-      {/* Mapa de Calor Anual con Cuadrícula de 12 Meses (Spec 004) */}
-      <MapaCalorAnual
-        resumenAnual={resumenAnual}
-        year={anioSeleccionado}
-        onYearChange={onCambiarAnio}
-        fechaHoy={fechaHoy}
-        onAlternarDescanso={onAlternarDescanso}
-        onIrAFitnessTracker={onIrAFitnessTracker}
-        onIrANutricion={onIrANutricion}
-      />
+      {/* Widget Interactivo del Mes Actual (Spec 005) */}
+      <View style={styles.contenedorMesActual}>
+        <View style={styles.encabezadoMesActual}>
+          <View>
+            <Text style={styles.etiquetaMesActual}>CONSISTENCIA MENSUAL</Text>
+            <Text style={styles.tituloMesActual}>
+              {NOMBRES_MESES[mesActualIndex]} {anioActual}
+            </Text>
+          </View>
+          {typeof onIrAHeatmap === 'function' ? (
+            <TouchableOpacity
+              style={styles.botonVerAnualLink}
+              activeOpacity={0.7}
+              onPress={onIrAHeatmap}
+            >
+              <Text style={styles.textoVerAnualLink}>Año completo →</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
+        <MonthBlock
+          year={anioActual}
+          monthIndex={mesActualIndex}
+          resumenAnual={resumenAnual}
+          fechaHoy={fechaHoy}
+          onSelectDay={handleSelectDay}
+          anchoCompleto={true}
+          tamanoGrande={true}
+          mostrarTitulo={false}
+        />
+
+        {typeof onIrAHeatmap === 'function' ? (
+          <TouchableOpacity
+            style={styles.botonExplorarHeatmap}
+            activeOpacity={0.85}
+            onPress={onIrAHeatmap}
+          >
+            <Text style={styles.textoBotonExplorarHeatmap}>
+              🔥 Abrir Heatmap Anual Completo (12 Meses) →
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      {/* Modal Interactivo de Desglose del Día al Tocar una Celda */}
+      {fechaSeleccionada ? (
+        <DaySummaryModal
+          visible={Boolean(fechaSeleccionada)}
+          fechaStr={fechaSeleccionada}
+          resumen={resumenAnual[fechaSeleccionada] || null}
+          fechaHoy={fechaHoy}
+          onClose={handleCloseModal}
+          onAlternarDescanso={onAlternarDescanso}
+          onIrAEntrenos={onIrAFitnessTracker}
+          onIrANutricion={onIrANutricion}
+        />
+      ) : null}
 
       <View style={styles.guiaInferior}>
         <Text style={styles.textoGuiaInferior}>
-          Usa la barra inferior para alternar entre Inicio, Entrenos, Nutrición
-          y Físico
+          Usa la barra inferior para alternar entre Inicio, Entrenos, Nutrición,
+          Físico y Heatmap
         </Text>
       </View>
     </ScrollView>
@@ -236,6 +301,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: '#2A2A2A',
+    marginBottom: 16,
   },
   etiquetaResumen: {
     color: '#757575',
@@ -290,6 +356,61 @@ const styles = StyleSheet.create({
     color: '#00E676',
     fontSize: 12,
     fontWeight: '700',
+  },
+  contenedorMesActual: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#2A2A2A',
+    marginBottom: 16,
+  },
+  encabezadoMesActual: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  etiquetaMesActual: {
+    color: '#757575',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginBottom: 2,
+  },
+  tituloMesActual: {
+    color: '#00E676',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  botonVerAnualLink: {
+    backgroundColor: '#242424',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#333333',
+  },
+  textoVerAnualLink: {
+    color: '#00E676',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  botonExplorarHeatmap: {
+    backgroundColor: '#222222',
+    borderWidth: 1,
+    borderColor: '#00E676',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    marginTop: 14,
+    alignItems: 'center',
+  },
+  textoBotonExplorarHeatmap: {
+    color: '#00E676',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   guiaInferior: {
     alignItems: 'center',
