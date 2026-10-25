@@ -16,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
+import SelectorSemanal from './SelectorSemanal';
 import { analizarComidaConGemini } from '../services/gemini';
 import {
   cargarComidas,
@@ -87,6 +88,7 @@ export default function NutricionView({
   comidasExternas,
   onComidaRegistrada,
 }) {
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(obtenerFechaLocal());
   const [tipoSeleccionado, setTipoSeleccionado] = useState('Desayuno');
   const [comidasInternas, setComidasInternas] = useState([]);
   const [analizando, setAnalizando] = useState(false);
@@ -96,6 +98,8 @@ export default function NutricionView({
   const timerAvisoRef = useRef(null);
 
   const fechaHoy = obtenerFechaLocal();
+  const esHoy = fechaSeleccionada === fechaHoy;
+
   const listaComidas = Array.isArray(comidasExternas)
     ? comidasExternas
     : comidasInternas;
@@ -119,14 +123,23 @@ export default function NutricionView({
     };
   }, []);
 
-  const comidasDeHoy = useMemo(
-    () => listaComidas.filter((item) => item.fecha === fechaHoy),
-    [listaComidas, fechaHoy]
+  // Extraer días con comida para los puntos de actividad del selector semanal
+  const diasConComida = useMemo(() => {
+    return Array.from(
+      new Set(listaComidas.map((item) => item.fecha).filter(Boolean))
+    );
+  }, [listaComidas]);
+
+  // Filtrar comidas del día seleccionado
+  const comidasDelDia = useMemo(
+    () => listaComidas.filter((item) => item.fecha === fechaSeleccionada),
+    [listaComidas, fechaSeleccionada]
   );
 
-  const totalesHoy = useMemo(
+  // Totales calculados exclusivamente sobre la fecha seleccionada
+  const totalesDia = useMemo(
     () =>
-      comidasDeHoy.reduce(
+      comidasDelDia.reduce(
         (acc, item) => ({
           calorias: acc.calorias + (Number(item.calorias) || 0),
           proteinas:
@@ -141,10 +154,11 @@ export default function NutricionView({
         }),
         { calorias: 0, proteinas: 0, carbohidratos: 0, grasas: 0 }
       ),
-    [comidasDeHoy]
+    [comidasDelDia]
   );
 
   const mostrarAvisoToqueCorto = (idComida) => {
+    if (!esHoy) return;
     setAvisoBorradoId(idComida);
     if (timerAvisoRef.current) {
       clearTimeout(timerAvisoRef.current);
@@ -173,6 +187,7 @@ export default function NutricionView({
   };
 
   const solicitarConfirmacionBorrado = (item) => {
+    if (!esHoy) return;
     setAvisoBorradoId(null);
     Alert.alert(
       'Eliminar registro de comida',
@@ -211,9 +226,13 @@ export default function NutricionView({
         grasas: resultado.macros.grasas,
         detalles: resultado.detalles,
         fotoUri: uri,
+        fecha: obtenerFechaLocal(),
       };
 
       const listaActualizada = await guardarComida(nuevaComida);
+
+      // Si se guardó en hoy, sincronizar selección
+      setFechaSeleccionada(obtenerFechaLocal());
 
       if (typeof onComidaRegistrada === 'function') {
         onComidaRegistrada(listaActualizada);
@@ -274,97 +293,129 @@ export default function NutricionView({
       <View style={styles.encabezado}>
         <Text style={styles.titulo}>Nutrición Editorial</Text>
         <Text style={styles.subtitulo}>
-          Ojo Nutricional Multimodal con Gemini · Fecha: {fechaHoy}
+          Ojo Nutricional Multimodal con Gemini · Fecha: {fechaSeleccionada}
         </Text>
       </View>
 
+      {/* Selector Semanal Superior (Spec 007) */}
+      <SelectorSemanal
+        fechaSeleccionada={fechaSeleccionada}
+        onSeleccionarFecha={setFechaSeleccionada}
+        diasConActividad={diasConComida}
+      />
+
+      {/* Banner de Modo Solo Lectura si no es hoy */}
+      {!esHoy ? (
+        <View style={styles.bannerModoHistorial}>
+          <Feather
+            name="clock"
+            size={13}
+            color={TOKENS.colors.textSecondary}
+            style={{ marginRight: 8 }}
+          />
+          <Text style={styles.textoModoHistorial}>
+            Historial ({fechaSeleccionada}) · Modo solo lectura. Días pasados no pueden modificarse.
+          </Text>
+        </View>
+      ) : null}
+
+      {/* Grid de 4 Macros Monocromos */}
       <View style={styles.tarjetaTotales}>
         <View style={styles.bloqueTotalPrincipal}>
-          <Text style={styles.etiquetaTotalPrincipal}>CALORÍAS TOTALES</Text>
-          <Text style={styles.valorTotalPrincipal}>{totalesHoy.calorias}</Text>
-          <Text style={styles.unidadTotalPrincipal}>kcal consumidas hoy</Text>
+          <Text style={styles.etiquetaTotalPrincipal}>
+            {esHoy ? 'CALORÍAS TOTALES' : `CALORÍAS (${fechaSeleccionada})`}
+          </Text>
+          <Text style={styles.valorTotalPrincipal}>{totalesDia.calorias}</Text>
+          <Text style={styles.unidadTotalPrincipal}>
+            {esHoy ? 'kcal consumidas hoy' : 'kcal consumidas en este día'}
+          </Text>
         </View>
 
         <View style={styles.filaMacros}>
           <View style={styles.bloqueMacro}>
             <Text style={styles.etiquetaMacro}>PROTEÍNAS</Text>
-            <Text style={styles.valorMacro}>{totalesHoy.proteinas}g</Text>
+            <Text style={styles.valorMacro}>{totalesDia.proteinas}g</Text>
           </View>
           <View style={styles.divisorMacro} />
           <View style={styles.bloqueMacro}>
             <Text style={styles.etiquetaMacro}>CARBOHIDRATOS</Text>
-            <Text style={styles.valorMacro}>{totalesHoy.carbohidratos}g</Text>
+            <Text style={styles.valorMacro}>{totalesDia.carbohidratos}g</Text>
           </View>
           <View style={styles.divisorMacro} />
           <View style={styles.bloqueMacro}>
             <Text style={styles.etiquetaMacro}>GRASAS</Text>
-            <Text style={styles.valorMacro}>{totalesHoy.grasas}g</Text>
+            <Text style={styles.valorMacro}>{totalesDia.grasas}g</Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.seccionTipoComida}>
-        <Text style={styles.etiquetaSeccion}>TIPO DE COMIDA A ESCANEAR</Text>
-        <View style={styles.filaTiposComida}>
-          {TIPOS_COMIDA.map((tipo) => {
-            const activo = tipoSeleccionado === tipo;
-            return (
-              <TouchableOpacity
-                key={tipo}
-                style={[
-                  styles.botonTipoComida,
-                  activo && styles.botonTipoComidaActivo,
-                ]}
-                onPress={() => {
-                  vibrarSeleccionBascula();
-                  setTipoSeleccionado(tipo);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.textoTipoComida,
-                    activo && styles.textoTipoComidaActivo,
-                  ]}
-                >
-                  {tipo}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+      {/* Sección de Captura y Escaneo: Únicamente activa hoy */}
+      {esHoy ? (
+        <>
+          <View style={styles.seccionTipoComida}>
+            <Text style={styles.etiquetaSeccion}>TIPO DE COMIDA A ESCANEAR</Text>
+            <View style={styles.filaTiposComida}>
+              {TIPOS_COMIDA.map((tipo) => {
+                const activo = tipoSeleccionado === tipo;
+                return (
+                  <TouchableOpacity
+                    key={tipo}
+                    style={[
+                      styles.botonTipoComida,
+                      activo && styles.botonTipoComidaActivo,
+                    ]}
+                    onPress={() => {
+                      vibrarSeleccionBascula();
+                      setTipoSeleccionado(tipo);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.textoTipoComida,
+                        activo && styles.textoTipoComidaActivo,
+                      ]}
+                    >
+                      {tipo}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
 
-      <View style={styles.seccionAcciones}>
-        <TouchableOpacity
-          style={[styles.botonCaptura, styles.botonCamara]}
-          onPress={tomarFoto}
-          disabled={analizando}
-          activeOpacity={0.8}
-        >
-          <Feather
-            name="camera"
-            size={18}
-            color={TOKENS.colors.textInverse}
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.textoBotonCamara}>Escanear con Cámara</Text>
-        </TouchableOpacity>
+          <View style={styles.seccionAcciones}>
+            <TouchableOpacity
+              style={[styles.botonCaptura, styles.botonCamara]}
+              onPress={tomarFoto}
+              disabled={analizando}
+              activeOpacity={0.8}
+            >
+              <Feather
+                name="camera"
+                size={18}
+                color={TOKENS.colors.textInverse}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.textoBotonCamara}>Escanear con Cámara</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.botonCaptura, styles.botonGaleria]}
-          onPress={seleccionarDeGaleria}
-          disabled={analizando}
-          activeOpacity={0.8}
-        >
-          <Feather
-            name="image"
-            size={18}
-            color={TOKENS.colors.textPrimary}
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.textoBotonGaleria}>Galería</Text>
-        </TouchableOpacity>
-      </View>
+            <TouchableOpacity
+              style={[styles.botonCaptura, styles.botonGaleria]}
+              onPress={seleccionarDeGaleria}
+              disabled={analizando}
+              activeOpacity={0.8}
+            >
+              <Feather
+                name="image"
+                size={18}
+                color={TOKENS.colors.textPrimary}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.textoBotonGaleria}>Galería</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : null}
 
       {analizando ? (
         <View style={styles.bloqueCarga}>
@@ -385,14 +436,17 @@ export default function NutricionView({
         </View>
       ) : null}
 
+      {/* Listado de Comidas del Día */}
       <View style={styles.seccionHistorial}>
         <Text style={styles.etiquetaSeccion}>
-          REGISTROS DE HOY ({comidasDeHoy.length})
+          {esHoy
+            ? `REGISTROS DE HOY (${comidasDelDia.length})`
+            : `REGISTROS DEL DÍA (${comidasDelDia.length})`}
         </Text>
       </View>
 
       <FlatList
-        data={comidasDeHoy}
+        data={comidasDelDia}
         keyExtractor={(item) => String(item.id)}
         contentContainerStyle={styles.listaContenido}
         showsVerticalScrollIndicator={false}
@@ -404,10 +458,23 @@ export default function NutricionView({
                   {item.tipo?.toUpperCase()}
                 </Text>
               </View>
-              <CapsulaBorradoSeguroNutricion
-                onBorrar={() => solicitarConfirmacionBorrado(item)}
-                onAvisoCorto={() => mostrarAvisoToqueCorto(item.id)}
-              />
+
+              {esHoy ? (
+                <CapsulaBorradoSeguroNutricion
+                  onBorrar={() => solicitarConfirmacionBorrado(item)}
+                  onAvisoCorto={() => mostrarAvisoToqueCorto(item.id)}
+                />
+              ) : (
+                <View style={styles.badgeSoloLecturaItem}>
+                  <Feather
+                    name="lock"
+                    size={10}
+                    color={TOKENS.colors.textMuted}
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text style={styles.textoBadgeSoloLecturaItem}>Historial</Text>
+                </View>
+              )}
             </View>
 
             <Text style={styles.descripcionComida}>{item.descripcion}</Text>
@@ -444,10 +511,16 @@ export default function NutricionView({
               color={TOKENS.colors.textMuted}
               style={{ marginBottom: 12 }}
             />
-            <Text style={styles.textoVacio}>No hay comidas registradas hoy.</Text>
-            <Text style={styles.subtextoVacio}>
-              Toma una foto de tu plato para desglosar calorías y macros con IA.
+            <Text style={styles.textoVacio}>
+              {esHoy
+                ? 'No hay comidas registradas hoy.'
+                : `No registraste comidas en este día (${fechaSeleccionada}).`}
             </Text>
+            {esHoy ? (
+              <Text style={styles.subtextoVacio}>
+                Toma una foto de tu plato para desglosar calorías y macros con IA.
+              </Text>
+            ) : null}
           </View>
         }
       />
@@ -461,7 +534,7 @@ const styles = StyleSheet.create({
     backgroundColor: TOKENS.colors.canvas,
   },
   encabezado: {
-    marginBottom: 14,
+    marginBottom: 10,
   },
   titulo: {
     color: TOKENS.colors.textPrimary,
@@ -473,6 +546,24 @@ const styles = StyleSheet.create({
     color: TOKENS.colors.textSecondary,
     fontSize: 12,
     marginTop: 2,
+  },
+  bannerModoHistorial: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.sm,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+  },
+  textoModoHistorial: {
+    flex: 1,
+    color: TOKENS.colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 16,
   },
   tarjetaTotales: {
     backgroundColor: TOKENS.colors.surface,
@@ -696,6 +787,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
     marginLeft: 4,
+  },
+  badgeSoloLecturaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderSubtle,
+  },
+  textoBadgeSoloLecturaItem: {
+    color: TOKENS.colors.textMuted,
+    fontSize: 10,
+    fontWeight: '700',
   },
   descripcionComida: {
     color: TOKENS.colors.textPrimary,

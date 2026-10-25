@@ -4,6 +4,7 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 ## Estado Actual
 - Specs previas completadas: 001 (borrado seguro), 002 (físico IA), 003 (live mode), 004 (mapa calor), 005 (pestaña heatmap y reactividad).
 - Spec 006 completada y auditada (`specs/006-rediseño-matte-luxury/`): Rediseño Total Monocromo Matte Luxury (Android-First Edition).
+- Spec 007 completada y auditada: Selector Semanal integrado en Nutrición (`NutricionView.jsx`) y Cambio Físico (`CambioFisicoView.jsx`) con filtrado por fecha local, actividad específica por módulo, recálculo reactivo de macros y modo historial solo lectura en días pasados.
 - Selector Semanal modernizado (`SelectorSemanal.jsx`): Paleta Monocromo Luxury, celdas individuales memoizadas (`CeldaDiaSemanal`), físicas de resorte en UI Thread (`scale: 0.94 -> 1.0`), háptica causal y cero verde neón.
 - Sistema de Tokens (`src/theme/tokens.js`): Fondo `#0A0A0A`, superficies `#141414`/`#1C1C1E`, bordes hairline `#262626`, texto `#FFFFFF`/`#8E8E93`.
 - 100% Erradicación de Emojis: Cero glifos en UI, alertas y catálogo; uso exclusivo de `@expo/vector-icons` (`Feather`).

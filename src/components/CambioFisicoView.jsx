@@ -18,6 +18,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
+import SelectorSemanal from './SelectorSemanal';
 import {
   analizarCambioFisicoConGemini,
   compararCambioFisicoConGemini,
@@ -137,6 +138,7 @@ export default function CambioFisicoView({
   onCambioFisicoActualizado,
   onPerfilActualizado,
 }) {
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(obtenerFechaLocal());
   const [registrosInternos, setRegistrosInternos] = useState([]);
   const [perfilInterno, setPerfilInterno] = useState(PERFIL_USUARIO_BASE);
   const [fotosSeleccionadas, setFotosSeleccionadas] = useState([]);
@@ -160,6 +162,7 @@ export default function CambioFisicoView({
   const timerAvisoRef = useRef(null);
 
   const fechaHoy = obtenerFechaLocal();
+  const esHoy = fechaSeleccionada === fechaHoy;
   const edadInfo = useMemo(() => calcularEdadExacta(), []);
   const tiempoEntrenoInfo = useMemo(() => calcularTiempoEntrenando(), []);
 
@@ -167,6 +170,19 @@ export default function CambioFisicoView({
     ? cambiosExternos
     : registrosInternos;
   const perfilActivo = perfilExterno || perfilInterno;
+
+  // Extraer días con registros fotográficos para los puntos de actividad del selector semanal
+  const diasConFoto = useMemo(() => {
+    return Array.from(
+      new Set(listaRegistros.map((item) => item.fecha).filter(Boolean))
+    );
+  }, [listaRegistros]);
+
+  // Filtrar registros correspondientes exclusivamente a la fecha seleccionada
+  const registrosDelDia = useMemo(
+    () => listaRegistros.filter((item) => item.fecha === fechaSeleccionada),
+    [listaRegistros, fechaSeleccionada]
+  );
 
   const sincronizarDatosLocales = useCallback(async () => {
     const [guardados, perfilCargado] = await Promise.all([
@@ -512,6 +528,7 @@ export default function CambioFisicoView({
   };
 
   const mostrarAvisoToqueCorto = (idRegistro) => {
+    if (!esHoy) return;
     setAvisoBorradoId(idRegistro);
     if (timerAvisoRef.current) {
       clearTimeout(timerAvisoRef.current);
@@ -540,6 +557,7 @@ export default function CambioFisicoView({
   };
 
   const solicitarConfirmacionBorrado = (item) => {
+    if (!esHoy) return;
     setAvisoBorradoId(null);
     Alert.alert(
       'Eliminar chequeo físico',
@@ -728,10 +746,22 @@ export default function CambioFisicoView({
             </View>
           )}
 
-          <CapsulaBorradoSeguroFisico
-            onBorrar={() => solicitarConfirmacionBorrado(item)}
-            onAvisoCorto={() => mostrarAvisoToqueCorto(item.id)}
-          />
+          {esHoy ? (
+            <CapsulaBorradoSeguroFisico
+              onBorrar={() => solicitarConfirmacionBorrado(item)}
+              onAvisoCorto={() => mostrarAvisoToqueCorto(item.id)}
+            />
+          ) : (
+            <View style={styles.badgeSoloLecturaItem}>
+              <Feather
+                name="lock"
+                size={10}
+                color={TOKENS.colors.textMuted}
+                style={{ marginRight: 4 }}
+              />
+              <Text style={styles.textoBadgeSoloLecturaItem}>Historial</Text>
+            </View>
+          )}
         </View>
 
         {mostrandoAviso ? (
@@ -764,17 +794,39 @@ export default function CambioFisicoView({
     <View style={styles.contenedor}>
       <View style={styles.encabezado}>
         <Text style={styles.tituloVista}>Cambio Físico Editorial</Text>
-        <Text style={styles.subtituloFecha}>Hoy: {fechaHoy}</Text>
+        <Text style={styles.subtituloFecha}>Fecha: {fechaSeleccionada}</Text>
       </View>
 
       <FlatList
-        data={listaRegistros}
+        data={registrosDelDia}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderizarTarjetaCambio}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contenidoLista}
         ListHeaderComponent={
           <View>
+            {/* Selector Semanal Superior (Spec 007) */}
+            <SelectorSemanal
+              fechaSeleccionada={fechaSeleccionada}
+              onSeleccionarFecha={setFechaSeleccionada}
+              diasConActividad={diasConFoto}
+            />
+
+            {/* Banner de Modo Solo Lectura si no es hoy */}
+            {!esHoy ? (
+              <View style={styles.bannerModoHistorial}>
+                <Feather
+                  name="calendar"
+                  size={13}
+                  color={TOKENS.colors.textSecondary}
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.textoModoHistorial}>
+                  Historial de cambio físico ({fechaSeleccionada}) · Modo solo lectura. Días pasados no pueden modificarse.
+                </Text>
+              </View>
+            ) : null}
+
             <View style={styles.tarjetaPerfil}>
               <View style={styles.filaMetricasBio}>
                 <View style={styles.itemBio}>
@@ -842,6 +894,7 @@ export default function CambioFisicoView({
               </View>
             </View>
 
+            {esHoy ? (
             <View style={styles.tarjetaCaptura}>
               <View style={styles.filaTituloCaptura}>
                 <Text style={styles.tituloSeccion}>
@@ -988,13 +1041,14 @@ export default function CambioFisicoView({
                 <Text style={styles.textoError}>{mensajeError}</Text>
               ) : null}
             </View>
+            ) : null}
 
             <View style={styles.encabezadoHistorial}>
               <Text style={styles.tituloSeccion}>
-                Historial de Chequeos Físicos
+                {esHoy ? `Chequeos Físicos de Hoy (${registrosDelDia.length})` : `Chequeos del Día (${registrosDelDia.length})`}
               </Text>
               <Text style={styles.contadorLista}>
-                {listaRegistros.length} registro(s)
+                {registrosDelDia.length} registro(s)
               </Text>
             </View>
           </View>
@@ -1008,9 +1062,9 @@ export default function CambioFisicoView({
               style={{ marginBottom: 12 }}
             />
             <Text style={styles.textoVacio}>
-              Aún no tienes análisis de cambio físico registrados. Adjunta entre
-              1 y 10 fotografías para abrir la báscula circular y obtener tu
-              veredicto 0/10.
+              {esHoy
+                ? 'Aún no tienes análisis de cambio físico registrados hoy. Adjunta entre 1 y 10 fotografías para abrir la báscula circular y obtener tu veredicto 0/10.'
+                : `Sin registros fotográficos ni pesaje en esta fecha (${fechaSeleccionada}).`}
             </Text>
           </View>
         }
@@ -1205,6 +1259,39 @@ export default function CambioFisicoView({
 }
 
 const styles = StyleSheet.create({
+  bannerModoHistorial: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.sm,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+  },
+  textoModoHistorial: {
+    flex: 1,
+    color: TOKENS.colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 16,
+  },
+  badgeSoloLecturaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.xs,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderSubtle,
+  },
+  textoBadgeSoloLecturaItem: {
+    color: TOKENS.colors.textMuted,
+    fontSize: 10,
+    fontWeight: '700',
+  },
   contenedor: {
     flex: 1,
     backgroundColor: TOKENS.colors.canvas,
