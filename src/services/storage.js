@@ -337,7 +337,7 @@ export const guardarEntrenamiento = async (nuevoRegistro) => {
     }));
   } catch (error) {
     console.error('Error al guardar entrenamiento en AsyncStorage:', error);
-    return [];
+    throw new Error('No se pudo guardar el entrenamiento en el almacenamiento local.');
   }
 };
 
@@ -606,7 +606,7 @@ export const guardarComida = async (nuevaComida) => {
     return nuevaListaInmutable.map((item) => ({ ...item }));
   } catch (error) {
     console.error('Error al guardar comida en AsyncStorage:', error);
-    return [];
+    throw new Error('No se pudo guardar la comida en el almacenamiento local.');
   }
 };
 
@@ -770,7 +770,7 @@ export const guardarCambioFisico = async (nuevoRegistro) => {
     return nuevaListaInmutable.map(clonarCambioFisico);
   } catch (error) {
     console.error('Error al guardar cambio físico en AsyncStorage:', error);
-    return [];
+    throw new Error('No se pudo guardar el cambio f?sico en el almacenamiento local.');
   }
 };
 

@@ -160,6 +160,10 @@ export default function LiveModeModal({
       repeticiones: ultimaSerie?.repeticiones ?? '',
     };
 
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = null;
+    }
     const nuevasSeries = [...series, nuevaSerie];
     setSeries(nuevasSeries);
     setErrorValidacion('');
@@ -172,6 +176,10 @@ export default function LiveModeModal({
       return;
     }
 
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = null;
+    }
     const filtradas = series
       .filter((_, idx) => idx !== indice)
       .map((item, idx) => ({

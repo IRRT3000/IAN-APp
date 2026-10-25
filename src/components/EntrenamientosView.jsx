@@ -149,11 +149,11 @@ export default function EntrenamientosView({
   };
 
   // Descarte de la sesión activa
-  const manejarDescartarLiveMode = async () => {
+  const manejarDescartarLiveMode = useCallback(() => {
     cambiarEstadoLiveMode(false);
     setEjercicioActivo(null);
     setDraftSesion(null);
-  };
+  }, [cambiarEstadoLiveMode]);
 
   // Borrado seguro 1 segundo con doble pulso háptico (RF-16)
   const mostrarAvisoToqueCorto = (idEntrenamiento) => {

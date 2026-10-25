@@ -41,7 +41,7 @@ export default function SelectorSemanal({
   onSeleccionarFecha,
   diasConActividad = [],
 }) {
-  const dias = useMemo(() => calcularDiasSemana(), []);
+  const dias = calcularDiasSemana();
   const conjuntoActividad = useMemo(
     () => new Set(Array.isArray(diasConActividad) ? diasConActividad : []),
     [diasConActividad]

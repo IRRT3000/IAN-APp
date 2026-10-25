@@ -9,8 +9,9 @@ import {
 } from '../../utils/dateUtilsLocal';
 
 /**
- * Bloque individual de un mes dentro del Mapa de Calor Anual.
+ * Bloque individual de un mes dentro del Mapa de Calor.
  * Renderiza encabezado abreviado, cabecera L-D de 7 columnas y celdas memoizadas.
+ * Admite `anchoCompleto` y `tamanoGrande` para su uso como widget en el inicio.
  */
 export default function MonthBlock({
   year,
@@ -18,6 +19,9 @@ export default function MonthBlock({
   resumenAnual = {},
   fechaHoy,
   onSelectDay,
+  anchoCompleto = false,
+  tamanoGrande = false,
+  mostrarTitulo = true,
 }) {
   const nombreMes = NOMBRES_MESES[monthIndex] || `M${monthIndex + 1}`;
 
@@ -27,26 +31,57 @@ export default function MonthBlock({
   );
 
   return (
-    <View style={styles.contenedorMes}>
-      <Text style={styles.tituloMes}>{nombreMes}</Text>
+    <View
+      style={[
+        styles.contenedorMes,
+        anchoCompleto && styles.contenedorMesCompleto,
+      ]}
+    >
+      {mostrarTitulo ? (
+        <Text
+          style={[
+            styles.tituloMes,
+            tamanoGrande && styles.tituloMesGrande,
+          ]}
+        >
+          {nombreMes}
+        </Text>
+      ) : null}
 
       {/* Cabecera de 7 columnas de días de la semana (L a D) */}
-      <View style={styles.filaDiasSemana}>
+      <View
+        style={[
+          styles.filaDiasSemana,
+          tamanoGrande && styles.filaDiasSemanaGrande,
+        ]}
+      >
         {DIAS_SEMANA_CORTO.map((diaLetra, idx) => (
-          <Text key={`cab-${monthIndex}-${idx}`} style={styles.textoDiaSemana}>
+          <Text
+            key={`cab-${monthIndex}-${idx}`}
+            style={[
+              styles.textoDiaSemana,
+              tamanoGrande && styles.textoDiaSemanaGrande,
+            ]}
+          >
             {diaLetra}
           </Text>
         ))}
       </View>
 
       {/* Cuadrícula de celdas del mes */}
-      <View style={styles.cuadriculaMes}>
+      <View
+        style={[
+          styles.cuadriculaMes,
+          tamanoGrande && styles.cuadriculaMesGrande,
+        ]}
+      >
         {celdas.map((item, idx) => {
           if (item.esVacio) {
             return (
               <HeatmapDayCell
                 key={`empty-${monthIndex}-${idx}`}
                 esVacio={true}
+                tamanoGrande={tamanoGrande}
               />
             );
           }
@@ -68,6 +103,7 @@ export default function MonthBlock({
               hasPhoto={Boolean(datosDia?.hasPhoto)}
               esVacio={false}
               onPress={onSelectDay}
+              tamanoGrande={tamanoGrande}
             />
           );
         })}
@@ -87,6 +123,15 @@ const styles = StyleSheet.create({
     width: '48.5%',
     alignItems: 'center',
   },
+  contenedorMesCompleto: {
+    width: '100%',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    marginVertical: 0,
+    backgroundColor: '#181818',
+    borderColor: '#2A2A2A',
+  },
   tituloMes: {
     color: '#00E676',
     fontSize: 11,
@@ -96,11 +141,22 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingLeft: 2,
   },
+  tituloMesGrande: {
+    fontSize: 14,
+    letterSpacing: 1,
+    marginBottom: 8,
+    alignSelf: 'center',
+  },
   filaDiasSemana: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
     width: 7 * 17,
     marginBottom: 3,
+  },
+  filaDiasSemanaGrande: {
+    width: 7 * 41,
+    marginBottom: 6,
+    justifyContent: 'center',
   },
   textoDiaSemana: {
     width: 14,
@@ -110,10 +166,21 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontWeight: '700',
   },
+  textoDiaSemanaGrande: {
+    width: 34,
+    marginHorizontal: 3.5,
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#8D8D8D',
+  },
   cuadriculaMes: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     width: 7 * 17,
     justifyContent: 'flex-start',
+  },
+  cuadriculaMesGrande: {
+    width: 7 * 41,
+    justifyContent: 'center',
   },
 });

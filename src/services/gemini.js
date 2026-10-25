@@ -285,8 +285,8 @@ const ejecutarLlamadaGemini = async ({
   const endpoint = `${GEMINI_API_BASE_URL}/${modelo}:generateContent?key=${apiKey}`;
 
   const partesImagen = imagenesBase64.map((b64) => ({
-    inline_data: {
-      mime_type: 'image/jpeg',
+    inlineData: {
+      mimeType: 'image/jpeg',
       data: String(b64).replace(/^data:image\/[a-zA-Z+]+;base64,/, ''),
     },
   }));

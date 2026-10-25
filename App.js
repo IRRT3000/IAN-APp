@@ -5,6 +5,7 @@ import { Platform, SafeAreaView, StyleSheet, View } from 'react-native';
 import BarraNavegacionInferior from './src/components/BarraNavegacionInferior';
 import CambioFisicoView from './src/components/CambioFisicoView';
 import EntrenamientosView from './src/components/EntrenamientosView';
+import HeatmapView from './src/components/HeatmapView';
 import MenuBienvenida from './src/components/MenuBienvenida';
 import NutricionView from './src/components/NutricionView';
 import {
@@ -60,14 +61,15 @@ export default function App() {
     sincronizarDatos();
   }, [sincronizarDatos]);
 
-  useEffect(() => {
-    obtenerResumenAnualHabitos(anioHeatmap).then(setResumenAnual);
-  }, [anioHeatmap]);
+  // El resumen anual ya se recalcula dentro de sincronizarDatos (dependiente de anioHeatmap).
 
-  const manejarAlternarDescanso = useCallback(async (fecha) => {
-    await alternarDiaDescanso(fecha);
-    await sincronizarDatos();
-  }, [sincronizarDatos]);
+  const manejarAlternarDescanso = useCallback(
+    async (fecha) => {
+      await alternarDiaDescanso(fecha);
+      await sincronizarDatos();
+    },
+    [sincronizarDatos]
+  );
 
   const entrenamientosDeHoy = useMemo(
     () => entrenamientos.filter((item) => item.fecha === fechaHoy),
@@ -93,28 +95,63 @@ export default function App() {
     [comidasDeHoy]
   );
 
+  // Reactividad inmediata: al actualizar entrenamientos, recalcula los días activos y el resumen del heatmap (RF-1)
   const manejarEntrenamientosActualizados = useCallback(
     async (nuevaLista) => {
       setEntrenamientos(nuevaLista);
-      const diasActualizados = await obtenerDiasConActividad();
+      const [diasActualizados, nuevoResumen] = await Promise.all([
+        obtenerDiasConActividad(),
+        obtenerResumenAnualHabitos(anioHeatmap),
+      ]);
       setDiasConActividad(diasActualizados);
+      setResumenAnual(nuevoResumen);
     },
-    []
+    [anioHeatmap]
   );
 
-  const manejarCambioComidas = useCallback(async (nuevaListaComidas) => {
-    setComidas(nuevaListaComidas);
-    const diasActualizados = await obtenerDiasConActividad();
-    setDiasConActividad(diasActualizados);
-  }, []);
+  // Reactividad inmediata: al registrar o borrar comida, recalcula los días activos y el resumen del heatmap (RF-1)
+  const manejarCambioComidas = useCallback(
+    async (nuevaListaComidas) => {
+      setComidas(nuevaListaComidas);
+      const [diasActualizados, nuevoResumen] = await Promise.all([
+        obtenerDiasConActividad(),
+        obtenerResumenAnualHabitos(anioHeatmap),
+      ]);
+      setDiasConActividad(diasActualizados);
+      setResumenAnual(nuevoResumen);
+    },
+    [anioHeatmap]
+  );
 
-  const manejarCambioFisico = useCallback(async (nuevaListaCambios) => {
-    setCambiosFisicos(nuevaListaCambios);
-    const diasActualizados = await obtenerDiasConActividad();
-    setDiasConActividad(diasActualizados);
-  }, []);
+  // Reactividad inmediata: al registrar cambio físico, actualiza resumen anual
+  const manejarCambioFisico = useCallback(
+    async (nuevaListaCambios) => {
+      setCambiosFisicos(nuevaListaCambios);
+      const [diasActualizados, nuevoResumen] = await Promise.all([
+        obtenerDiasConActividad(),
+        obtenerResumenAnualHabitos(anioHeatmap),
+      ]);
+      setDiasConActividad(diasActualizados);
+      setResumenAnual(nuevoResumen);
+    },
+    [anioHeatmap]
+  );
 
   const renderizarVistaActiva = () => {
+    if (vistaActiva === 'heatmap') {
+      return (
+        <HeatmapView
+          resumenAnual={resumenAnual}
+          anioSeleccionado={anioHeatmap}
+          onCambiarAnio={setAnioHeatmap}
+          fechaHoy={fechaHoy}
+          onAlternarDescanso={manejarAlternarDescanso}
+          onIrAFitnessTracker={() => setVistaActiva('tracker')}
+          onIrANutricion={() => setVistaActiva('nutricion')}
+        />
+      );
+    }
+
     if (vistaActiva === 'fisico') {
       return (
         <CambioFisicoView
@@ -156,12 +193,11 @@ export default function App() {
         caloriasHoy={caloriasHoy}
         ultimoEjercicioHoy={entrenamientosDeHoy[0] || null}
         resumenAnual={resumenAnual}
-        anioSeleccionado={anioHeatmap}
-        onCambiarAnio={setAnioHeatmap}
         onAlternarDescanso={manejarAlternarDescanso}
         onIrAFitnessTracker={() => setVistaActiva('tracker')}
         onIrANutricion={() => setVistaActiva('nutricion')}
         onIrACambioFisico={() => setVistaActiva('fisico')}
+        onIrAHeatmap={() => setVistaActiva('heatmap')}
       />
     );
   };
@@ -175,13 +211,7 @@ export default function App() {
         {/* La barra inferior se oculta dinámicamente si el Live Mode está activo (RF-9) */}
         {!enLiveMode ? (
           <BarraNavegacionInferior
-            vistaActiva={
-              vistaActiva === 'tracker' ||
-              vistaActiva === 'nutricion' ||
-              vistaActiva === 'fisico'
-                ? vistaActiva
-                : 'bienvenida'
-            }
+            vistaActiva={vistaActiva}
             onCambiarVista={setVistaActiva}
             contadorHoy={entrenamientosDeHoy.length}
             contadorComidasHoy={comidasDeHoy.length}
