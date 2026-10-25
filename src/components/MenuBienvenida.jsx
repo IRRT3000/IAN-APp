@@ -1,5 +1,12 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import MapaCalorAnual from './heatmap/MapaCalorAnual';
 
 export default function MenuBienvenida({
   fechaHoy,
@@ -7,6 +14,10 @@ export default function MenuBienvenida({
   totalDiasActivos = 0,
   caloriasHoy = 0,
   ultimoEjercicioHoy = null,
+  resumenAnual = {},
+  anioSeleccionado = new Date().getFullYear(),
+  onCambiarAnio,
+  onAlternarDescanso,
   onIrAFitnessTracker,
   onIrANutricion,
   onIrACambioFisico,
@@ -14,7 +25,11 @@ export default function MenuBienvenida({
   const metaCumplidaHoy = totalEjerciciosHoy > 0;
 
   return (
-    <View style={styles.contenedor}>
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.bloqueSuperior}>
         <View style={styles.insigniaEstado}>
           <View
@@ -104,24 +119,37 @@ export default function MenuBienvenida({
         </View>
       </View>
 
+      {/* Mapa de Calor Anual con Cuadrícula de 12 Meses (Spec 004) */}
+      <MapaCalorAnual
+        resumenAnual={resumenAnual}
+        year={anioSeleccionado}
+        onYearChange={onCambiarAnio}
+        fechaHoy={fechaHoy}
+        onAlternarDescanso={onAlternarDescanso}
+        onIrAFitnessTracker={onIrAFitnessTracker}
+        onIrANutricion={onIrANutricion}
+      />
+
       <View style={styles.guiaInferior}>
         <Text style={styles.textoGuiaInferior}>
           Usa la barra inferior para alternar entre Inicio, Entrenos, Nutrición
           y Físico
         </Text>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  contenedor: {
+  scrollView: {
     flex: 1,
-    justifyContent: 'space-between',
+  },
+  scrollContent: {
     paddingVertical: 12,
+    paddingBottom: 24,
   },
   bloqueSuperior: {
-    marginTop: 16,
+    marginTop: 8,
   },
   insigniaEstado: {
     flexDirection: 'row',
@@ -133,7 +161,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   puntoEstado: {
     width: 8,
@@ -162,35 +190,35 @@ const styles = StyleSheet.create({
   },
   tituloBienvenida: {
     color: '#FFFFFF',
-    fontSize: 34,
+    fontSize: 32,
     fontWeight: '800',
     letterSpacing: -0.5,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   subtituloBienvenida: {
     color: '#9E9E9E',
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 20,
   },
   filaMetricas: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 20,
+    marginVertical: 16,
   },
   tarjetaMetrica: {
     flex: 1,
     backgroundColor: '#1A1A1A',
     borderRadius: 14,
-    paddingVertical: 18,
-    paddingHorizontal: 10,
-    marginHorizontal: 4,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    marginHorizontal: 3,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#2A2A2A',
   },
   valorMetrica: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '800',
     marginBottom: 4,
   },
@@ -205,7 +233,7 @@ const styles = StyleSheet.create({
   tarjetaResumenDia: {
     backgroundColor: '#1A1A1A',
     borderRadius: 16,
-    padding: 18,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#2A2A2A',
   },
@@ -214,14 +242,14 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   detalleUltimo: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   tituloUltimo: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     marginBottom: 4,
   },
@@ -232,9 +260,9 @@ const styles = StyleSheet.create({
   },
   textoSinSesion: {
     color: '#B0B0B0',
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 16,
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 14,
   },
   filaBotonesAcceso: {
     flexDirection: 'row',
@@ -265,7 +293,7 @@ const styles = StyleSheet.create({
   },
   guiaInferior: {
     alignItems: 'center',
-    paddingBottom: 6,
+    paddingVertical: 12,
   },
   textoGuiaInferior: {
     color: '#6E6E6E',

@@ -9,12 +9,14 @@ import MenuBienvenida from './src/components/MenuBienvenida';
 import NutricionView from './src/components/NutricionView';
 import {
   PERFIL_USUARIO_BASE,
+  alternarDiaDescanso,
   cargarCambiosFisicos,
   cargarComidas,
   cargarEntrenamientos,
   cargarPerfilUsuario,
   obtenerDiasConActividad,
   obtenerFechaLocal,
+  obtenerResumenAnualHabitos,
 } from './src/services/storage';
 
 export default function App() {
@@ -25,6 +27,8 @@ export default function App() {
   const [perfilUsuario, setPerfilUsuario] = useState(PERFIL_USUARIO_BASE);
   const [vistaActiva, setVistaActiva] = useState('bienvenida');
   const [enLiveMode, setEnLiveMode] = useState(false);
+  const [anioHeatmap, setAnioHeatmap] = useState(new Date().getFullYear());
+  const [resumenAnual, setResumenAnual] = useState({});
 
   const fechaHoy = obtenerFechaLocal();
 
@@ -35,22 +39,34 @@ export default function App() {
       comidasGuardadas,
       cambiosGuardados,
       perfilCargado,
+      resumenHabitos,
     ] = await Promise.all([
       cargarEntrenamientos(),
       obtenerDiasConActividad(),
       cargarComidas(),
       cargarCambiosFisicos(),
       cargarPerfilUsuario(),
+      obtenerResumenAnualHabitos(anioHeatmap),
     ]);
     setEntrenamientos(listaGuardada);
     setDiasConActividad(diasActivos);
     setComidas(comidasGuardadas);
     setCambiosFisicos(cambiosGuardados);
     setPerfilUsuario(perfilCargado);
-  }, []);
+    setResumenAnual(resumenHabitos);
+  }, [anioHeatmap]);
 
   useEffect(() => {
     sincronizarDatos();
+  }, [sincronizarDatos]);
+
+  useEffect(() => {
+    obtenerResumenAnualHabitos(anioHeatmap).then(setResumenAnual);
+  }, [anioHeatmap]);
+
+  const manejarAlternarDescanso = useCallback(async (fecha) => {
+    await alternarDiaDescanso(fecha);
+    await sincronizarDatos();
   }, [sincronizarDatos]);
 
   const entrenamientosDeHoy = useMemo(
@@ -139,6 +155,10 @@ export default function App() {
         totalDiasActivos={diasConActividad.length}
         caloriasHoy={caloriasHoy}
         ultimoEjercicioHoy={entrenamientosDeHoy[0] || null}
+        resumenAnual={resumenAnual}
+        anioSeleccionado={anioHeatmap}
+        onCambiarAnio={setAnioHeatmap}
+        onAlternarDescanso={manejarAlternarDescanso}
         onIrAFitnessTracker={() => setVistaActiva('tracker')}
         onIrANutricion={() => setVistaActiva('nutricion')}
         onIrACambioFisico={() => setVistaActiva('fisico')}

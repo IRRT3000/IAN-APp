@@ -8,6 +8,10 @@ export const STORAGE_KEY_CATALOGO_PERSONALIZADO =
   '@fitness_tracker_catalogo_personalizado_v1';
 export const STORAGE_KEY_SESION_ACTIVA_DRAFT =
   '@fitness_tracker_sesion_activa_draft_v1';
+export const STORAGE_KEY_DIAS_DESCANSO =
+  '@fitness_tracker_dias_descanso_v1';
+
+import { calcularScoreVaso, obtenerNivelColor } from '../utils/waterGlassEngine';
 
 export const OBJETIVOS_PERFIL_VALIDOS = [
   'Mantenimiento',
@@ -841,16 +845,17 @@ export const eliminarCambioFisico = async (id) => {
 
 /**
  * Obtiene un arreglo inmutable con las fechas únicas (YYYY-MM-DD) que tienen actividad registrada
- * (al menos un entrenamiento, una comida o un registro de cambio físico). Si los tres quedan en 0
- * para un día, la fecha deja de incluirse y su celda en HeatmapSemanal vuelve a gris (#2A2A2A).
+ * (al menos un entrenamiento, una comida, un registro de cambio físico o día de descanso). Si todos quedan en 0
+ * para un día, la fecha deja de incluirse y su celda en el heatmap vuelve a gris (#2A2A2A).
  * @returns {Promise<Array<string>>} Lista de fechas en formato local YYYY-MM-DD
  */
 export const obtenerDiasConActividad = async () => {
   try {
-    const [entrenamientos, comidas, cambiosFisicos] = await Promise.all([
+    const [entrenamientos, comidas, cambiosFisicos, diasDescanso] = await Promise.all([
       cargarEntrenamientos(),
       cargarComidas(),
       cargarCambiosFisicos(),
+      cargarDiasDescanso(),
     ]);
 
     const fechasEntrenamientos = entrenamientos
@@ -865,16 +870,170 @@ export const obtenerDiasConActividad = async () => {
       .map((cambio) => cambio.fecha)
       .filter(Boolean);
 
+    const fechasDescanso = diasDescanso.filter(Boolean);
+
     const diasUnicos = Array.from(
       new Set([
         ...fechasEntrenamientos,
         ...fechasComidas,
         ...fechasCambiosFisicos,
+        ...fechasDescanso,
       ])
     );
     return [...diasUnicos];
   } catch (error) {
     console.error('Error al obtener días con actividad:', error);
     return [];
+  }
+};
+
+/**
+ * Carga la lista de fechas marcadas como día de descanso desde AsyncStorage (RF-3, RF-6).
+ * @returns {Promise<Array<string>>} Arreglo inmutable de fechas 'YYYY-MM-DD'
+ */
+export const cargarDiasDescanso = async () => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(STORAGE_KEY_DIAS_DESCANSO);
+    if (!jsonValue) {
+      return [];
+    }
+    const parsed = JSON.parse(jsonValue);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return [...parsed.filter((item) => typeof item === 'string')];
+  } catch (error) {
+    console.error('Error al cargar días de descanso desde AsyncStorage:', error);
+    return [];
+  }
+};
+
+/**
+ * Alterna de forma inmutable el estado de día de descanso para una fecha (RF-3).
+ * Si ya estaba marcado, lo elimina. Si no, lo agrega.
+ * @param {string} [fecha=obtenerFechaLocal()]
+ * @returns {Promise<Array<string>>} Lista actualizada e inmutable de días de descanso
+ */
+export const alternarDiaDescanso = async (fecha = obtenerFechaLocal()) => {
+  try {
+    const diasActuales = await cargarDiasDescanso();
+    const yaExiste = diasActuales.includes(fecha);
+
+    const nuevaListaInmutable = yaExiste
+      ? diasActuales.filter((f) => f !== fecha)
+      : [...diasActuales, fecha];
+
+    await AsyncStorage.setItem(
+      STORAGE_KEY_DIAS_DESCANSO,
+      JSON.stringify(nuevaListaInmutable)
+    );
+
+    return [...nuevaListaInmutable];
+  } catch (error) {
+    console.error('Error al alternar día de descanso en AsyncStorage:', error);
+    return [];
+  }
+};
+
+/**
+ * Genera en un único recorrido O(1) por registro el mapa de resumen anual de hábitos
+ * para el año solicitado, cruzando entrenamientos, comidas, fotos físicas y días de descanso.
+ * 
+ * @param {number} [year=new Date().getFullYear()]
+ * @returns {Promise<Record<string, Object>>} Diccionario indexado por 'YYYY-MM-DD'
+ */
+export const obtenerResumenAnualHabitos = async (
+  year = new Date().getFullYear()
+) => {
+  try {
+    const prefijoAnio = `${year}-`;
+
+    const [entrenamientos, comidas, cambiosFisicos, diasDescanso] =
+      await Promise.all([
+        cargarEntrenamientos(),
+        cargarComidas(),
+        cargarCambiosFisicos(),
+        cargarDiasDescanso(),
+      ]);
+
+    const mapaResumen = {};
+
+    const obtenerOCrearEntrada = (fecha) => {
+      if (!mapaResumen[fecha]) {
+        mapaResumen[fecha] = {
+          fecha,
+          entrenamientos: [],
+          comidas: [],
+          comidasCount: 0,
+          calorias: 0,
+          hasWorkout: false,
+          isRestDay: false,
+          hasPhoto: false,
+          fotosCount: 0,
+          score: 0.0,
+          nivelColor: 0,
+        };
+      }
+      return mapaResumen[fecha];
+    };
+
+    // 1. Agrupar entrenamientos del año
+    for (let i = 0; i < entrenamientos.length; i += 1) {
+      const e = entrenamientos[i];
+      if (e?.fecha && e.fecha.startsWith(prefijoAnio)) {
+        const entry = obtenerOCrearEntrada(e.fecha);
+        entry.entrenamientos.push(e);
+        entry.hasWorkout = true;
+      }
+    }
+
+    // 2. Agrupar comidas del año
+    for (let i = 0; i < comidas.length; i += 1) {
+      const c = comidas[i];
+      if (c?.fecha && c.fecha.startsWith(prefijoAnio)) {
+        const entry = obtenerOCrearEntrada(c.fecha);
+        entry.comidas.push(c);
+        entry.comidasCount += 1;
+        entry.calorias += Number(c.calorias) || 0;
+      }
+    }
+
+    // 3. Agrupar fotos físicas del año (insignia extra sin penalización)
+    for (let i = 0; i < cambiosFisicos.length; i += 1) {
+      const cf = cambiosFisicos[i];
+      if (cf?.fecha && cf.fecha.startsWith(prefijoAnio)) {
+        const entry = obtenerOCrearEntrada(cf.fecha);
+        const cantFotos = Array.isArray(cf.urisFotos) && cf.urisFotos.length > 0
+          ? cf.urisFotos.length
+          : Number(cf.cantidadFotos) || 0;
+        if (cantFotos > 0) {
+          entry.hasPhoto = true;
+          entry.fotosCount += cantFotos;
+        }
+      }
+    }
+
+    // 4. Marcar días de descanso del año
+    for (let i = 0; i < diasDescanso.length; i += 1) {
+      const f = diasDescanso[i];
+      if (typeof f === 'string' && f.startsWith(prefijoAnio)) {
+        const entry = obtenerOCrearEntrada(f);
+        entry.isRestDay = true;
+      }
+    }
+
+    // 5. Calcular score y nivel de color para cada día con actividad/descanso
+    const fechas = Object.keys(mapaResumen);
+    for (let i = 0; i < fechas.length; i += 1) {
+      const fecha = fechas[i];
+      const entry = mapaResumen[fecha];
+      entry.score = calcularScoreVaso(entry);
+      entry.nivelColor = obtenerNivelColor(entry.score);
+    }
+
+    return { ...mapaResumen };
+  } catch (error) {
+    console.error('Error al obtener resumen anual de hábitos:', error);
+    return {};
   }
 };
