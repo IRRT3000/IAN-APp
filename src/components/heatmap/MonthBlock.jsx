@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import HeatmapDayCell from './HeatmapDayCell';
 import {
   DIAS_SEMANA_CORTO,
@@ -8,9 +8,16 @@ import {
   generarMatrizMes,
 } from '../../utils/dateUtilsLocal';
 
+// Espacio horizontal ocupado fuera de la cuadrícula en el widget de Inicio:
+// padding de App (16*2) + padding de tarjeta (16*2) + padding del bloque (8*2) + margen de seguridad.
+const MARGEN_HORIZONTAL_WIDGET = 86;
+const MARGEN_CELDA_GRANDE = 7; // 3.5 por lado
+const ANCHO_MAX_COLUMNA_GRANDE = 41; // Para celda de 34px
+
 /**
- * Bloque individual de un mes dentro del Mapa de Calor Anual.
- * Renderiza encabezado abreviado, cabecera L-D de 7 columnas y celdas memoizadas.
+ * Bloque individual de un mes dentro del Mapa de Calor.
+ * Renderiza encabezado, cabecera L-D de 7 columnas y celdas memoizadas.
+ * Admite `anchoCompleto` y `tamanoGrande` con cálculo dinámico para el widget de Inicio.
  */
 export default function MonthBlock({
   year,
@@ -18,8 +25,22 @@ export default function MonthBlock({
   resumenAnual = {},
   fechaHoy,
   onSelectDay,
+  anchoCompleto = false,
+  tamanoGrande = false,
+  mostrarTitulo = true,
 }) {
   const nombreMes = NOMBRES_MESES[monthIndex] || `M${monthIndex + 1}`;
+  const { width: anchoPantalla } = useWindowDimensions();
+
+  // En modo grande, la celda se ajusta para que 7 columnas quepan en pantallas estrechas (p. ej. 360dp)
+  const anchoColumnaGrande = Math.min(
+    ANCHO_MAX_COLUMNA_GRANDE,
+    Math.max(30, Math.floor((anchoPantalla - MARGEN_HORIZONTAL_WIDGET) / 7))
+  );
+  const tamanoCelda = anchoColumnaGrande - MARGEN_CELDA_GRANDE;
+  const estiloAnchoGrande = tamanoGrande
+    ? { width: 7 * anchoColumnaGrande }
+    : null;
 
   const celdas = useMemo(
     () => generarMatrizMes(year, monthIndex),
@@ -27,26 +48,61 @@ export default function MonthBlock({
   );
 
   return (
-    <View style={styles.contenedorMes}>
-      <Text style={styles.tituloMes}>{nombreMes}</Text>
+    <View
+      style={[
+        styles.contenedorMes,
+        anchoCompleto && styles.contenedorMesCompleto,
+      ]}
+    >
+      {mostrarTitulo ? (
+        <Text
+          style={[
+            styles.tituloMes,
+            tamanoGrande && styles.tituloMesGrande,
+          ]}
+        >
+          {nombreMes}
+        </Text>
+      ) : null}
 
       {/* Cabecera de 7 columnas de días de la semana (L a D) */}
-      <View style={styles.filaDiasSemana}>
+      <View
+        style={[
+          styles.filaDiasSemana,
+          tamanoGrande && styles.filaDiasSemanaGrande,
+          estiloAnchoGrande,
+        ]}
+      >
         {DIAS_SEMANA_CORTO.map((diaLetra, idx) => (
-          <Text key={`cab-${monthIndex}-${idx}`} style={styles.textoDiaSemana}>
+          <Text
+            key={`cab-${monthIndex}-${idx}`}
+            style={[
+              styles.textoDiaSemana,
+              tamanoGrande && styles.textoDiaSemanaGrande,
+              tamanoGrande && { width: tamanoCelda },
+            ]}
+          >
             {diaLetra}
           </Text>
         ))}
       </View>
 
       {/* Cuadrícula de celdas del mes */}
-      <View style={styles.cuadriculaMes}>
+      <View
+        style={[
+          styles.cuadriculaMes,
+          tamanoGrande && styles.cuadriculaMesGrande,
+          estiloAnchoGrande,
+        ]}
+      >
         {celdas.map((item, idx) => {
           if (item.esVacio) {
             return (
               <HeatmapDayCell
                 key={`empty-${monthIndex}-${idx}`}
                 esVacio={true}
+                tamanoGrande={tamanoGrande}
+                tamanoCelda={tamanoCelda}
               />
             );
           }
@@ -68,6 +124,8 @@ export default function MonthBlock({
               hasPhoto={Boolean(datosDia?.hasPhoto)}
               esVacio={false}
               onPress={onSelectDay}
+              tamanoGrande={tamanoGrande}
+              tamanoCelda={tamanoCelda}
             />
           );
         })}
@@ -87,6 +145,15 @@ const styles = StyleSheet.create({
     width: '48.5%',
     alignItems: 'center',
   },
+  contenedorMesCompleto: {
+    width: '100%',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    marginVertical: 0,
+    backgroundColor: '#181818',
+    borderColor: '#2A2A2A',
+  },
   tituloMes: {
     color: '#00E676',
     fontSize: 11,
@@ -96,11 +163,21 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingLeft: 2,
   },
+  tituloMesGrande: {
+    fontSize: 14,
+    letterSpacing: 1,
+    marginBottom: 8,
+    alignSelf: 'center',
+  },
   filaDiasSemana: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
     width: 7 * 17,
     marginBottom: 3,
+  },
+  filaDiasSemanaGrande: {
+    marginBottom: 6,
+    justifyContent: 'center',
   },
   textoDiaSemana: {
     width: 14,
@@ -110,10 +187,19 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontWeight: '700',
   },
+  textoDiaSemanaGrande: {
+    marginHorizontal: 3.5,
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#8D8D8D',
+  },
   cuadriculaMes: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     width: 7 * 17,
     justifyContent: 'flex-start',
+  },
+  cuadriculaMesGrande: {
+    justifyContent: 'center',
   },
 });
