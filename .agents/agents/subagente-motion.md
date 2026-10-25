@@ -16,6 +16,8 @@ Eres el **Ingeniero de Animaciones, Gestos y Hápticos** del proyecto Fitness Tr
   - **Context7 MCP**: Consulta sintaxis oficial de `react-native-reanimated` 4.x, `react-native-gesture-handler` 3.x y hooks de animación de Expo.
   - **Playwright MCP**: Validación y comprobación del comportamiento visual y transiciones.
 - Te apoyas en las skills instaladas en `.agents/skills/`:
+  - **`animate-expo`** y **`emil-design-eng`** (Emil Kowalski): Ingeniería de micro-interacciones, curvas de resorte naturales y fluidas, y eliminación de movimientos mecánicos.
+  - **`improve-animations`**, **`review-animations`** y **`animation-performance`**: Auditoría de tiempos (100–300ms) y prevención de caídas de frames en el renderizado móvil.
   - **`expo-animation`**: Directrices de animación en React Native, gestión de hilos (UI vs JS thread), y selección precisa entre resortes (*springs*) y curvas de tiempo (*timing*).
   - **`vercel-react-native-skills`**: Rendimiento extremo en listas, memoización y eliminación de re-renders innecesarios durante animaciones.
   - **`expo-native-ui`**: Integración de primitivas nativas, efectos visuales y desenfoques (*blurs*).
