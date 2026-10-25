@@ -189,9 +189,10 @@ export default function NutricionView({
   const solicitarConfirmacionBorrado = (item) => {
     if (!esHoy) return;
     setAvisoBorradoId(null);
+    const nombreMostrar = item.nombre || item.descripcion || item.tipo;
     Alert.alert(
       'Eliminar registro de comida',
-      `¿Deseas eliminar "${item.descripcion || item.tipo}"?\n\nEsta acción borrará el registro de calorías y macros de tu historial.`,
+      `¿Deseas eliminar "${nombreMostrar}"?\n\nEsta acción borrará el registro de calorías y macros de tu historial.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -214,17 +215,35 @@ export default function NutricionView({
       setMensajeError('');
       setTextoProgreso('Analizando nutrientes con Gemini Vision...');
 
-      const resultado = await analizarComidaConGemini(base64);
+      const resultado = await analizarComidaConGemini(base64, tipoSeleccionado);
 
       setTextoProgreso('Guardando comida...');
+      const nombreLimpio =
+        resultado?.nombre ||
+        resultado?.descripcion ||
+        `${tipoSeleccionado} escaneado`;
+      const proteinasLimpio =
+        resultado?.proteinas ?? resultado?.macros?.proteinas ?? 0;
+      const carbohidratosLimpio =
+        resultado?.carbohidratos ?? resultado?.macros?.carbohidratos ?? 0;
+      const grasasLimpio =
+        resultado?.grasas ?? resultado?.macros?.grasas ?? 0;
+
       const nuevaComida = {
         tipo: tipoSeleccionado,
-        descripcion: resultado.descripcion,
-        calorias: resultado.calorias,
-        proteinas: resultado.macros.proteinas,
-        carbohidratos: resultado.macros.carbohidratos,
-        grasas: resultado.macros.grasas,
-        detalles: resultado.detalles,
+        nombre: nombreLimpio,
+        descripcion: nombreLimpio,
+        calorias: Number(resultado?.calorias) || 0,
+        proteinas: Number(proteinasLimpio) || 0,
+        carbohidratos: Number(carbohidratosLimpio) || 0,
+        grasas: Number(grasasLimpio) || 0,
+        macros: {
+          proteinas: Number(proteinasLimpio) || 0,
+          carbohidratos: Number(carbohidratosLimpio) || 0,
+          grasas: Number(grasasLimpio) || 0,
+        },
+        detalles: resultado?.detalles || '',
+        uriFoto: uri,
         fotoUri: uri,
         fecha: obtenerFechaLocal(),
       };
@@ -450,59 +469,79 @@ export default function NutricionView({
         keyExtractor={(item) => String(item.id)}
         contentContainerStyle={styles.listaContenido}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <View style={styles.tarjetaComida}>
-            <View style={styles.cabeceraComida}>
-              <View style={styles.badgeTipoComida}>
-                <Text style={styles.textoBadgeTipoComida}>
-                  {item.tipo?.toUpperCase()}
-                </Text>
-              </View>
+        renderItem={({ item }) => {
+          const foto = item.uriFoto || item.fotoUri;
+          const tituloComida = item.nombre || item.descripcion || item.tipo;
+          const prot = item.proteinas ?? item.macros?.proteinas ?? 0;
+          const carb = item.carbohidratos ?? item.macros?.carbohidratos ?? 0;
+          const gras = item.grasas ?? item.macros?.grasas ?? 0;
 
-              {esHoy ? (
-                <CapsulaBorradoSeguroNutricion
-                  onBorrar={() => solicitarConfirmacionBorrado(item)}
-                  onAvisoCorto={() => mostrarAvisoToqueCorto(item.id)}
-                />
-              ) : (
-                <View style={styles.badgeSoloLecturaItem}>
-                  <Feather
-                    name="lock"
-                    size={10}
-                    color={TOKENS.colors.textMuted}
-                    style={{ marginRight: 4 }}
-                  />
-                  <Text style={styles.textoBadgeSoloLecturaItem}>Historial</Text>
+          return (
+            <View style={styles.tarjetaComida}>
+              <View style={styles.cabeceraComida}>
+                <View style={styles.badgeTipoComida}>
+                  <Text style={styles.textoBadgeTipoComida}>
+                    {item.tipo?.toUpperCase()}
+                  </Text>
                 </View>
-              )}
-            </View>
 
-            <Text style={styles.descripcionComida}>{item.descripcion}</Text>
-
-            <View style={styles.filaMetricasComida}>
-              <View style={styles.bloqueKcalComida}>
-                <Text style={styles.valorKcalComida}>{item.calorias} kcal</Text>
+                {esHoy ? (
+                  <CapsulaBorradoSeguroNutricion
+                    onBorrar={() => solicitarConfirmacionBorrado(item)}
+                    onAvisoCorto={() => mostrarAvisoToqueCorto(item.id)}
+                  />
+                ) : (
+                  <View style={styles.badgeSoloLecturaItem}>
+                    <Feather
+                      name="lock"
+                      size={10}
+                      color={TOKENS.colors.textMuted}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text style={styles.textoBadgeSoloLecturaItem}>Historial</Text>
+                  </View>
+                )}
               </View>
-              <Text style={styles.textoMacrosDesglose}>
-                P: {item.proteinas}g · C: {item.carbohidratos}g · G: {item.grasas}g
-              </Text>
-            </View>
 
-            {avisoBorradoId === item.id ? (
-              <View style={styles.bannerAvisoBorrado}>
-                <Feather
-                  name="alert-circle"
-                  size={12}
-                  color={TOKENS.colors.danger}
-                  style={{ marginRight: 6 }}
-                />
-                <Text style={styles.textoAvisoBorrado}>
-                  Mantén presionado 1 segundo para eliminar esta comida
-                </Text>
+              <View style={styles.cuerpoTarjetaComida}>
+                {foto ? (
+                  <Image
+                    source={{ uri: foto }}
+                    style={styles.miniaturaComida}
+                    resizeMode="cover"
+                  />
+                ) : null}
+
+                <View style={styles.infoTarjetaComida}>
+                  <Text style={styles.descripcionComida}>{tituloComida}</Text>
+
+                  <View style={styles.filaMetricasComida}>
+                    <View style={styles.bloqueKcalComida}>
+                      <Text style={styles.valorKcalComida}>{item.calorias} kcal</Text>
+                    </View>
+                    <Text style={styles.textoMacrosDesglose}>
+                      P: {prot}g · C: {carb}g · G: {gras}g
+                    </Text>
+                  </View>
+                </View>
               </View>
-            ) : null}
-          </View>
-        )}
+
+              {avisoBorradoId === item.id ? (
+                <View style={styles.bannerAvisoBorrado}>
+                  <Feather
+                    name="alert-circle"
+                    size={12}
+                    color={TOKENS.colors.danger}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text style={styles.textoAvisoBorrado}>
+                    Mantén presionado 1 segundo para eliminar esta comida
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          );
+        }}
         ListEmptyComponent={
           <View style={styles.estadoVacio}>
             <Feather
@@ -737,6 +776,22 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: TOKENS.colors.borderDefault,
+  },
+  cuerpoTarjetaComida: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  miniaturaComida: {
+    width: 48,
+    height: 48,
+    borderRadius: TOKENS.radii.xs,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderSubtle,
+    marginRight: 12,
+  },
+  infoTarjetaComida: {
+    flex: 1,
   },
   cabeceraComida: {
     flexDirection: 'row',

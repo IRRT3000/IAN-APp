@@ -384,12 +384,36 @@ const solicitarAnalisis = async ({
     timeoutMs,
   });
 
+  const nombreFinal = String(
+    resultado?.nombre || resultado?.descripcion || `${tipoComida} analizada`
+  ).trim();
+  const caloriasFinal = Math.round(Number(resultado?.calorias) || 0);
+  const proteinasFinal =
+    Math.round(
+      (Number(resultado?.proteinas ?? resultado?.macros?.proteinas) || 0) * 10
+    ) / 10;
+  const carbohidratosFinal =
+    Math.round(
+      (Number(resultado?.carbohidratos ?? resultado?.macros?.carbohidratos) || 0) * 10
+    ) / 10;
+  const grasasFinal =
+    Math.round(
+      (Number(resultado?.grasas ?? resultado?.macros?.grasas) || 0) * 10
+    ) / 10;
+
   return {
-    nombre: String(resultado?.nombre || `${tipoComida} analizada`).trim(),
-    calorias: Math.round(Number(resultado?.calorias) || 0),
-    proteinas: Math.round((Number(resultado?.proteinas) || 0) * 10) / 10,
-    carbohidratos: Math.round((Number(resultado?.carbohidratos) || 0) * 10) / 10,
-    grasas: Math.round((Number(resultado?.grasas) || 0) * 10) / 10,
+    nombre: nombreFinal,
+    descripcion: nombreFinal,
+    calorias: caloriasFinal,
+    proteinas: proteinasFinal,
+    carbohidratos: carbohidratosFinal,
+    grasas: grasasFinal,
+    macros: {
+      proteinas: proteinasFinal,
+      carbohidratos: carbohidratosFinal,
+      grasas: grasasFinal,
+    },
+    detalles: String(resultado?.detalles || '').trim(),
     modeloUsado: modelo,
   };
 };
