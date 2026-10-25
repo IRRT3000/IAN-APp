@@ -9,10 +9,11 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 - Spec `003-registro-entrenamientos-activo` completada: `SelectorSemanal.jsx` (7 días locales), inmutabilidad temporal, catálogo extendido (~45 ejercicios en 6 grupos), `LiveModeModal.jsx` (BackHandler dual, auto-save 350ms, botón `+`), consolidación híbrida.
 - Spec `004-mapa-calor-anual` completada: Motor proporcional "Vaso de Agua" (0.0 a 1.0) con soporte para descanso (`@fitness_tracker_dias_descanso_v1`), fotos como insignia, selector `< [Año] >`, desglose interactivo emergente y celdas memoizadas.
 - Spec `005-heatmap-tab-y-reactividad` completada (`specs/005-heatmap-tab-y-reactividad/{spec,plan,tasks}.md`): Reactividad inmediata de hábitos en `App.js` al agregar/eliminar comidas, entrenos, fotos o descanso; 5ª pestaña `🔥 Heatmap` en `BarraNavegacionInferior.jsx` con `HeatmapView.jsx` (12 meses, selector de año, leyenda y métricas anuales); widget mensual interactivo en `MenuBienvenida.jsx` (`MonthBlock` con celdas ampliadas 34x34 y `DaySummaryModal`).
-- Sistema Multi-Agente (`.agents/agents/`) y Servidores MCP (`context7`, `sequential-thinking`, `playwright`) operativos.
+- Sistema Multi-Agente ampliado: `orquestador`, `planificador`, `revisor-critico`, `implementador`, más especialistas `subagente-ui` (Diseñador Visual) y `subagente-motion` (Ingeniero Animaciones).
+- Stack de rediseño y animación configurado: `react-native-reanimated` 4.x, `react-native-gesture-handler` 3.x, `react-native-worklets` y skill `frontend-design` instalados. Verificación `npx expo-doctor` 20/20 impecable.
 
 ## Decisiones Técnicas (y su justificación)
-- Flujo de trabajo (regla del usuario): Toda **nueva Spec** usa obligatoriamente el equipo multi-agente (`orquestador` → `planificador` → `revisor-critico` → `implementador`). Ajustes puntuales y bugfixes se hacen directo.
+- Flujo de trabajo (regla del usuario): Tanto **nuevas Specs** como **correcciones de bugs** usan obligatoriamente el equipo multi-agente (`orquestador` → `planificador` → `revisor-critico` → `implementador`). Prohibido realizar fixes directos sin pasar por el flujo multi-agente.
 - Prohibición estricta de `babel.config.js` externo: Expo SDK 58 gestiona internamente la transpilación; añadir `babel.config.js` en la raíz rompe la sintaxis JSX de Metro.
 - Dos resúmenes anuales (`App.js`): `resumenAnioActual` (widget mensual de Inicio, siempre año en curso) y `resumenAnual` (año explorado en Heatmap). `refrescarHabitosConcurrentes()` actualiza ambos tras cada cambio de comidas/entrenos/fotos/descanso.
 - Widget mensual responsivo (`MonthBlock.jsx`): tamaño de celda calculado con `useWindowDimensions` (máx. 34px) para que 7 columnas quepan en pantallas de 360dp sin desbordar. Contraste accesible `#121212` en verde (niveles 2-4).
@@ -24,3 +25,4 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 - Persistencia local inmutable sin Base64: Almacena URIs para prevenir `CursorWindow` overflow en Android.
 - Haptics unificados (`src/services/haptics.js`): Pulsos hápticos para borrado, series, fotos y báscula con fallback a `Vibration.vibrate`.
 - Failover en Gemini Vision (`src/services/gemini.js`): Principal `gemini-3-flash-preview`, respaldo `gemini-3.5-flash-lite`, timeout 60s con `AbortController`.
+- Motor de Animación y Estética Dark Luxury OLED: Animaciones 60fps en UI thread con Reanimated 4 + Worklets y resortes calculados; sincronización milimétrica con `haptics.js`; diseño basado en negro OLED (#000000), tarjetas #141414 y acento verde neón (#00E676).

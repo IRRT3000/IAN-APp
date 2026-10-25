@@ -28,7 +28,10 @@ Objetivo: Registro de entrenamientos de fuerza, análisis nutricional por foto (
 4. Cuadrícula semanal simple (primer prototipo del mapa de calor).
 
 ## Arquitectura Multi-Agente (`.agents/agents/` y `.agents/skills/equipo-agentes/`)
+- **Regla Mandatoria de Flujo**: Tanto el desarrollo de **nuevas Specs** como la **corrección de bugs** deben ejecutarse obligatoriamente a través del equipo multi-agente (`orquestador` → `planificador` → `revisor-critico` → `implementador`). Prohibido aplicar cambios o bugfixes directamente sin este ciclo de orquestación, planificación y revisión.
 - **`orquestador`** (`EnableWriteTools: false`, `EnableSubagentTools: true`, `EnableMCPTools: false`): Coordina en qué momento actúa cada agente y gestiona la comunicación entre ellos; prohibido leer/escribir código, planificar o usar MCPs.
 - **`planificador`** (`EnableWriteTools: false`, `EnableMCPTools: true`): Diseña la planificación técnica detallada paso a paso en modo solo lectura con apoyo de `context7` y `sequential-thinking`.
 - **`revisor-critico`** (`EnableWriteTools: false`, `EnableMCPTools: true`): Audita el plan del `planificador` (`PLAN_APROBADO` / `CAMBIOS_REQUERIDOS`) y el código del `implementador` (`CODIGO_APROBADO` / `CODIGO_RECHAZADO`) buscando casos límite, fallos y omisiones con `sequential-thinking`, `context7` y `playwright`.
-- **`implementador`** (`EnableWriteTools: true`, `EnableMCPTools: true`): Único subagente con permiso para crear/modificar código y ejecutar comandos siguiendo el plan aprobado y las revisiones, apoyado en `context7` y `playwright`.
+- **`implementador`** (`EnableWriteTools: true`, `EnableMCPTools: true`): Único subagente general con permiso para crear/modificar código y ejecutar comandos siguiendo el plan aprobado y las revisiones, apoyado en `context7` y `playwright`.
+- **`subagente-ui`** (`EnableWriteTools: false`, `EnableMCPTools: true`): Especialista en diseño visual estático (tokens Dark Luxury OLED, escala 4pt, maquetación nativa sin lógica). Apoyado en `expo-design-system`, `frontend-design` y `ui-taste`.
+- **`subagente-motion`** (`EnableWriteTools: true`, `EnableMCPTools: true`): Especialista en físicas de resorte en UI Thread (Reanimated), gestos y hápticos unificados (`haptics.js`). Apoyado en `expo-animation` y `vercel-react-native-skills`.
