@@ -30,8 +30,8 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-      - name: 4. Configurar Android SDK
-        uses: android-actions/setup-android@v3
+      - name: 4. Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: 5. Instalar Dependencias del Proyecto
         run: npm ci
@@ -39,54 +39,40 @@ jobs:
       - name: 6. Generar Proyecto Nativo de Android (Expo Prebuild)
         run: npx expo prebuild --platform android --clean
 
-      - name: 7. Generar Keystore de Firma Digital
-        run: |
-          keytool -genkey -v -keystore release.keystore \
-            -alias fitnessapp \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass fitness123 \
-            -keypass fitness123 \
-            -dname "CN=FitnessApp, OU=Mobile, O=Fitness, L=CDMX, S=CDMX, C=MX"
-
-      - name: 8. Compilar APK con Gradle
+      - name: 7. Compilar APK con Gradle
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
 
-      - name: 9. Firmar APK para Instalación Directa en Android
+      - name: 8. Preparar APK Final para Distribución
         run: |
-          APK_UNSIGNED=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
-          echo "APK encontrado: $APK_UNSIGNED"
-          
-          # Firmar usando jarsigner con la keystore generada
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore release.keystore \
-            -storepass fitness123 \
-            "$APK_UNSIGNED" fitnessapp
+          APK_FILE=$(find android/app/build/outputs/apk -name "*.apk" | head -n 1)
+          if [ -z "$APK_FILE" ]; then
+            echo "Error: No se encontró ningún archivo APK generado por Gradle."
+            exit 1
+          fi
+          echo "APK generado encontrado en: $APK_FILE"
 
-          # Copiar y nombrar el APK final
           VERSION_TAG="${{ github.ref_name }}"
           if [ -z "$VERSION_TAG" ] || [ "$VERSION_TAG" = "main" ]; then
             VERSION_TAG="preview"
           fi
-          
+
           OUTPUT_APK="mi-fitness-app-${VERSION_TAG}.apk"
-          cp "$APK_UNSIGNED" "$OUTPUT_APK"
-          echo "APK Final Listo: $OUTPUT_APK"
+          cp "$APK_FILE" "$OUTPUT_APK"
+          echo "APK listo para distribución: $OUTPUT_APK"
           echo "APK_PATH=$OUTPUT_APK" >> $GITHUB_ENV
           echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
 
-      - name: 10. Subir APK como Artefacto de GitHub Actions
+      - name: 9. Subir APK como Artefacto de GitHub Actions
         uses: actions/upload-artifact@v4
         with:
           name: mi-fitness-app-apk
           path: ${{ env.APK_PATH }}
           if-no-files-found: error
 
-      - name: 11. Publicar en GitHub Releases (Solo en Tags)
+      - name: 10. Publicar en GitHub Releases (Solo en Tags)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
