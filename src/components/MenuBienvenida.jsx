@@ -101,23 +101,23 @@ export default function MenuBienvenida({
               </Text>
             </View>
 
-            <Animated.View style={estiloAnimadoConfig}>
-              <TouchableOpacity
-                style={styles.botonConfiguracion}
-                activeOpacity={0.8}
-                onPressIn={handlePressInConfig}
-                onPressOut={handlePressOutConfig}
-                onPress={onAbrirConfiguracion}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                accessibilityLabel="Abrir configuración"
-              >
+            <TouchableOpacity
+              style={styles.botonConfiguracion}
+              activeOpacity={0.8}
+              onPressIn={handlePressInConfig}
+              onPressOut={handlePressOutConfig}
+              onPress={onAbrirConfiguracion}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityLabel="Abrir configuración"
+            >
+              <Animated.View style={estiloAnimadoConfig}>
                 <Feather
                   name="settings"
-                  size={16}
+                  size={17}
                   color={TOKENS.colors.textPrimary}
                 />
-              </TouchableOpacity>
-            </Animated.View>
+              </Animated.View>
+            </TouchableOpacity>
           </View>
         </View>
         <Text style={styles.tituloHero}>Fitness Tracker</Text>
@@ -297,9 +297,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   botonConfiguracion: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: TOKENS.colors.surface,
     borderWidth: 1,
     borderColor: TOKENS.colors.borderDefault,

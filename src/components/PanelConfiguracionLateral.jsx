@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
   Linking,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -14,7 +15,7 @@ import {
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -46,6 +47,7 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
   const [validando, setValidando] = useState(false);
   const [mensajeEstado, setMensajeEstado] = useState(null);
 
+  const cerrandoRef = useRef(false);
   const translateX = useSharedValue(ANCHO_DRAWER);
   const opacityBackdrop = useSharedValue(0);
 
@@ -60,33 +62,44 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
     setMensajeEstado(null);
   }, []);
 
+  const finalizarCierre = useCallback(() => {
+    cerrandoRef.current = false;
+    setMontado(false);
+    if (typeof onCerrar === 'function') {
+      onCerrar();
+    }
+  }, [onCerrar]);
+
   const cerrarDrawer = useCallback(() => {
+    if (cerrandoRef.current) return;
+    cerrandoRef.current = true;
+
     opacityBackdrop.value = withTiming(0, { duration: 180 });
     translateX.value = withSpring(
       ANCHO_DRAWER,
       { damping: 20, stiffness: 160, mass: 0.8 },
       (finished) => {
         if (finished) {
-          runOnJS(setMontado)(false);
-          if (typeof onCerrar === 'function') {
-            runOnJS(onCerrar)();
-          }
+          runOnJS(finalizarCierre)();
         }
       }
     );
-  }, [translateX, opacityBackdrop, onCerrar]);
+  }, [translateX, opacityBackdrop, finalizarCierre]);
 
   useEffect(() => {
     if (visible) {
+      cerrandoRef.current = false;
       setMontado(true);
       cargarEstadoClave();
+      translateX.value = ANCHO_DRAWER;
+      opacityBackdrop.value = 0;
       translateX.value = withSpring(0, {
         damping: 20,
         stiffness: 140,
         mass: 0.8,
       });
       opacityBackdrop.value = withTiming(0.72, { duration: 240 });
-    } else if (montado) {
+    } else if (montado && !cerrandoRef.current) {
       cerrarDrawer();
     }
   }, [visible, montado, cargarEstadoClave, cerrarDrawer, translateX, opacityBackdrop]);
@@ -237,253 +250,263 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
     : '';
 
   return (
-    <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
-      {/* 1. Backdrop Oscuro con Fade */}
-      <Animated.View style={[styles.backdrop, estiloAnimadoBackdrop]}>
-        <Pressable
-          style={StyleSheet.absoluteFillObject}
-          onPress={cerrarDrawer}
-          accessibilityLabel="Cerrar panel de configuración"
-        />
-      </Animated.View>
-
-      {/* 2. Drawer Lateral Desplegable con Físicas de Resorte */}
-      <GestureDetector gesture={gestoSwipe}>
-        <Animated.View style={[styles.drawerContenedor, estiloAnimadoDrawer]}>
-          {/* Cabecera del Panel */}
-          <View style={styles.cabeceraDrawer}>
-            <View>
-              <Text style={styles.etiquetaCategoria}>AJUSTES DEL SISTEMA</Text>
-              <Text style={styles.tituloDrawer}>Configuración</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.botonCerrar}
-              activeOpacity={0.7}
+    <Modal
+      visible={montado}
+      transparent
+      statusBarTranslucent
+      animationType="none"
+      onRequestClose={cerrarDrawer}
+    >
+      <GestureHandlerRootView style={StyleSheet.absoluteFillObject}>
+        <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
+          {/* 1. Backdrop Oscuro con Fade */}
+          <Animated.View style={[styles.backdrop, estiloAnimadoBackdrop]}>
+            <Pressable
+              style={StyleSheet.absoluteFillObject}
               onPress={cerrarDrawer}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Feather name="x" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+              accessibilityLabel="Cerrar panel de configuración"
+            />
+          </Animated.View>
 
-          <ScrollView
-            style={styles.cuerpoScroll}
-            contentContainerStyle={styles.cuerpoScrollContenido}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Tarjeta de Estado de Conexión */}
-            <View style={styles.tarjetaEstado}>
-              <View style={styles.filaEstadoEncabezado}>
-                <View
-                  style={[
-                    styles.puntoConexion,
-                    tieneClaveConfigurada
-                      ? styles.puntoConectado
-                      : styles.puntoDesconectado,
-                  ]}
-                />
-                <Text style={styles.textoTituloEstado}>
-                  {tieneClaveConfigurada ? 'CLAVE CONECTADA' : 'NO CONFIGURADA'}
-                </Text>
-                <View style={styles.badgeByok}>
-                  <Text style={styles.textoBadgeByok}>BYOK</Text>
+          {/* 2. Drawer Lateral Desplegable con Físicas de Resorte */}
+          <GestureDetector gesture={gestoSwipe}>
+            <Animated.View style={[styles.drawerContenedor, estiloAnimadoDrawer]}>
+              {/* Cabecera del Panel */}
+              <View style={styles.cabeceraDrawer}>
+                <View>
+                  <Text style={styles.etiquetaCategoria}>AJUSTES DEL SISTEMA</Text>
+                  <Text style={styles.tituloDrawer}>Configuración</Text>
                 </View>
-              </View>
-
-              <Text style={styles.descripcionEstado}>
-                {tieneClaveConfigurada
-                  ? `Tu clave (${mascaraClave}) está activa en el dispositivo. Las funciones de nutrición e IA fotográfica consumen tu cuota privada.`
-                  : 'Configura tu Gemini API Key personal para activar el análisis bromatológico por foto y la evaluación de cambio físico.'}
-              </Text>
-            </View>
-
-            {/* Formulario de Configuración de Clave */}
-            <View style={styles.seccionFormulario}>
-              <Text style={styles.etiquetaCampo}>GEMINI API KEY</Text>
-
-              <View style={styles.cajaInputClave}>
-                <TextInput
-                  style={styles.inputTexto}
-                  value={claveInput}
-                  onChangeText={(texto) => {
-                    setClaveInput(texto);
-                    setMensajeEstado(null);
-                  }}
-                  placeholder="Pega aquí tu clave (AIzaSy...)"
-                  placeholderTextColor={TOKENS.colors.textMuted}
-                  secureTextEntry={!mostrarClave}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  selectTextOnFocus
-                />
-
                 <TouchableOpacity
-                  style={styles.botonIconoInput}
+                  style={styles.botonCerrar}
                   activeOpacity={0.7}
-                  onPress={() => setMostrarClave((prev) => !prev)}
-                  hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                  onPress={cerrarDrawer}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <Feather
-                    name={mostrarClave ? 'eye-off' : 'eye'}
-                    size={16}
-                    color={TOKENS.colors.textSecondary}
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.botonIconoInput}
-                  activeOpacity={0.7}
-                  onPress={handlePegarPortapapeles}
-                  hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                >
-                  <Feather
-                    name="clipboard"
-                    size={16}
-                    color={TOKENS.colors.textSecondary}
-                  />
+                  <Feather name="x" size={20} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
 
-              {/* Mensajes de Estado en Vivo */}
-              {mensajeEstado ? (
-                <View
-                  style={[
-                    styles.cajaMensaje,
-                    mensajeEstado.tipo === 'exito'
-                      ? styles.mensajeExito
-                      : mensajeEstado.tipo === 'error'
-                      ? styles.mensajeError
-                      : styles.mensajeInfo,
-                  ]}
-                >
-                  <Feather
-                    name={
-                      mensajeEstado.tipo === 'exito'
-                        ? 'check-circle'
-                        : mensajeEstado.tipo === 'error'
-                        ? 'alert-circle'
-                        : 'info'
-                    }
-                    size={14}
-                    color={
-                      mensajeEstado.tipo === 'exito'
-                        ? '#00E676'
-                        : mensajeEstado.tipo === 'error'
-                        ? '#FF5252'
-                        : '#8E8E93'
-                    }
-                    style={{ marginRight: 8, marginTop: 1 }}
-                  />
-                  <Text
-                    style={[
-                      styles.textoMensaje,
-                      mensajeEstado.tipo === 'exito'
-                        ? styles.textoMensajeExito
-                        : mensajeEstado.tipo === 'error'
-                        ? styles.textoMensajeError
-                        : styles.textoMensajeInfo,
-                    ]}
-                  >
-                    {mensajeEstado.texto}
+              <ScrollView
+                style={styles.cuerpoScroll}
+                contentContainerStyle={styles.cuerpoScrollContenido}
+                showsVerticalScrollIndicator={false}
+              >
+                {/* Tarjeta de Estado de Conexión */}
+                <View style={styles.tarjetaEstado}>
+                  <View style={styles.filaEstadoEncabezado}>
+                    <View
+                      style={[
+                        styles.puntoConexion,
+                        tieneClaveConfigurada
+                          ? styles.puntoConectado
+                          : styles.puntoDesconectado,
+                      ]}
+                    />
+                    <Text style={styles.textoTituloEstado}>
+                      {tieneClaveConfigurada ? 'CLAVE CONECTADA' : 'NO CONFIGURADA'}
+                    </Text>
+                    <View style={styles.badgeByok}>
+                      <Text style={styles.textoBadgeByok}>BYOK</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.descripcionEstado}>
+                    {tieneClaveConfigurada
+                      ? `Tu clave (${mascaraClave}) está activa en el dispositivo. Las funciones de nutrición e IA fotográfica consumen tu cuota privada.`
+                      : 'Configura tu Gemini API Key personal para activar el análisis bromatológico por foto y la evaluación de cambio físico.'}
                   </Text>
                 </View>
-              ) : null}
 
-              {/* Botón Principal: Probar y Guardar */}
-              <TouchableOpacity
-                style={[
-                  styles.botonGuardar,
-                  validando ? styles.botonGuardarDeshabilitado : null,
-                ]}
-                activeOpacity={0.85}
-                onPress={handleProbarYGuardar}
-                disabled={validando}
-              >
-                {validando ? (
-                  <ActivityIndicator size="small" color="#0A0A0A" />
-                ) : (
-                  <>
+                {/* Formulario de Configuración de Clave */}
+                <View style={styles.seccionFormulario}>
+                  <Text style={styles.etiquetaCampo}>GEMINI API KEY</Text>
+
+                  <View style={styles.cajaInputClave}>
+                    <TextInput
+                      style={styles.inputTexto}
+                      value={claveInput}
+                      onChangeText={(texto) => {
+                        setClaveInput(texto);
+                        setMensajeEstado(null);
+                      }}
+                      placeholder="Pega aquí tu clave (AIzaSy...)"
+                      placeholderTextColor={TOKENS.colors.textMuted}
+                      secureTextEntry={!mostrarClave}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      selectTextOnFocus
+                    />
+
+                    <TouchableOpacity
+                      style={styles.botonIconoInput}
+                      activeOpacity={0.7}
+                      onPress={() => setMostrarClave((prev) => !prev)}
+                      hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                    >
+                      <Feather
+                        name={mostrarClave ? 'eye-off' : 'eye'}
+                        size={16}
+                        color={TOKENS.colors.textSecondary}
+                      />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.botonIconoInput}
+                      activeOpacity={0.7}
+                      onPress={handlePegarPortapapeles}
+                      hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                    >
+                      <Feather
+                        name="clipboard"
+                        size={16}
+                        color={TOKENS.colors.textSecondary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Mensajes de Estado en Vivo */}
+                  {mensajeEstado ? (
+                    <View
+                      style={[
+                        styles.cajaMensaje,
+                        mensajeEstado.tipo === 'exito'
+                          ? styles.mensajeExito
+                          : mensajeEstado.tipo === 'error'
+                          ? styles.mensajeError
+                          : styles.mensajeInfo,
+                      ]}
+                    >
+                      <Feather
+                        name={
+                          mensajeEstado.tipo === 'exito'
+                            ? 'check-circle'
+                            : mensajeEstado.tipo === 'error'
+                            ? 'alert-circle'
+                            : 'info'
+                        }
+                        size={14}
+                        color={
+                          mensajeEstado.tipo === 'exito'
+                            ? '#00E676'
+                            : mensajeEstado.tipo === 'error'
+                            ? '#FF5252'
+                            : '#8E8E93'
+                        }
+                        style={{ marginRight: 8, marginTop: 1 }}
+                      />
+                      <Text
+                        style={[
+                          styles.textoMensaje,
+                          mensajeEstado.tipo === 'exito'
+                            ? styles.textoMensajeExito
+                            : mensajeEstado.tipo === 'error'
+                            ? styles.textoMensajeError
+                            : styles.textoMensajeInfo,
+                        ]}
+                      >
+                        {mensajeEstado.texto}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {/* Botón Principal: Probar y Guardar */}
+                  <TouchableOpacity
+                    style={[
+                      styles.botonGuardar,
+                      validando ? styles.botonGuardarDeshabilitado : null,
+                    ]}
+                    activeOpacity={0.85}
+                    onPress={handleProbarYGuardar}
+                    disabled={validando}
+                  >
+                    {validando ? (
+                      <ActivityIndicator size="small" color="#0A0A0A" />
+                    ) : (
+                      <>
+                        <Feather
+                          name="check"
+                          size={15}
+                          color="#0A0A0A"
+                          style={{ marginRight: 8 }}
+                        />
+                        <Text style={styles.textoBotonGuardar}>
+                          Probar y Guardar Clave
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+
+                  {/* Botón Secundario: Eliminar Clave */}
+                  {tieneClaveConfigurada ? (
+                    <TouchableOpacity
+                      style={styles.botonEliminar}
+                      activeOpacity={0.8}
+                      onPress={handleEliminarClave}
+                    >
+                      <Feather
+                        name="trash-2"
+                        size={14}
+                        color="#FF5252"
+                        style={{ marginRight: 8 }}
+                      />
+                      <Text style={styles.textoBotonEliminar}>Eliminar Clave</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+
+                {/* Banner Enlace a Google AI Studio */}
+                <View style={styles.tarjetaAiStudio}>
+                  <View style={styles.filaAiStudioHeader}>
                     <Feather
-                      name="check"
-                      size={15}
-                      color="#0A0A0A"
+                      name="key"
+                      size={16}
+                      color={TOKENS.colors.textPrimary}
                       style={{ marginRight: 8 }}
                     />
-                    <Text style={styles.textoBotonGuardar}>
-                      Probar y Guardar Clave
+                    <Text style={styles.tituloAiStudio}>¿No tienes una API Key?</Text>
+                  </View>
+                  <Text style={styles.descripcionAiStudio}>
+                    Google AI Studio ofrece claves gratuitas para Gemini con cuotas generosas
+                    para proyectos personales.
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.botonAiStudio}
+                    activeOpacity={0.85}
+                    onPress={handleAbrirGoogleAIStudio}
+                  >
+                    <Text style={styles.textoBotonAiStudio}>
+                      Obtener clave gratis en AI Studio
                     </Text>
-                  </>
-                )}
-              </TouchableOpacity>
+                    <Feather
+                      name="external-link"
+                      size={13}
+                      color="#FFFFFF"
+                      style={{ marginLeft: 6 }}
+                    />
+                  </TouchableOpacity>
+                </View>
 
-              {/* Botón Secundario: Eliminar Clave */}
-              {tieneClaveConfigurada ? (
-                <TouchableOpacity
-                  style={styles.botonEliminar}
-                  activeOpacity={0.8}
-                  onPress={handleEliminarClave}
-                >
+                {/* Aviso de Privacidad y Modelo Local-First */}
+                <View style={styles.bloquePrivacidad}>
                   <Feather
-                    name="trash-2"
+                    name="shield"
                     size={14}
-                    color="#FF5252"
-                    style={{ marginRight: 8 }}
+                    color={TOKENS.colors.textMuted}
+                    style={{ marginRight: 8, marginTop: 2 }}
                   />
-                  <Text style={styles.textoBotonEliminar}>Eliminar Clave</Text>
-                </TouchableOpacity>
-              ) : null}
-            </View>
-
-            {/* Banner Enlace a Google AI Studio */}
-            <View style={styles.tarjetaAiStudio}>
-              <View style={styles.filaAiStudioHeader}>
-                <Feather
-                  name="key"
-                  size={16}
-                  color={TOKENS.colors.textPrimary}
-                  style={{ marginRight: 8 }}
-                />
-                <Text style={styles.tituloAiStudio}>¿No tienes una API Key?</Text>
-              </View>
-              <Text style={styles.descripcionAiStudio}>
-                Google AI Studio ofrece claves gratuitas para Gemini con cuotas generosas
-                para proyectos personales.
-              </Text>
-              <TouchableOpacity
-                style={styles.botonAiStudio}
-                activeOpacity={0.85}
-                onPress={handleAbrirGoogleAIStudio}
-              >
-                <Text style={styles.textoBotonAiStudio}>
-                  Obtener clave gratis en AI Studio
-                </Text>
-                <Feather
-                  name="external-link"
-                  size={13}
-                  color="#FFFFFF"
-                  style={{ marginLeft: 6 }}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Aviso de Privacidad y Modelo Local-First */}
-            <View style={styles.bloquePrivacidad}>
-              <Feather
-                name="shield"
-                size={14}
-                color={TOKENS.colors.textMuted}
-                style={{ marginRight: 8, marginTop: 2 }}
-              />
-              <Text style={styles.textoPrivacidad}>
-                Tu clave se almacena de forma 100% local en tu dispositivo con
-                AsyncStorage. Nunca se transmite a servidores de terceros ni se
-                almacena en repositorios públicos.
-              </Text>
-            </View>
-          </ScrollView>
-        </Animated.View>
-      </GestureDetector>
-    </View>
+                  <Text style={styles.textoPrivacidad}>
+                    Tu clave se almacena de forma 100% local en tu dispositivo con
+                    AsyncStorage. Nunca se transmite a servidores de terceros ni se
+                    almacena en repositorios públicos.
+                  </Text>
+                </View>
+              </ScrollView>
+            </Animated.View>
+          </GestureDetector>
+        </View>
+      </GestureHandlerRootView>
+    </Modal>
   );
 }
 

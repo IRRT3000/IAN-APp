@@ -3,9 +3,10 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 
 ## Estado Actual
 - Specs previas completadas: 001 a 007 (borrado seguro, físico IA, live mode, heatmap tab, rediseño Matte Luxury y selector semanal).
-- Spec 008 completada y auditada (`specs/008-panel-configuracion-api-key/`): Panel Lateral de Configuración & Conector Universal de Gemini API Key con modelo BYOK (Bring Your Own Key), micro-animación en engranaje, 4 métodos de cierre y validación en tiempo real.
-- Distribución APK nativa: Configurado GitHub Actions (`.github/workflows/release-apk.yml`) para compilar, firmar y publicar APKs en Releases de GitHub sin exponer secretos.
-- Diagnóstico de compilación nativa: Metro bundle Android verificado con éxito (1,229 módulos, 0 errores); plugin `expo-image-picker` registrado en `app.json` con permisos de cámara y galería para Android 13/14+.
+- Spec 008 completada y auditada (`specs/008-panel-configuracion-api-key/`): Panel Lateral de Configuración & Conector Universal de Gemini API Key con modelo BYOK, micro-animación en engranaje, 4 métodos de cierre y validación en tiempo real.
+- Bugfix Android Touch & Drawer resuelto: Inversión táctil en botón de configuración (`TouchableOpacity` estático 36x36 dp exterior con `hitSlop: 12` + `Animated.View` interior), app envuelta en `GestureHandlerRootView` y drawer migrado a `Modal` nativo con `statusBarTranslucent`.
+- Distribución APK nativa: GitHub Actions (`.github/workflows/release-apk.yml`) configurado para compilar APK y publicar en GitHub Releases por tags (`v*`) y manual (`workflow_dispatch`).
+- Diagnóstico de compilación nativa: Metro bundle Android verificado con éxito (1,229 módulos, 0 errores); `expo-doctor` 20/20 checks pasados.
 - Sistema de Tokens (`src/theme/tokens.js`): Fondo `#0A0A0A`, superficies `#141414`/`#1C1C1E`, bordes hairline `#262626`, texto `#FFFFFF`/`#8E8E93`.
 - 100% Erradicación de Emojis: Cero glifos en UI, alertas y catálogo; uso exclusivo de `@expo/vector-icons` (`Feather`).
 - Arquitectura Android-First: Barra flotante (`elevation: 8`), `BackHandler` nativo en `App.js` y scroll clearance mandatorio (`paddingBottom: 110`).

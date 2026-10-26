@@ -1,9 +1,10 @@
 # AGENTS.md — Protocolo Operativo Fitness Tracker
 
-## Gestión de Memoria
-- Al iniciar cualquier tarea: Leer `MEMORY.md` para conocer el estado actual y las decisiones previas.
-- Al terminar cada tarea: Actualizar `MEMORY.md` reflejando el nuevo estado, decisiones clave y errores resueltos.
-- Mantener `MEMORY.md` en máximo ~50 líneas podando detalles irrelevantes.
+## Gestión de Memoria e Incidencias
+- Al iniciar cualquier tarea: Leer `MEMORY.md` y `TROUBLESHOOTING.md` para conocer el estado actual y soluciones previas.
+- Al terminar cada tarea: Actualizar `MEMORY.md` reflejando el nuevo estado y decisiones clave.
+- Al terminar cada spec o detectar fallas relevantes: Evaluar obligatoriamente si debe registrarse en `TROUBLESHOOTING.md`.
+- Regla de ~50 líneas: Mantener tanto `MEMORY.md` como `TROUBLESHOOTING.md` en máximo ~50 líneas, eliminando lo obsoleto y reteniendo solo lo importante.
 - Prohibido almacenar claves de API, tokens o información sensible en la memoria.
 
 Aplicación móvil local-first construida en React Native con Expo (SDK actual).

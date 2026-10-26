@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { BackHandler, Platform, SafeAreaView, StyleSheet, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import BarraNavegacionInferior from './src/components/BarraNavegacionInferior';
 import CambioFisicoView from './src/components/CambioFisicoView';
@@ -32,6 +33,16 @@ export default function App() {
   const [vistaActiva, setVistaActiva] = useState('bienvenida');
   const [enLiveMode, setEnLiveMode] = useState(false);
   const [panelConfiguracionVisible, setPanelConfiguracionVisible] = useState(false);
+
+  // Funciones memoizadas para controlar el drawer de configuracion
+  const abrirConfiguracion = useCallback(
+    () => setPanelConfiguracionVisible(true),
+    []
+  );
+  const cerrarConfiguracion = useCallback(
+    () => setPanelConfiguracionVisible(false),
+    []
+  );
 
   // Estados separados para el año del widget de Inicio y el año del Heatmap (RF-1, RF-4)
   const fechaHoy = obtenerFechaLocal();
@@ -252,46 +263,52 @@ export default function App() {
         onIrANutricion={() => setVistaActiva('nutricion')}
         onIrACambioFisico={() => setVistaActiva('fisico')}
         onIrAHeatmap={() => setVistaActiva('heatmap')}
-        onAbrirConfiguracion={() => setPanelConfiguracionVisible(true)}
+        onAbrirConfiguracion={abrirConfiguracion}
       />
     );
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" />
-      <View style={styles.contenedorPrincipal}>
-        <View style={styles.areaContenido}>
-          <Animated.View
-            key={vistaActiva}
-            entering={FadeIn.duration(180)}
-            style={styles.areaTransicion}
-          >
-            {renderizarVistaActiva()}
-          </Animated.View>
+    <GestureHandlerRootView style={styles.rootContainer}>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar style="light" />
+        <View style={styles.contenedorPrincipal}>
+          <View style={styles.areaContenido}>
+            <Animated.View
+              key={vistaActiva}
+              entering={FadeIn.duration(180)}
+              style={styles.areaTransicion}
+            >
+              {renderizarVistaActiva()}
+            </Animated.View>
+          </View>
+
+          {/* La barra flotante se oculta dinámicamente si el Live Mode está activo */}
+          {!enLiveMode ? (
+            <BarraNavegacionInferior
+              vistaActiva={vistaActiva}
+              onCambiarVista={setVistaActiva}
+              contadorHoy={entrenamientosDeHoy.length}
+              contadorComidasHoy={comidasDeHoy.length}
+              contadorFisicoHoy={cambiosFisicosDeHoy.length}
+            />
+          ) : null}
         </View>
 
-        {/* La barra flotante se oculta dinámicamente si el Live Mode está activo */}
-        {!enLiveMode ? (
-          <BarraNavegacionInferior
-            vistaActiva={vistaActiva}
-            onCambiarVista={setVistaActiva}
-            contadorHoy={entrenamientosDeHoy.length}
-            contadorComidasHoy={comidasDeHoy.length}
-            contadorFisicoHoy={cambiosFisicosDeHoy.length}
-          />
-        ) : null}
-      </View>
-
-      <PanelConfiguracionLateral
-        visible={panelConfiguracionVisible}
-        onCerrar={() => setPanelConfiguracionVisible(false)}
-      />
-    </SafeAreaView>
+        <PanelConfiguracionLateral
+          visible={panelConfiguracionVisible}
+          onCerrar={cerrarConfiguracion}
+        />
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  rootContainer: {
+    flex: 1,
+    backgroundColor: TOKENS.colors.canvas,
+  },
   safeArea: {
     flex: 1,
     backgroundColor: TOKENS.colors.canvas,
