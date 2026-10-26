@@ -9,6 +9,7 @@ import EntrenamientosView from './src/components/EntrenamientosView';
 import HeatmapView from './src/components/HeatmapView';
 import MenuBienvenida from './src/components/MenuBienvenida';
 import NutricionView from './src/components/NutricionView';
+import PanelConfiguracionLateral from './src/components/PanelConfiguracionLateral';
 import {
   PERFIL_USUARIO_BASE,
   alternarDiaDescanso,
@@ -30,6 +31,7 @@ export default function App() {
   const [perfilUsuario, setPerfilUsuario] = useState(PERFIL_USUARIO_BASE);
   const [vistaActiva, setVistaActiva] = useState('bienvenida');
   const [enLiveMode, setEnLiveMode] = useState(false);
+  const [panelConfiguracionVisible, setPanelConfiguracionVisible] = useState(false);
 
   // Estados separados para el año del widget de Inicio y el año del Heatmap (RF-1, RF-4)
   const fechaHoy = obtenerFechaLocal();
@@ -85,6 +87,10 @@ export default function App() {
   // Soporte Android-First: BackHandler retorna a bienvenida antes de salir de la app (RF-4)
   useEffect(() => {
     const onBackPress = () => {
+      if (panelConfiguracionVisible) {
+        setPanelConfiguracionVisible(false);
+        return true;
+      }
       if (enLiveMode) {
         return false; // LiveModeModal intercepta su propio BackHandler
       }
@@ -100,7 +106,7 @@ export default function App() {
       onBackPress
     );
     return () => suscripcion.remove();
-  }, [vistaActiva, enLiveMode]);
+  }, [vistaActiva, enLiveMode, panelConfiguracionVisible]);
 
   const manejarCambiarAnioHeatmap = useCallback(
     async (nuevoAnio) => {
@@ -246,6 +252,7 @@ export default function App() {
         onIrANutricion={() => setVistaActiva('nutricion')}
         onIrACambioFisico={() => setVistaActiva('fisico')}
         onIrAHeatmap={() => setVistaActiva('heatmap')}
+        onAbrirConfiguracion={() => setPanelConfiguracionVisible(true)}
       />
     );
   };
@@ -275,6 +282,11 @@ export default function App() {
           />
         ) : null}
       </View>
+
+      <PanelConfiguracionLateral
+        visible={panelConfiguracionVisible}
+        onCerrar={() => setPanelConfiguracionVisible(false)}
+      />
     </SafeAreaView>
   );
 }

@@ -1,7 +1,7 @@
 /**
  * Servicio Multimodal Gemini Vision para análisis nutricional y de cambio físico.
- * Lee la clave de API desde process.env.EXPO_PUBLIC_GEMINI_API_KEY
- * y el modelo desde process.env.EXPO_PUBLIC_GEMINI_MODEL (por defecto 'gemini-3-flash-preview').
+ * Lee la clave de API desde el almacenamiento local de usuario (BYOK) con fallback a
+ * process.env.EXPO_PUBLIC_GEMINI_API_KEY, y el modelo desde process.env.EXPO_PUBLIC_GEMINI_MODEL.
  * Modelos de respaldo: process.env.EXPO_PUBLIC_GEMINI_FALLBACK_MODELS (por defecto 'gemini-3.5-flash-lite').
  *
  * NOTA CRÍTICA (RF-1): Cualquier variante 3.8 de Gemini está estrictamente prohibida
@@ -12,6 +12,8 @@
  *   Cualquier fallo de un modelo (503, 429, 5xx, 404, timeout, red, JSON inválido)
  *   pasa inmediatamente al siguiente. Cada petición tiene un máximo de 60 s.
  */
+
+import { cargarApiKeyGemini } from './apiKeyStorage';
 
 const GEMINI_API_BASE_URL =
   'https://generativelanguage.googleapis.com/v1beta/models';
@@ -42,6 +44,95 @@ export class GeminiError extends Error {
     this.fallos = fallos;
   }
 }
+
+/**
+ * Valida una clave candidata de Gemini haciendo una llamada de prueba ultraligera (timeout 8s).
+ * @param {string} claveCandidata
+ * @returns {Promise<{ valida: boolean, error?: string }>}
+ */
+export const validarApiKeyGemini = async (claveCandidata) => {
+  if (!claveCandidata || typeof claveCandidata !== 'string') {
+    return { valida: false, error: 'Ingresa una clave de API válida.' };
+  }
+
+  const claveLimpia = claveCandidata.trim();
+  if (!claveLimpia) {
+    return { valida: false, error: 'La clave de API no puede estar vacía.' };
+  }
+
+  const endpoint = `${GEMINI_API_BASE_URL}?key=${encodeURIComponent(claveLimpia)}`;
+  const controlador = new AbortController();
+  const temporizador = setTimeout(() => controlador.abort(), 8000);
+
+  try {
+    const respuesta = await fetch(endpoint, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controlador.signal,
+    });
+
+    if (respuesta.ok) {
+      return { valida: true };
+    }
+
+    if (respuesta.status === 400) {
+      return {
+        valida: false,
+        error: 'La clave ingresada no es válida. Revisa los caracteres.',
+      };
+    }
+
+    if (respuesta.status === 403) {
+      return {
+        valida: false,
+        error:
+          'Permiso denegado. Revisa las restricciones de tu proyecto en Google Cloud.',
+      };
+    }
+
+    return {
+      valida: false,
+      error: `Error de verificación en Google AI Studio (HTTP ${respuesta.status}).`,
+    };
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      return {
+        valida: false,
+        error:
+          'Tiempo de espera agotado al conectar con Google AI Studio. Verifica tu conexión.',
+      };
+    }
+    return {
+      valida: false,
+      error:
+        'Sin conexión a internet. Comprueba tu conexión Wi-Fi o datos móviles.',
+    };
+  } finally {
+    clearTimeout(temporizador);
+  }
+};
+
+/**
+ * Resuelve la clave de API activa:
+ * Prioridad 1: Clave BYOK guardada por el usuario en AsyncStorage.
+ * Prioridad 2: Variable de entorno EXPO_PUBLIC_GEMINI_API_KEY.
+ * @returns {Promise<string>}
+ */
+export const obtenerApiKeyActiva = async () => {
+  const claveGuardada = await cargarApiKeyGemini();
+  if (claveGuardada && claveGuardada.length > 0) {
+    return claveGuardada;
+  }
+
+  const claveEnv = String(process.env.EXPO_PUBLIC_GEMINI_API_KEY || '').trim();
+  if (claveEnv && claveEnv.length > 0) {
+    return claveEnv;
+  }
+
+  throw new GeminiError(
+    'No se ha configurado ninguna clave de API de Gemini. Toca el botón de engranaje en la pantalla de Inicio para ingresar tu Gemini API Key.'
+  );
+};
 
 /**
  * Lista ordenada, sin duplicados y libre de modelos prohibidos: principal + respaldos.
@@ -421,13 +512,6 @@ const solicitarAnalisis = async ({
 /**
  * Analiza una imagen de comida en Base64 usando la API REST de Gemini Vision.
  * Recorre la cadena de modelos (principal + respaldos) hasta que uno responda.
- * @param {string} base64Image - Imagen codificada en Base64
- * @param {string} [tipoComida='Comida'] - Tipo de comida ('Desayuno', 'Comida', 'Cena', 'Snack')
- * @param {{
- *   onProgreso?: (estado: { modelo: string, indice: number, total: number, falloAnterior?: { modelo: string, status: any } }) => void,
- *   timeoutMs?: number
- * }} [opciones]
- * @returns {Promise<{ nombre: string, calorias: number, proteinas: number, carbohidratos: number, grasas: number, modeloUsado: string }>}
  */
 export const analizarComidaConGemini = async (
   base64Image,
@@ -435,13 +519,7 @@ export const analizarComidaConGemini = async (
   opciones = {}
 ) => {
   const { onProgreso, timeoutMs = TIMEOUT_POR_PETICION_MS } = opciones;
-  const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-
-  if (!apiKey) {
-    throw new GeminiError(
-      'Falta configurar EXPO_PUBLIC_GEMINI_API_KEY en tus variables de entorno (.env).'
-    );
-  }
+  const apiKey = await obtenerApiKeyActiva();
 
   if (!base64Image || typeof base64Image !== 'string') {
     throw new GeminiError('No se recibió una imagen válida en formato Base64.');
@@ -487,13 +565,6 @@ export const analizarComidaConGemini = async (
 /**
  * Analiza entre 1 y 10 fotografías de cambio físico con Gemini Vision tomando en cuenta
  * todos los datos biológicos y registros diarios del usuario (RF-11, RF-12).
- * @param {string[]} imagenesBase64 - Arreglo de 1 a 10 imágenes en Base64
- * @param {Object} contextoUsuario - Datos del perfil biológico, peso, hora 12h y actividad del día
- * @param {{
- *   onProgreso?: (estado: { modelo: string, indice: number, total: number, falloAnterior?: { modelo: string, status: any } }) => void,
- *   timeoutMs?: number
- * }} [opciones]
- * @returns {Promise<{ resumenSimple: string, resumenDetallado: string, balanceDelDia: string, veredicto: number, puntosClave: string[], modeloUsado: string }>}
  */
 export const analizarCambioFisicoConGemini = async (
   imagenesBase64,
@@ -501,13 +572,7 @@ export const analizarCambioFisicoConGemini = async (
   opciones = {}
 ) => {
   const { onProgreso, timeoutMs = TIMEOUT_POR_PETICION_MS } = opciones;
-  const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-
-  if (!apiKey) {
-    throw new GeminiError(
-      'Falta configurar EXPO_PUBLIC_GEMINI_API_KEY en tus variables de entorno (.env).'
-    );
-  }
+  const apiKey = await obtenerApiKeyActiva();
 
   if (!Array.isArray(imagenesBase64) || imagenesBase64.length === 0) {
     throw new GeminiError(
@@ -601,29 +666,13 @@ export const analizarCambioFisicoConGemini = async (
 
 /**
  * Compara bajo demanda el registro físico actual contra el registro anterior (RF-14, RF-15).
- * @param {{
- *   registroActual: Object,
- *   registroAnterior: Object,
- *   imagenesActualesBase64?: string[]
- * }} params
- * @param {{
- *   onProgreso?: (estado: { modelo: string, indice: number, total: number, falloAnterior?: { modelo: string, status: any } }) => void,
- *   timeoutMs?: number
- * }} [opciones]
- * @returns {Promise<{ evolucion: string, recomendacionesOptimizacion: string[], modeloUsado: string }>}
  */
 export const compararCambioFisicoConGemini = async (
   { registroActual, registroAnterior, imagenesActualesBase64 = [] } = {},
   opciones = {}
 ) => {
   const { onProgreso, timeoutMs = TIMEOUT_POR_PETICION_MS } = opciones;
-  const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-
-  if (!apiKey) {
-    throw new GeminiError(
-      'Falta configurar EXPO_PUBLIC_GEMINI_API_KEY en tus variables de entorno (.env).'
-    );
-  }
+  const apiKey = await obtenerApiKeyActiva();
 
   if (!registroActual || !registroAnterior) {
     throw new GeminiError(

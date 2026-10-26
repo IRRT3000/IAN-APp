@@ -23,7 +23,20 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
-    ]
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permite acceder a tus fotos para analizar comidas y registrar tu cambio físico.",
+          "cameraPermission": "Permite usar la cámara para capturar fotos de tus comidas y registrar tu cambio físico."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "7cf7af60-cd63-4675-936c-e9cd1d87beab"
+      }
+    },
+    "owner": "elashcode"
   }
 }

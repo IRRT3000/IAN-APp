@@ -7,6 +7,12 @@ import {
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+import { vibrarInicioPresionBorrado } from '../services/haptics';
 import DaySummaryModal from './heatmap/DaySummaryModal';
 import MonthBlock from './heatmap/MonthBlock';
 import {
@@ -33,6 +39,7 @@ export default function MenuBienvenida({
   onIrANutricion,
   onIrACambioFisico,
   onIrAHeatmap,
+  onAbrirConfiguracion,
 }) {
   const metaCumplidaHoy = totalEjerciciosHoy > 0;
   const mesActualIndex = new Date().getMonth();
@@ -48,6 +55,27 @@ export default function MenuBienvenida({
     setFechaSeleccionada(null);
   };
 
+  const escalaConfig = useSharedValue(1);
+  const rotacionConfig = useSharedValue(0);
+
+  const handlePressInConfig = () => {
+    escalaConfig.value = withSpring(0.9, { damping: 15, stiffness: 220 });
+    rotacionConfig.value = withSpring(18, { damping: 15, stiffness: 220 });
+    vibrarInicioPresionBorrado();
+  };
+
+  const handlePressOutConfig = () => {
+    escalaConfig.value = withSpring(1, { damping: 15, stiffness: 200 });
+    rotacionConfig.value = withSpring(0, { damping: 15, stiffness: 200 });
+  };
+
+  const estiloAnimadoConfig = useAnimatedStyle(() => ({
+    transform: [
+      { scale: escalaConfig.value },
+      { rotate: `${rotacionConfig.value}deg` },
+    ],
+  }));
+
   const fechaFormateadaEditorial = formatearFechaLegible(fechaHoy).toUpperCase();
 
   return (
@@ -60,19 +88,38 @@ export default function MenuBienvenida({
       <View style={styles.bloqueSuperior}>
         <View style={styles.filaInsigniaFecha}>
           <Text style={styles.etiquetaFecha}>{fechaFormateadaEditorial}</Text>
-          <View style={styles.insigniaEstado}>
-            <View
-              style={[
-                styles.puntoEstado,
-                metaCumplidaHoy ? styles.puntoActivo : styles.puntoInactivo,
-              ]}
-            />
-            <Text style={styles.textoInsignia}>
-              {metaCumplidaHoy ? 'ACTIVO' : 'EN ESPERA'}
-            </Text>
+          <View style={styles.accionesDerechaSuperior}>
+            <View style={styles.insigniaEstado}>
+              <View
+                style={[
+                  styles.puntoEstado,
+                  metaCumplidaHoy ? styles.puntoActivo : styles.puntoInactivo,
+                ]}
+              />
+              <Text style={styles.textoInsignia}>
+                {metaCumplidaHoy ? 'ACTIVO' : 'EN ESPERA'}
+              </Text>
+            </View>
+
+            <Animated.View style={estiloAnimadoConfig}>
+              <TouchableOpacity
+                style={styles.botonConfiguracion}
+                activeOpacity={0.8}
+                onPressIn={handlePressInConfig}
+                onPressOut={handlePressOutConfig}
+                onPress={onAbrirConfiguracion}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityLabel="Abrir configuración"
+              >
+                <Feather
+                  name="settings"
+                  size={16}
+                  color={TOKENS.colors.textPrimary}
+                />
+              </TouchableOpacity>
+            </Animated.View>
           </View>
         </View>
-
         <Text style={styles.tituloHero}>Fitness Tracker</Text>
         <Text style={styles.subtituloEditorial}>
           Entrenamiento de fuerza, nutrición IA y análisis físico de alta precisión.
@@ -243,6 +290,21 @@ const styles = StyleSheet.create({
   bloqueSuperior: {
     marginTop: 4,
     marginBottom: TOKENS.spacing.md,
+  },
+  accionesDerechaSuperior: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  botonConfiguracion: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: TOKENS.colors.surface,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filaInsigniaFecha: {
     flexDirection: 'row',
