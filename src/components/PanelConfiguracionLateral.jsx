@@ -11,12 +11,17 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   useWindowDimensions,
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+  TouchableOpacity,
+} from 'react-native-gesture-handler';
+import * as Clipboard from 'expo-clipboard';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -109,7 +114,8 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
 
   // Gesto Pan swipe a la derecha en UI Thread
   const gestoSwipe = Gesture.Pan()
-    .activeOffsetX([10, 500])
+    .cancelsTouchesInView(false)
+    .activeOffsetX(25)
     .failOffsetY([-15, 15])
     .onUpdate((event) => {
       if (event.translationX > 0) {
@@ -202,21 +208,7 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
 
   const handlePegarPortapapeles = async () => {
     try {
-      let textoPegado = null;
-      let ExpoClipboard = null;
-      try {
-        ExpoClipboard = require('expo-clipboard');
-      } catch {}
-
-      if (ExpoClipboard && typeof ExpoClipboard.getStringAsync === 'function') {
-        textoPegado = await ExpoClipboard.getStringAsync();
-      } else if (
-        typeof navigator !== 'undefined' &&
-        navigator.clipboard &&
-        navigator.clipboard.readText
-      ) {
-        textoPegado = await navigator.clipboard.readText();
-      }
+      const textoPegado = await Clipboard.getStringAsync();
 
       if (textoPegado && typeof textoPegado === 'string' && textoPegado.trim()) {
         setClaveInput(textoPegado.trim());
@@ -228,19 +220,26 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
       } else {
         Alert.alert(
           'Portapapeles',
-          'Mantén presionado el campo de texto para pegar tu clave directamente usando el teclado.'
+          'El portapapeles está vacío o no contiene texto válido.'
         );
       }
     } catch {
       Alert.alert(
         'Portapapeles',
-        'Mantén presionado el campo de texto para pegar tu clave directamente.'
+        'No se pudo acceder al portapapeles en este dispositivo.'
       );
     }
   };
 
-  const handleAbrirGoogleAIStudio = () => {
-    Linking.openURL('https://aistudio.google.com/app/apikey');
+  const handleAbrirGoogleAIStudio = async () => {
+    try {
+      await Linking.openURL('https://aistudio.google.com/app/apikey');
+    } catch {
+      Alert.alert(
+        'Enlace externo',
+        'No se pudo abrir el navegador para acceder a Google AI Studio.'
+      );
+    }
   };
 
   if (!montado) {
@@ -549,7 +548,7 @@ const styles = StyleSheet.create({
     borderLeftColor: TOKENS.colors.borderDefault, // Hairline #262626
     zIndex: 1001,
     paddingHorizontal: 16,
-    elevation: 16,
+    elevation: 24,
     shadowColor: '#000000',
     shadowOffset: { width: -4, height: 0 },
     shadowOpacity: 0.5,

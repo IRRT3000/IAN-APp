@@ -23,6 +23,9 @@
 - **Solución:** Invertir jerarquía (`TouchableOpacity` estático exterior con `hitSlop: 12` + `Animated.View` interior).
 
 ### INC-006: Desbordamiento de Drawer y Colisión con Safe Areas / Teclado
-- **Síntoma:** Drawer de ajustes aparecía desplazado o inaccesible tras abrir teclado; botones cortados en Dynamic Island.
 - **Causa Raíz:** `GestureHandlerRootView` con `absoluteFillObject` dentro de `Modal` rompía layout de flexión; dimensiones estáticas con `Dimensions.get('window')` y ausencia de `react-native-safe-area-context`.
 - **Solución:** `useSafeInsets` con pisos defensivos, `GestureHandlerRootView` con `flex: 1`, `useWindowDimensions()`, `KeyboardAvoidingView` y botones adaptados a Thumb-Zone.
+
+### INC-007: Inoperancia de Botones dentro de Drawer en Android (RNGH Pan Gesture)
+- **Causa Raíz:** `activeOffsetX([10, 500])` causaba que en `ACTION_DOWN` (`translationX = 0 < 10`) el handler Pan se activara de inmediato cancelando toques hijos (`ACTION_CANCEL`). Además faltaba `expo-clipboard`.
+- **Solución:** Configurar `.activeOffsetX(25)` (escalar positivo), `.cancelsTouchesInView(false)`, migrar a `TouchableOpacity` de RNGH, `elevation: 24` e instalar `expo-clipboard`.
