@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
+  KeyboardAvoidingView,
   Linking,
   Modal,
   Platform,
@@ -12,6 +12,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -35,11 +36,13 @@ import {
   vibrarInicioPresionBorrado,
 } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const ANCHO_DRAWER = Math.min(Math.round(SCREEN_WIDTH * 0.85), 380);
+import { useSafeInsets } from '../utils/useSafeInsets';
 
 export default function PanelConfiguracionLateral({ visible, onCerrar }) {
+  const insets = useSafeInsets();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const ANCHO_DRAWER = Math.min(Math.round(windowWidth * 0.85), 380);
+
   const [montado, setMontado] = useState(visible);
   const [claveInput, setClaveInput] = useState('');
   const [claveGuardada, setClaveGuardada] = useState(null);
@@ -84,7 +87,7 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
         }
       }
     );
-  }, [translateX, opacityBackdrop, finalizarCierre]);
+  }, [ANCHO_DRAWER, translateX, opacityBackdrop, finalizarCierre]);
 
   useEffect(() => {
     if (visible) {
@@ -102,7 +105,7 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
     } else if (montado && !cerrandoRef.current) {
       cerrarDrawer();
     }
-  }, [visible, montado, cargarEstadoClave, cerrarDrawer, translateX, opacityBackdrop]);
+  }, [visible, montado, cargarEstadoClave, cerrarDrawer, translateX, opacityBackdrop, ANCHO_DRAWER]);
 
   // Gesto Pan swipe a la derecha en UI Thread
   const gestoSwipe = Gesture.Pan()
@@ -257,7 +260,7 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
       animationType="none"
       onRequestClose={cerrarDrawer}
     >
-      <GestureHandlerRootView style={StyleSheet.absoluteFillObject}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
           {/* 1. Backdrop Oscuro con Fade */}
           <Animated.View style={[styles.backdrop, estiloAnimadoBackdrop]}>
@@ -270,7 +273,17 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
 
           {/* 2. Drawer Lateral Desplegable con Físicas de Resorte */}
           <GestureDetector gesture={gestoSwipe}>
-            <Animated.View style={[styles.drawerContenedor, estiloAnimadoDrawer]}>
+            <Animated.View
+              style={[
+                styles.drawerContenedor,
+                {
+                  width: ANCHO_DRAWER,
+                  height: windowHeight,
+                  paddingTop: insets.headerPaddingTop,
+                },
+                estiloAnimadoDrawer,
+              ]}
+            >
               {/* Cabecera del Panel */}
               <View style={styles.cabeceraDrawer}>
                 <View>
@@ -287,221 +300,230 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
                 </TouchableOpacity>
               </View>
 
-              <ScrollView
-                style={styles.cuerpoScroll}
-                contentContainerStyle={styles.cuerpoScrollContenido}
-                showsVerticalScrollIndicator={false}
+              <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
               >
-                {/* Tarjeta de Estado de Conexión */}
-                <View style={styles.tarjetaEstado}>
-                  <View style={styles.filaEstadoEncabezado}>
-                    <View
-                      style={[
-                        styles.puntoConexion,
-                        tieneClaveConfigurada
-                          ? styles.puntoConectado
-                          : styles.puntoDesconectado,
-                      ]}
-                    />
-                    <Text style={styles.textoTituloEstado}>
-                      {tieneClaveConfigurada ? 'CLAVE CONECTADA' : 'NO CONFIGURADA'}
-                    </Text>
-                    <View style={styles.badgeByok}>
-                      <Text style={styles.textoBadgeByok}>BYOK</Text>
-                    </View>
-                  </View>
-
-                  <Text style={styles.descripcionEstado}>
-                    {tieneClaveConfigurada
-                      ? `Tu clave (${mascaraClave}) está activa en el dispositivo. Las funciones de nutrición e IA fotográfica consumen tu cuota privada.`
-                      : 'Configura tu Gemini API Key personal para activar el análisis bromatológico por foto y la evaluación de cambio físico.'}
-                  </Text>
-                </View>
-
-                {/* Formulario de Configuración de Clave */}
-                <View style={styles.seccionFormulario}>
-                  <Text style={styles.etiquetaCampo}>GEMINI API KEY</Text>
-
-                  <View style={styles.cajaInputClave}>
-                    <TextInput
-                      style={styles.inputTexto}
-                      value={claveInput}
-                      onChangeText={(texto) => {
-                        setClaveInput(texto);
-                        setMensajeEstado(null);
-                      }}
-                      placeholder="Pega aquí tu clave (AIzaSy...)"
-                      placeholderTextColor={TOKENS.colors.textMuted}
-                      secureTextEntry={!mostrarClave}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      selectTextOnFocus
-                    />
-
-                    <TouchableOpacity
-                      style={styles.botonIconoInput}
-                      activeOpacity={0.7}
-                      onPress={() => setMostrarClave((prev) => !prev)}
-                      hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                    >
-                      <Feather
-                        name={mostrarClave ? 'eye-off' : 'eye'}
-                        size={16}
-                        color={TOKENS.colors.textSecondary}
-                      />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.botonIconoInput}
-                      activeOpacity={0.7}
-                      onPress={handlePegarPortapapeles}
-                      hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                    >
-                      <Feather
-                        name="clipboard"
-                        size={16}
-                        color={TOKENS.colors.textSecondary}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Mensajes de Estado en Vivo */}
-                  {mensajeEstado ? (
-                    <View
-                      style={[
-                        styles.cajaMensaje,
-                        mensajeEstado.tipo === 'exito'
-                          ? styles.mensajeExito
-                          : mensajeEstado.tipo === 'error'
-                          ? styles.mensajeError
-                          : styles.mensajeInfo,
-                      ]}
-                    >
-                      <Feather
-                        name={
-                          mensajeEstado.tipo === 'exito'
-                            ? 'check-circle'
-                            : mensajeEstado.tipo === 'error'
-                            ? 'alert-circle'
-                            : 'info'
-                        }
-                        size={14}
-                        color={
-                          mensajeEstado.tipo === 'exito'
-                            ? '#00E676'
-                            : mensajeEstado.tipo === 'error'
-                            ? '#FF5252'
-                            : '#8E8E93'
-                        }
-                        style={{ marginRight: 8, marginTop: 1 }}
-                      />
-                      <Text
+                <ScrollView
+                  style={styles.cuerpoScroll}
+                  contentContainerStyle={[
+                    styles.cuerpoScrollContenido,
+                    { paddingBottom: insets.bottom + 40 },
+                  ]}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                >
+                  {/* Tarjeta de Estado de Conexión */}
+                  <View style={styles.tarjetaEstado}>
+                    <View style={styles.filaEstadoEncabezado}>
+                      <View
                         style={[
-                          styles.textoMensaje,
+                          styles.puntoConexion,
+                          tieneClaveConfigurada
+                            ? styles.puntoConectado
+                            : styles.puntoDesconectado,
+                        ]}
+                      />
+                      <Text style={styles.textoTituloEstado}>
+                        {tieneClaveConfigurada ? 'CLAVE CONECTADA' : 'NO CONFIGURADA'}
+                      </Text>
+                      <View style={styles.badgeByok}>
+                        <Text style={styles.textoBadgeByok}>BYOK</Text>
+                      </View>
+                    </View>
+
+                    <Text style={styles.descripcionEstado}>
+                      {tieneClaveConfigurada
+                        ? `Tu clave (${mascaraClave}) está activa en el dispositivo. Las funciones de nutrición e IA fotográfica consumen tu cuota privada.`
+                        : 'Configura tu Gemini API Key personal para activar el análisis bromatológico por foto y la evaluación de cambio físico.'}
+                    </Text>
+                  </View>
+
+                  {/* Formulario de Configuración de Clave */}
+                  <View style={styles.seccionFormulario}>
+                    <Text style={styles.etiquetaCampo}>GEMINI API KEY</Text>
+
+                    <View style={styles.cajaInputClave}>
+                      <TextInput
+                        style={styles.inputTexto}
+                        value={claveInput}
+                        onChangeText={(texto) => {
+                          setClaveInput(texto);
+                          setMensajeEstado(null);
+                        }}
+                        placeholder="Pega aquí tu clave (AIzaSy...)"
+                        placeholderTextColor={TOKENS.colors.textMuted}
+                        secureTextEntry={!mostrarClave}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        selectTextOnFocus
+                      />
+
+                      <TouchableOpacity
+                        style={styles.botonIconoInput}
+                        activeOpacity={0.7}
+                        onPress={() => setMostrarClave((prev) => !prev)}
+                        hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                      >
+                        <Feather
+                          name={mostrarClave ? 'eye-off' : 'eye'}
+                          size={16}
+                          color={TOKENS.colors.textSecondary}
+                        />
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.botonIconoInput}
+                        activeOpacity={0.7}
+                        onPress={handlePegarPortapapeles}
+                        hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                      >
+                        <Feather
+                          name="clipboard"
+                          size={16}
+                          color={TOKENS.colors.textSecondary}
+                        />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Mensajes de Estado en Vivo */}
+                    {mensajeEstado ? (
+                      <View
+                        style={[
+                          styles.cajaMensaje,
                           mensajeEstado.tipo === 'exito'
-                            ? styles.textoMensajeExito
+                            ? styles.mensajeExito
                             : mensajeEstado.tipo === 'error'
-                            ? styles.textoMensajeError
-                            : styles.textoMensajeInfo,
+                            ? styles.mensajeError
+                            : styles.mensajeInfo,
                         ]}
                       >
-                        {mensajeEstado.texto}
-                      </Text>
-                    </View>
-                  ) : null}
-
-                  {/* Botón Principal: Probar y Guardar */}
-                  <TouchableOpacity
-                    style={[
-                      styles.botonGuardar,
-                      validando ? styles.botonGuardarDeshabilitado : null,
-                    ]}
-                    activeOpacity={0.85}
-                    onPress={handleProbarYGuardar}
-                    disabled={validando}
-                  >
-                    {validando ? (
-                      <ActivityIndicator size="small" color="#0A0A0A" />
-                    ) : (
-                      <>
                         <Feather
-                          name="check"
-                          size={15}
-                          color="#0A0A0A"
+                          name={
+                            mensajeEstado.tipo === 'exito'
+                              ? 'check-circle'
+                              : mensajeEstado.tipo === 'error'
+                              ? 'alert-circle'
+                              : 'info'
+                          }
+                          size={14}
+                          color={
+                            mensajeEstado.tipo === 'exito'
+                              ? '#00E676'
+                              : mensajeEstado.tipo === 'error'
+                              ? '#FF5252'
+                              : '#8E8E93'
+                          }
+                          style={{ marginRight: 8, marginTop: 1 }}
+                        />
+                        <Text
+                          style={[
+                            styles.textoMensaje,
+                            mensajeEstado.tipo === 'exito'
+                              ? styles.textoMensajeExito
+                              : mensajeEstado.tipo === 'error'
+                              ? styles.textoMensajeError
+                              : styles.textoMensajeInfo,
+                          ]}
+                        >
+                          {mensajeEstado.texto}
+                        </Text>
+                      </View>
+                    ) : null}
+
+                    {/* Botón Principal: Probar y Guardar */}
+                    <TouchableOpacity
+                      style={[
+                        styles.botonGuardar,
+                        validando ? styles.botonGuardarDeshabilitado : null,
+                      ]}
+                      activeOpacity={0.85}
+                      onPress={handleProbarYGuardar}
+                      disabled={validando}
+                    >
+                      {validando ? (
+                        <ActivityIndicator size="small" color="#0A0A0A" />
+                      ) : (
+                        <>
+                          <Feather
+                            name="check"
+                            size={15}
+                            color="#0A0A0A"
+                            style={{ marginRight: 8 }}
+                          />
+                          <Text style={styles.textoBotonGuardar}>
+                            Probar y Guardar Clave
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+
+                    {/* Botón Secundario: Eliminar Clave */}
+                    {tieneClaveConfigurada ? (
+                      <TouchableOpacity
+                        style={styles.botonEliminar}
+                        activeOpacity={0.8}
+                        onPress={handleEliminarClave}
+                      >
+                        <Feather
+                          name="trash-2"
+                          size={14}
+                          color="#FF5252"
                           style={{ marginRight: 8 }}
                         />
-                        <Text style={styles.textoBotonGuardar}>
-                          Probar y Guardar Clave
-                        </Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
+                        <Text style={styles.textoBotonEliminar}>Eliminar Clave</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
 
-                  {/* Botón Secundario: Eliminar Clave */}
-                  {tieneClaveConfigurada ? (
-                    <TouchableOpacity
-                      style={styles.botonEliminar}
-                      activeOpacity={0.8}
-                      onPress={handleEliminarClave}
-                    >
+                  {/* Banner Enlace a Google AI Studio */}
+                  <View style={styles.tarjetaAiStudio}>
+                    <View style={styles.filaAiStudioHeader}>
                       <Feather
-                        name="trash-2"
-                        size={14}
-                        color="#FF5252"
+                        name="key"
+                        size={16}
+                        color={TOKENS.colors.textPrimary}
                         style={{ marginRight: 8 }}
                       />
-                      <Text style={styles.textoBotonEliminar}>Eliminar Clave</Text>
-                    </TouchableOpacity>
-                  ) : null}
-                </View>
-
-                {/* Banner Enlace a Google AI Studio */}
-                <View style={styles.tarjetaAiStudio}>
-                  <View style={styles.filaAiStudioHeader}>
-                    <Feather
-                      name="key"
-                      size={16}
-                      color={TOKENS.colors.textPrimary}
-                      style={{ marginRight: 8 }}
-                    />
-                    <Text style={styles.tituloAiStudio}>¿No tienes una API Key?</Text>
-                  </View>
-                  <Text style={styles.descripcionAiStudio}>
-                    Google AI Studio ofrece claves gratuitas para Gemini con cuotas generosas
-                    para proyectos personales.
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.botonAiStudio}
-                    activeOpacity={0.85}
-                    onPress={handleAbrirGoogleAIStudio}
-                  >
-                    <Text style={styles.textoBotonAiStudio}>
-                      Obtener clave gratis en AI Studio
+                      <Text style={styles.tituloAiStudio}>¿No tienes una API Key?</Text>
+                    </View>
+                    <Text style={styles.descripcionAiStudio}>
+                      Google AI Studio ofrece claves gratuitas para Gemini con cuotas generosas
+                      para proyectos personales.
                     </Text>
-                    <Feather
-                      name="external-link"
-                      size={13}
-                      color="#FFFFFF"
-                      style={{ marginLeft: 6 }}
-                    />
-                  </TouchableOpacity>
-                </View>
+                    <TouchableOpacity
+                      style={styles.botonAiStudio}
+                      activeOpacity={0.85}
+                      onPress={handleAbrirGoogleAIStudio}
+                    >
+                      <Text style={styles.textoBotonAiStudio}>
+                        Obtener clave gratis en AI Studio
+                      </Text>
+                      <Feather
+                        name="external-link"
+                        size={13}
+                        color="#FFFFFF"
+                        style={{ marginLeft: 6 }}
+                      />
+                    </TouchableOpacity>
+                  </View>
 
-                {/* Aviso de Privacidad y Modelo Local-First */}
-                <View style={styles.bloquePrivacidad}>
-                  <Feather
-                    name="shield"
-                    size={14}
-                    color={TOKENS.colors.textMuted}
-                    style={{ marginRight: 8, marginTop: 2 }}
-                  />
-                  <Text style={styles.textoPrivacidad}>
-                    Tu clave se almacena de forma 100% local en tu dispositivo con
-                    AsyncStorage. Nunca se transmite a servidores de terceros ni se
-                    almacena en repositorios públicos.
-                  </Text>
-                </View>
-              </ScrollView>
+                  {/* Aviso de Privacidad y Modelo Local-First */}
+                  <View style={styles.bloquePrivacidad}>
+                    <Feather
+                      name="shield"
+                      size={14}
+                      color={TOKENS.colors.textMuted}
+                      style={{ marginRight: 8, marginTop: 2 }}
+                    />
+                    <Text style={styles.textoPrivacidad}>
+                      Tu clave se almacena de forma 100% local en tu dispositivo con
+                      AsyncStorage. Nunca se transmite a servidores de terceros ni se
+                      almacena en repositorios públicos.
+                    </Text>
+                  </View>
+                </ScrollView>
+              </KeyboardAvoidingView>
             </Animated.View>
           </GestureDetector>
         </View>
@@ -521,12 +543,11 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     right: 0,
-    width: ANCHO_DRAWER,
+    flexDirection: 'column',
     backgroundColor: TOKENS.colors.surface, // Carbón mate #141414
     borderLeftWidth: 1,
     borderLeftColor: TOKENS.colors.borderDefault, // Hairline #262626
     zIndex: 1001,
-    paddingTop: Platform.OS === 'android' ? 44 : 56,
     paddingHorizontal: 16,
     elevation: 16,
     shadowColor: '#000000',
@@ -557,9 +578,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   botonCerrar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: TOKENS.colors.surfaceElevated,
     borderWidth: 1,
     borderColor: TOKENS.colors.borderDefault,
@@ -571,7 +592,6 @@ const styles = StyleSheet.create({
   },
   cuerpoScrollContenido: {
     paddingVertical: 18,
-    paddingBottom: 48,
   },
   tarjetaEstado: {
     backgroundColor: TOKENS.colors.surfaceElevated,
@@ -642,16 +662,19 @@ const styles = StyleSheet.create({
     borderColor: TOKENS.colors.borderDefault,
     borderRadius: TOKENS.radii.md,
     paddingHorizontal: 12,
-    height: 48,
+    minHeight: 48,
   },
   inputTexto: {
     flex: 1,
     color: TOKENS.colors.textPrimary,
     fontSize: 13,
-    paddingVertical: 0,
+    paddingVertical: 8,
   },
   botonIconoInput: {
-    padding: 6,
+    minWidth: 40,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginLeft: 4,
   },
   cajaMensaje: {
@@ -690,7 +713,7 @@ const styles = StyleSheet.create({
   },
   botonGuardar: {
     flexDirection: 'row',
-    height: 48,
+    height: 54,
     backgroundColor: TOKENS.colors.textPrimary, // Blanco de alto contraste #FFFFFF
     borderRadius: TOKENS.radii.md,
     justifyContent: 'center',
@@ -702,18 +725,18 @@ const styles = StyleSheet.create({
   },
   textoBotonGuardar: {
     color: '#0A0A0A',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
     letterSpacing: 0.2,
   },
   botonEliminar: {
     flexDirection: 'row',
-    height: 44,
+    height: 48,
     backgroundColor: 'transparent',
     borderRadius: TOKENS.radii.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 10,
     borderWidth: 1,
     borderColor: 'rgba(255, 82, 82, 0.3)',
   },
@@ -751,7 +774,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 38,
+    height: 42,
     backgroundColor: TOKENS.colors.surfaceInteractive,
     borderRadius: TOKENS.radii.sm,
     borderWidth: 1,
@@ -759,7 +782,7 @@ const styles = StyleSheet.create({
   },
   textoBotonAiStudio: {
     color: TOKENS.colors.textPrimary,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
   },
   bloquePrivacidad: {

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -14,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { vibrarSeleccionBascula } from '../services/haptics';
+import { useSafeInsets } from '../utils/useSafeInsets';
 
 export default function BarraNavegacionInferior({
   vistaActiva,
@@ -22,6 +22,7 @@ export default function BarraNavegacionInferior({
   contadorComidasHoy = 0,
   contadorFisicoHoy = 0,
 }) {
+  const insets = useSafeInsets();
   const { width: anchoPantalla } = useWindowDimensions();
 
   // 5 Pestañas oficiales con iconografía Feather exclusiva (CERO EMOJIS)
@@ -73,7 +74,13 @@ export default function BarraNavegacionInferior({
   };
 
   return (
-    <View style={styles.envoltorioFlotante} pointerEvents="box-none">
+    <View
+      style={[
+        styles.envoltorioFlotante,
+        { bottom: Math.max(insets.bottom, 12) },
+      ]}
+      pointerEvents="box-none"
+    >
       <View
         style={styles.contenedorBarra}
         onLayout={manejarMedicionContenedor}
@@ -92,6 +99,9 @@ export default function BarraNavegacionInferior({
               activeOpacity={0.75}
               onPress={() => manejarPulsarTab(tab.id)}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: esActivo }}
+              accessibilityLabel={`${tab.etiqueta}${tieneContador ? `, ${tab.contador} registros hoy` : ''}`}
             >
               <View style={styles.filaIcono}>
                 <Feather
@@ -126,7 +136,6 @@ export default function BarraNavegacionInferior({
 const styles = StyleSheet.create({
   envoltorioFlotante: {
     position: 'absolute',
-    bottom: Platform.OS === 'android' ? 14 : 20,
     left: 16,
     right: 16,
     zIndex: 999,

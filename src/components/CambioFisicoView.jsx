@@ -984,6 +984,7 @@ export default function CambioFisicoView({
                         </View>
                         <TouchableOpacity
                           style={styles.botonQuitarFoto}
+                          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                           onPress={() => quitarFotoSeleccionada(foto.idTemp)}
                         >
                           <Feather name="x" size={12} color="#FFFFFF" />
@@ -1073,11 +1074,13 @@ export default function CambioFisicoView({
       <Modal
         visible={modalVisible}
         transparent
+        statusBarTranslucent
         animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.fondoModal}>
           <View style={styles.contenedorModal}>
+            <ScrollView style={{ maxHeight: '85%' }} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} bounces={false}>
             <Text style={styles.tituloModal}>
               Contexto del Chequeo ({fotosSeleccionadas.length} foto
               {fotosSeleccionadas.length === 1 ? '' : 's'})
@@ -1112,6 +1115,7 @@ export default function CambioFisicoView({
                     <TouchableOpacity
                       key={etiqueta}
                       style={styles.botonPasoPeso}
+                      hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                       activeOpacity={0.8}
                       onPress={() => ajustarPesoBascula(paso)}
                     >
@@ -1131,7 +1135,7 @@ export default function CambioFisicoView({
               <View style={styles.filaReloj12h}>
                 <View style={styles.columnaControlTiempo}>
                   <TouchableOpacity
-                    style={styles.botonFlechaTiempo}
+                    style={styles.botonFlechaTiempo} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     onPress={() => ajustarHora12(1)}
                   >
                     <Feather name="chevron-up" size={16} color={TOKENS.colors.textPrimary} />
@@ -1140,7 +1144,7 @@ export default function CambioFisicoView({
                     {String(hora12).padStart(2, '0')}
                   </Text>
                   <TouchableOpacity
-                    style={styles.botonFlechaTiempo}
+                    style={styles.botonFlechaTiempo} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     onPress={() => ajustarHora12(-1)}
                   >
                     <Feather name="chevron-down" size={16} color={TOKENS.colors.textPrimary} />
@@ -1151,7 +1155,7 @@ export default function CambioFisicoView({
 
                 <View style={styles.columnaControlTiempo}>
                   <TouchableOpacity
-                    style={styles.botonFlechaTiempo}
+                    style={styles.botonFlechaTiempo} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     onPress={() => ajustarMinutos12(5)}
                   >
                     <Text style={styles.textoFlechaTiempo}>+5m</Text>
@@ -1160,7 +1164,7 @@ export default function CambioFisicoView({
                     {String(minutos12).padStart(2, '0')}
                   </Text>
                   <TouchableOpacity
-                    style={styles.botonFlechaTiempo}
+                    style={styles.botonFlechaTiempo} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     onPress={() => ajustarMinutos12(-5)}
                   >
                     <Text style={styles.textoFlechaTiempo}>-5m</Text>
@@ -1251,6 +1255,7 @@ export default function CambioFisicoView({
                 </Text>
               </TouchableOpacity>
             </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1500,10 +1505,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     right: 4,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.85)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1906,8 +1911,12 @@ const styles = StyleSheet.create({
   },
   botonPasoPeso: {
     backgroundColor: TOKENS.colors.surfaceElevated,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    minWidth: 44,
+    minHeight: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: TOKENS.radii.xs,
     borderWidth: 1,
     borderColor: TOKENS.colors.borderDefault,
@@ -1943,7 +1952,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   botonFlechaTiempo: {
-    padding: 4,
+    minWidth: 44,
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 6,
   },
   textoFlechaTiempo: {
     color: TOKENS.colors.textSecondary,
@@ -2027,8 +2040,9 @@ const styles = StyleSheet.create({
   },
   botonCancelarModal: {
     flex: 1,
-    paddingVertical: 12,
+    height: 48,
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: TOKENS.radii.md,
     backgroundColor: TOKENS.colors.surfaceElevated,
     borderWidth: 1,
@@ -2041,8 +2055,9 @@ const styles = StyleSheet.create({
   },
   botonConfirmarModal: {
     flex: 1.5,
-    paddingVertical: 12,
+    height: 52,
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: TOKENS.radii.md,
     backgroundColor: TOKENS.colors.accentWhite,
   },

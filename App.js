@@ -1,8 +1,9 @@
 // @refresh reset
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { BackHandler, Platform, SafeAreaView, StyleSheet, View } from 'react-native';
+import { BackHandler, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import BarraNavegacionInferior from './src/components/BarraNavegacionInferior';
 import CambioFisicoView from './src/components/CambioFisicoView';
@@ -23,8 +24,10 @@ import {
   obtenerResumenAnualHabitos,
 } from './src/services/storage';
 import { TOKENS } from './src/theme/tokens';
+import { useSafeInsets } from './src/utils/useSafeInsets';
 
-export default function App() {
+function AppPrincipal() {
+  const insets = useSafeInsets();
   const [entrenamientos, setEntrenamientos] = useState([]);
   const [diasConActividad, setDiasConActividad] = useState([]);
   const [comidas, setComidas] = useState([]);
@@ -269,56 +272,67 @@ export default function App() {
   };
 
   return (
-    <GestureHandlerRootView style={styles.rootContainer}>
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar style="light" />
-        <View style={styles.contenedorPrincipal}>
-          <View style={styles.areaContenido}>
-            <Animated.View
-              key={vistaActiva}
-              entering={FadeIn.duration(180)}
-              style={styles.areaTransicion}
-            >
-              {renderizarVistaActiva()}
-            </Animated.View>
-          </View>
-
-          {/* La barra flotante se oculta dinámicamente si el Live Mode está activo */}
-          {!enLiveMode ? (
-            <BarraNavegacionInferior
-              vistaActiva={vistaActiva}
-              onCambiarVista={setVistaActiva}
-              contadorHoy={entrenamientosDeHoy.length}
-              contadorComidasHoy={comidasDeHoy.length}
-              contadorFisicoHoy={cambiosFisicosDeHoy.length}
-            />
-          ) : null}
+    <View style={styles.contenedorRoot}>
+      <StatusBar style="light" />
+      <View
+        style={[
+          styles.contenedorPrincipal,
+          {
+            paddingTop: insets.top,
+            paddingLeft: Math.max(insets.left, 16),
+            paddingRight: Math.max(insets.right, 16),
+          },
+        ]}
+      >
+        <View style={styles.areaContenido}>
+          <Animated.View
+            key={vistaActiva}
+            entering={FadeIn.duration(180)}
+            style={styles.areaTransicion}
+          >
+            {renderizarVistaActiva()}
+          </Animated.View>
         </View>
 
-        <PanelConfiguracionLateral
-          visible={panelConfiguracionVisible}
-          onCerrar={cerrarConfiguracion}
-        />
-      </SafeAreaView>
-    </GestureHandlerRootView>
+        {/* La barra flotante se oculta dinámicamente si el Live Mode está activo */}
+        {!enLiveMode ? (
+          <BarraNavegacionInferior
+            vistaActiva={vistaActiva}
+            onCambiarVista={setVistaActiva}
+            contadorHoy={entrenamientosDeHoy.length}
+            contadorComidasHoy={comidasDeHoy.length}
+            contadorFisicoHoy={cambiosFisicosDeHoy.length}
+          />
+        ) : null}
+      </View>
+
+      <PanelConfiguracionLateral
+        visible={panelConfiguracionVisible}
+        onCerrar={cerrarConfiguracion}
+      />
+    </View>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={styles.contenedorRoot}>
+        <AppPrincipal />
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  rootContainer: {
-    flex: 1,
-    backgroundColor: TOKENS.colors.canvas,
-  },
-  safeArea: {
+  contenedorRoot: {
     flex: 1,
     backgroundColor: TOKENS.colors.canvas,
   },
   contenedorPrincipal: {
     flex: 1,
     backgroundColor: TOKENS.colors.canvas,
-    paddingTop: Platform.OS === 'android' ? 42 : 16,
-    paddingBottom: 0, // Las vistas usan paddingBottom: 110 para scroll clearance
-    paddingHorizontal: 16,
+    paddingBottom: 0,
   },
   areaContenido: {
     flex: 1,

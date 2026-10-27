@@ -54,6 +54,7 @@ export default function DaySummaryModal({
     <Modal
       visible={visible}
       transparent={true}
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={onClose}
     >
@@ -79,9 +80,10 @@ export default function DaySummaryModal({
                 <TouchableOpacity
                   style={styles.botonCerrarCruz}
                   onPress={onClose}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityLabel="Cerrar resumen del día"
                 >
-                  <Feather name="x" size={16} color="#FFFFFF" />
+                  <Feather name="x" size={18} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
 
@@ -232,7 +234,7 @@ export default function DaySummaryModal({
                         if (typeof onIrAEntrenos === 'function') onIrAEntrenos();
                       }}
                     >
-                      <Feather name="activity" size={13} color="#0A0A0A" style={{ marginRight: 4 }} />
+                      <Feather name="activity" size={14} color="#0A0A0A" style={{ marginRight: 4 }} />
                       <Text style={styles.textoBotonPrimario}>Entrenar</Text>
                     </TouchableOpacity>
 
@@ -244,7 +246,7 @@ export default function DaySummaryModal({
                         if (typeof onIrANutricion === 'function') onIrANutricion();
                       }}
                     >
-                      <Feather name="pie-chart" size={13} color="#FFFFFF" style={{ marginRight: 4 }} />
+                      <Feather name="pie-chart" size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
                       <Text style={styles.textoBotonSecundario}>Comida</Text>
                     </TouchableOpacity>
                   </View>
@@ -306,9 +308,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   botonCerrarCruz: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: TOKENS.colors.surfaceElevated,
     justifyContent: 'center',
     alignItems: 'center',
@@ -368,8 +370,8 @@ const styles = StyleSheet.create({
     borderBottomColor: TOKENS.colors.borderDefault,
   },
   iconoHabitoContenedor: {
-    width: 32,
-    height: 32,
+    width: 34,
+    height: 34,
     borderRadius: 8,
     backgroundColor: TOKENS.colors.surface,
     borderWidth: 1,
@@ -419,7 +421,7 @@ const styles = StyleSheet.create({
   },
   botonAccionModal: {
     flexDirection: 'row',
-    height: 44,
+    height: 48,
     borderRadius: TOKENS.radii.md,
     alignItems: 'center',
     justifyContent: 'center',
@@ -452,7 +454,7 @@ const styles = StyleSheet.create({
   botonAccesoPequeno: {
     flex: 1,
     flexDirection: 'row',
-    height: 42,
+    height: 46,
     backgroundColor: TOKENS.colors.surfaceElevated,
     borderRadius: TOKENS.radii.md,
     alignItems: 'center',
@@ -466,12 +468,12 @@ const styles = StyleSheet.create({
   },
   textoBotonPrimario: {
     color: '#0A0A0A',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800',
   },
   textoBotonSecundario: {
     color: TOKENS.colors.textPrimary,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
   bloqueSoloLectura: {
@@ -489,7 +491,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   botonCerrar: {
-    height: 42,
+    height: 46,
     backgroundColor: TOKENS.colors.surfaceElevated,
     borderRadius: TOKENS.radii.md,
     alignItems: 'center',
@@ -499,7 +501,7 @@ const styles = StyleSheet.create({
   },
   textoBotonCerrar: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
 });

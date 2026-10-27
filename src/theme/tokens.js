@@ -1,6 +1,7 @@
 /**
  * Tokens de diseño centralizados para Fitness Tracker.
  * Spec 006: Rediseño Total Monocromo Matte Luxury (Android-First Edition).
+ * Spec 009: Adaptación Ergonómica Mobile-First (iOS & Android).
  * 
  * Reglas de diseño:
  * - Fondo negro profundo (#0A0A0A) y superficies carbón (#141414, #1C1C1E).
@@ -109,7 +110,19 @@ export const TOKENS = {
   },
 
   touchTarget: {
+    minSize: 44,
+    androidMinSize: 48,
+    ctaHeight: 54,
+    iconButtonSize: 42,
     minHeight: 48,
     barHeight: 56,
+  },
+
+  safeArea: {
+    minTopAndroid: 28,
+    minTopIOS: 20,
+    minBottomAndroid: 12,
+    minBottomIOS: 20,
+    bottomBarClearanceOffset: 70,
   },
 };

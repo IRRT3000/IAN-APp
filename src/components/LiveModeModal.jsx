@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   BackHandler,
+  Keyboard,
   Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,11 +18,13 @@ import {
   guardarSesionActivaDraft,
 } from '../services/storage';
 import {
+  vibrarConfirmacionBorrado,
   vibrarEjercicioCompletado,
   vibrarSerieAgregada,
   vibrarSeleccionBascula,
 } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
+import { useSafeInsets } from '../utils/useSafeInsets';
 
 export default function LiveModeModal({
   visible,
@@ -31,9 +33,28 @@ export default function LiveModeModal({
   onTerminarEjercicio,
   onDescartarEjercicio,
 }) {
+  const insets = useSafeInsets();
   const [series, setSeries] = useState([]);
   const [errorValidacion, setErrorValidacion] = useState('');
+  const [seriesInvalidas, setSeriesInvalidas] = useState([]);
+  const [tecladoVisible, setTecladoVisible] = useState(false);
   const autoSaveTimerRef = useRef(null);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setTecladoVisible(true)
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setTecladoVisible(false)
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (!visible || !ejercicioActivo) {
@@ -56,6 +77,7 @@ export default function LiveModeModal({
       ]);
     }
     setErrorValidacion('');
+    setSeriesInvalidas([]);
   }, [visible, ejercicioActivo, draftInicial]);
 
   useEffect(() => {
@@ -113,6 +135,7 @@ export default function LiveModeModal({
       return actualizadas;
     });
     setErrorValidacion('');
+    setSeriesInvalidas([]);
   };
 
   const eliminarSerie = (indice) => {
@@ -128,6 +151,7 @@ export default function LiveModeModal({
       return renumeradas;
     });
     setErrorValidacion('');
+    setSeriesInvalidas([]);
   };
 
   const actualizarCampoSerie = (indice, campo, valor) => {
@@ -143,6 +167,7 @@ export default function LiveModeModal({
       return actualizadas;
     });
     setErrorValidacion('');
+    setSeriesInvalidas((prev) => prev.filter((idx) => idx !== indice));
   };
 
   const confirmarDescarte = () => {
@@ -193,24 +218,30 @@ export default function LiveModeModal({
     }
 
     if (!series || series.length === 0) {
+      vibrarConfirmacionBorrado();
       setErrorValidacion('Debes registrar al menos 1 serie para guardar.');
       return;
     }
 
-    const seriesIncompletas = series.some((s) => {
+    const invalidos = [];
+    series.forEach((s, idx) => {
       const pesoNum = Number(s.peso);
       const repsNum = Number(s.repeticiones);
-      return (
+      const invalido =
         isNaN(pesoNum) ||
         pesoNum < 0 ||
         isNaN(repsNum) ||
         repsNum <= 0 ||
         s.peso === '' ||
-        s.repeticiones === ''
-      );
+        s.repeticiones === '';
+      if (invalido) {
+        invalidos.push(idx);
+      }
     });
 
-    if (seriesIncompletas) {
+    if (invalidos.length > 0) {
+      setSeriesInvalidas(invalidos);
+      vibrarConfirmacionBorrado();
       setErrorValidacion(
         'Todas las series deben tener peso (>= 0 kg) y repeticiones (> 0).'
       );
@@ -243,16 +274,19 @@ export default function LiveModeModal({
       visible={visible}
       animationType="slide"
       transparent={false}
+      statusBarTranslucent
       onRequestClose={confirmarDescarte}
     >
-      <SafeAreaView style={styles.contenedorSafeArea}>
+      <View style={[styles.contenedorModal, { paddingTop: insets.headerPaddingTop }]}>
+        {/* Cabecera Ergonómica Despejada */}
         <View style={styles.cabeceraLive}>
           <TouchableOpacity
             style={styles.botonDescartar}
             onPress={confirmarDescarte}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityLabel="Descartar sesión activa"
           >
-            <Feather name="x" size={20} color={TOKENS.colors.textSecondary} />
+            <Feather name="x" size={22} color={TOKENS.colors.textSecondary} />
           </TouchableOpacity>
 
           <View style={styles.badgeLiveMode}>
@@ -260,21 +294,21 @@ export default function LiveModeModal({
             <Text style={styles.textoBadgeLiveMode}>LIVE MODE</Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.botonTerminar}
-            onPress={terminarSesion}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          >
-            <Feather name="check" size={20} color={TOKENS.colors.textInverse} />
-          </TouchableOpacity>
+          {/* Elemento de balance visual para centrar perfectamente el badge */}
+          <View style={styles.espacioBalanceCabecera} />
         </View>
 
+        {/* Contenido scrolleable */}
         <ScrollView
           style={styles.scrollContenido}
-          contentContainerStyle={styles.scrollInterior}
+          contentContainerStyle={[
+            styles.scrollInterior,
+            { paddingBottom: tecladoVisible ? 80 : 160 },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {/* Tarjeta del Ejercicio */}
           <View style={styles.tarjetaEjercicioActivo}>
             <View style={styles.filaBadgesEjercicio}>
               <View style={styles.badgeGrupo}>
@@ -295,14 +329,15 @@ export default function LiveModeModal({
             <View style={styles.bannerError}>
               <Feather
                 name="alert-circle"
-                size={14}
+                size={16}
                 color={TOKENS.colors.danger}
-                style={{ marginRight: 6 }}
+                style={{ marginRight: 8 }}
               />
               <Text style={styles.textoError}>{errorValidacion}</Text>
             </View>
           ) : null}
 
+          {/* Tabla de Series */}
           <View style={styles.tablaSeries}>
             <View style={styles.filaEncabezadoTabla}>
               <Text style={[styles.textoEncabezado, styles.colSerie]}>SERIE</Text>
@@ -311,76 +346,146 @@ export default function LiveModeModal({
               <View style={styles.colAccion} />
             </View>
 
-            {series.map((item, idx) => (
-              <View key={`serie-${idx}`} style={styles.filaSerie}>
-                <View style={styles.colSerie}>
-                  <View style={styles.circuloSerie}>
-                    <Text style={styles.numeroSerie}>{item.serie}</Text>
+            {series.map((item, idx) => {
+              const esInvalida = seriesInvalidas.includes(idx);
+              return (
+                <View key={`serie-${idx}`} style={styles.filaSerie}>
+                  <View style={styles.colSerie}>
+                    <View
+                      style={[
+                        styles.circuloSerie,
+                        esInvalida ? styles.circuloSerieInvalido : null,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.numeroSerie,
+                          esInvalida ? styles.numeroSerieInvalido : null,
+                        ]}
+                      >
+                        {item.serie}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.colInput}>
+                    <TextInput
+                      style={[
+                        styles.inputSerie,
+                        esInvalida && (!item.peso || Number(item.peso) < 0)
+                          ? styles.inputSerieInvalido
+                          : null,
+                      ]}
+                      keyboardType="numeric"
+                      placeholder="0"
+                      placeholderTextColor={TOKENS.colors.textMuted}
+                      value={String(item.peso)}
+                      onChangeText={(v) => actualizarCampoSerie(idx, 'peso', v)}
+                      selectTextOnFocus
+                    />
+                  </View>
+
+                  <View style={styles.colInput}>
+                    <TextInput
+                      style={[
+                        styles.inputSerie,
+                        esInvalida && (!item.repeticiones || Number(item.repeticiones) <= 0)
+                          ? styles.inputSerieInvalido
+                          : null,
+                      ]}
+                      keyboardType="number-pad"
+                      placeholder="0"
+                      placeholderTextColor={TOKENS.colors.textMuted}
+                      value={String(item.repeticiones)}
+                      onChangeText={(v) => actualizarCampoSerie(idx, 'repeticiones', v)}
+                      selectTextOnFocus
+                    />
+                  </View>
+
+                  <View style={styles.colAccion}>
+                    {series.length > 1 ? (
+                      <TouchableOpacity
+                        style={styles.botonEliminarFila}
+                        onPress={() => eliminarSerie(idx)}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        accessibilityLabel={`Eliminar serie ${item.serie}`}
+                      >
+                        <Feather name="trash-2" size={16} color={TOKENS.colors.textMuted} />
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={styles.botonEliminarFila} />
+                    )}
                   </View>
                 </View>
-
-                <View style={styles.colInput}>
-                  <TextInput
-                    style={styles.inputSerie}
-                    keyboardType="numeric"
-                    placeholder="0"
-                    placeholderTextColor={TOKENS.colors.textMuted}
-                    value={String(item.peso)}
-                    onChangeText={(v) => actualizarCampoSerie(idx, 'peso', v)}
-                    selectTextOnFocus
-                  />
-                </View>
-
-                <View style={styles.colInput}>
-                  <TextInput
-                    style={styles.inputSerie}
-                    keyboardType="number-pad"
-                    placeholder="0"
-                    placeholderTextColor={TOKENS.colors.textMuted}
-                    value={String(item.repeticiones)}
-                    onChangeText={(v) => actualizarCampoSerie(idx, 'repeticiones', v)}
-                    selectTextOnFocus
-                  />
-                </View>
-
-                <View style={styles.colAccion}>
-                  {series.length > 1 ? (
-                    <TouchableOpacity
-                      style={styles.botonEliminarFila}
-                      onPress={() => eliminarSerie(idx)}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
-                      <Feather name="trash-2" size={14} color={TOKENS.colors.textMuted} />
-                    </TouchableOpacity>
-                  ) : (
-                    <View style={styles.botonEliminarFila} />
-                  )}
-                </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
-
-          <TouchableOpacity
-            style={styles.botonAgregarSerie}
-            activeOpacity={0.8}
-            onPress={agregarSerie}
-          >
-            <Feather
-              name="plus"
-              size={16}
-              color={TOKENS.colors.textPrimary}
-              style={{ marginRight: 6 }}
-            />
-            <Text style={styles.textoAgregarSerie}>Agregar Serie</Text>
-          </TouchableOpacity>
         </ScrollView>
-      </SafeAreaView>
+
+        {/* Barra Accesoria de Teclado (Cuando el teclado está activo) */}
+        {tecladoVisible ? (
+          <View style={styles.barraAccesoriaTeclado}>
+            <TouchableOpacity
+              style={styles.botonOcultarTeclado}
+              onPress={() => Keyboard.dismiss()}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Feather
+                name="corner-down-left"
+                size={16}
+                color={TOKENS.colors.textPrimary}
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.textoOcultarTeclado}>Listo / Ocultar teclado</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          /* Barra Inferior Fija en Thumb-Zone (Ergonomía de una mano) */
+          <View
+            style={[
+              styles.stickyFooterThumbZone,
+              { paddingBottom: insets.bottom + 12 },
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.botonSecundarioAgregar}
+              activeOpacity={0.8}
+              onPress={agregarSerie}
+            >
+              <Feather
+                name="plus"
+                size={18}
+                color={TOKENS.colors.textPrimary}
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.textoBotonSecundario}>Agregar Serie</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.botonPrimarioTerminar}
+              activeOpacity={0.85}
+              onPress={terminarSesion}
+            >
+              <Feather
+                name="check"
+                size={18}
+                color="#0A0A0A"
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.textoBotonPrimario}>
+                Terminar y Guardar Ejercicio
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  contenedorSafeArea: {
+  contenedorModal: {
     flex: 1,
     backgroundColor: TOKENS.colors.canvas,
   },
@@ -395,14 +500,17 @@ const styles = StyleSheet.create({
     backgroundColor: TOKENS.colors.surface,
   },
   botonDescartar: {
-    padding: 8,
+    minWidth: 40,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   badgeLiveMode: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: TOKENS.colors.surfaceElevated,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     borderRadius: TOKENS.radii.pill,
     borderWidth: 1,
     borderColor: TOKENS.colors.borderStrong,
@@ -412,7 +520,7 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     backgroundColor: TOKENS.colors.accentWhite,
-    marginRight: 6,
+    marginRight: 8,
   },
   textoBadgeLiveMode: {
     color: TOKENS.colors.textPrimary,
@@ -420,17 +528,15 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.8,
   },
-  botonTerminar: {
-    backgroundColor: TOKENS.colors.accentWhite,
-    borderRadius: TOKENS.radii.pill,
-    padding: 8,
+  espacioBalanceCabecera: {
+    width: 40,
+    height: 40,
   },
   scrollContenido: {
     flex: 1,
   },
   scrollInterior: {
     padding: 16,
-    paddingBottom: 60,
   },
   tarjetaEjercicioActivo: {
     backgroundColor: TOKENS.colors.surface,
@@ -527,19 +633,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   circuloSerie: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: TOKENS.colors.surfaceElevated,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: TOKENS.colors.borderStrong,
   },
+  circuloSerieInvalido: {
+    borderColor: TOKENS.colors.danger,
+    backgroundColor: 'rgba(255, 69, 58, 0.15)',
+  },
   numeroSerie: {
     color: TOKENS.colors.textPrimary,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
+  },
+  numeroSerieInvalido: {
+    color: TOKENS.colors.danger,
   },
   colInput: {
     flex: 1,
@@ -554,29 +667,96 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     textAlign: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
+    minHeight: 44,
+  },
+  inputSerieInvalido: {
+    borderColor: TOKENS.colors.danger,
+    backgroundColor: 'rgba(255, 69, 58, 0.08)',
   },
   colAccion: {
-    width: 36,
+    width: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   botonEliminarFila: {
-    padding: 6,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  botonAgregarSerie: {
+  barraAccesoriaTeclado: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderTopWidth: 1,
+    borderTopColor: TOKENS.colors.borderDefault,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    alignItems: 'flex-end',
+  },
+  botonOcultarTeclado: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surfaceInteractive,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: TOKENS.radii.pill,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderStrong,
+  },
+  textoOcultarTeclado: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  stickyFooterThumbZone: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: TOKENS.colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: TOKENS.colors.borderDefault,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    gap: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  botonSecundarioAgregar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    height: 48,
     backgroundColor: TOKENS.colors.surfaceElevated,
     borderRadius: TOKENS.radii.md,
-    paddingVertical: 14,
     borderWidth: 1,
-    borderColor: TOKENS.colors.borderDefault,
+    borderColor: TOKENS.colors.borderStrong,
   },
-  textoAgregarSerie: {
+  textoBotonSecundario: {
     color: TOKENS.colors.textPrimary,
     fontSize: 14,
     fontWeight: '700',
+  },
+  botonPrimarioTerminar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 54,
+    backgroundColor: '#FFFFFF', // Blanco total de máximo contraste
+    borderRadius: TOKENS.radii.md,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  textoBotonPrimario: {
+    color: '#0A0A0A',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
 });

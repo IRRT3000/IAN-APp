@@ -1,6 +1,6 @@
 {
   "name": "mi-fitness-app",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "index.js",
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
@@ -15,6 +15,7 @@
     "react-native": "0.88.0",
     "react-native-gesture-handler": "~3.3.0",
     "react-native-reanimated": "4.7.1",
+    "react-native-safe-area-context": "~5.10.1",
     "react-native-worklets": "0.13.0"
   },
   "scripts": {
