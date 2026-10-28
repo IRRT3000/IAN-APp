@@ -42,4 +42,6 @@ Territorios (el orquestador revierte lo que se salga):
 
 Definicion de terminado (lo que revisa el revisor): criterios de `spec.md` cumplidos, puerta de calidad verde, pruebas nuevas para la logica nueva, sin deuda declarada ni datos personales fijos, `MEMORY.md` al dia. La meta es entregar **concluido, eficiente y eficaz a futuro**.
 
+Skills: el catalogo curado esta en `workflow/skills.json` (las de `.agents/skills/` que aplican a React Native + Expo). El planificador asigna 0-3 por tarea con una linea `Skills:` en `tasks.md`; el implementador y el revisor leen sus `SKILL.md` antes de trabajar. Si una skill choca con este archivo, gana este archivo.
+
 Agentes de apoyo para Antigravity en `.agents/agents/`: `implementador`, `subagente-ui` (diseno estatico con tokens) y `subagente-motion` (Reanimated, gestos, haptics). Los agentes del flujo anterior (orquestador, planificador, revisor-critico) se archivaron en `workflow/legacy/`.

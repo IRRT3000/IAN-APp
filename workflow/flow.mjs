@@ -49,6 +49,7 @@ const DEFAULT_CFG = {
 
 let ROOT = process.cwd();
 let CFG = DEFAULT_CFG;
+let SKILLS = null;
 let currentChild = null;
 
 // ───────────────────────────── utilidades ─────────────────────────────
@@ -415,6 +416,9 @@ async function callAgent({ state, role, template, tag, timeoutKey, vars = {} }) 
     BASE_SHA: state.baseSha,
     BASE_BRANCH: state.baseBranch,
     FEEDBACK: '',
+    SKILLS_CATALOG: skillsCatalogText(),
+    SKILLS_ASSIGNED: skillsAssignedText(state, role),
+    MAX_SKILLS: SKILLS ? SKILLS.maxPerTask : 0,
     ...vars,
   };
   const header = `<!-- flow: ${JSON.stringify({ role, dir: dirRel, round: state.round, tag })} -->\n`;
@@ -492,6 +496,80 @@ function countTasks(md) {
   const done = (md.match(/^\s*- \[[xX]\]/gm) || []).length;
   return { open, done };
 }
+// ───────────────────────────── skills ─────────────────────────────
+// Catalogo curado en workflow/skills.json. El planificador asigna 0-3 skills por tarea ("Skills:" en tasks.md);
+// el implementador y el revisor reciben las rutas de esas SKILL.md en su prompt y las leen antes de trabajar.
+function loadSkills() {
+  const raw = readText(path.join(SCRIPT_DIR, 'skills.json'));
+  if (!raw) return null;
+  let cfg;
+  try {
+    cfg = JSON.parse(raw);
+  } catch (e) {
+    return fail(`workflow/skills.json no es JSON valido: ${e.message}`);
+  }
+  const dir = cfg.dir || '.agents/skills';
+  const skills = {};
+  const missing = [];
+  for (const [name, use] of Object.entries(cfg.skills || {})) {
+    const rel = `${dir}/${name}/SKILL.md`;
+    if (fs.existsSync(path.join(ROOT, rel))) skills[name] = { use: String(use), path: rel };
+    else missing.push(name);
+  }
+  return { dir, maxPerTask: cfg.maxPerTask || 3, always: { implement: [], review: [], ...(cfg.always || {}) }, skills, missing };
+}
+function roundSection(md, n) {
+  const m = new RegExp(`^##\\s+Ronda\\s+${n}\\b.*$`, 'im').exec(md);
+  if (!m) return '';
+  const rest = md.slice(m.index + m[0].length);
+  const next = /^##\s/m.exec(rest);
+  return next ? rest.slice(0, next.index) : rest;
+}
+// Devuelve las tareas de una seccion con la lista de skills declarada (null si falta la linea "Skills:").
+function parseTasks(section) {
+  const tasks = [];
+  for (const line of section.split(/\r?\n/)) {
+    if (/^\s*- \[[ xX]\]/.test(line)) {
+      tasks.push({ title: line.replace(/^\s*- \[[ xX]\]\s*/, '').slice(0, 60), skills: null });
+      continue;
+    }
+    const m = /^\s*-\s*\**Skills\**\s*:\s*(.*)$/i.exec(line);
+    if (m && tasks.length) {
+      const names = m[1].split(',').map((x) => x.replace(/[`*]/g, '').trim()).filter((x) => x && !/^(ninguna|ninguno|n\/a|-)$/i.test(x));
+      tasks[tasks.length - 1].skills = names;
+    }
+  }
+  return tasks;
+}
+function validateSkills(state, round) {
+  if (!SKILLS) return null;
+  const tasks = parseTasks(roundSection(readText(path.join(specsRoot(), state.dir, 'tasks.md')), round));
+  const valid = Object.keys(SKILLS.skills);
+  for (const t of tasks) {
+    if (t.skills === null) return `la tarea "${t.title}" no tiene la linea "  - Skills: nombre1, nombre2" (usa "ninguna" si no aplica)`;
+    const unknown = t.skills.filter((n) => !SKILLS.skills[n]);
+    if (unknown.length) return `la tarea "${t.title}" cita skills que no existen en el catalogo: ${unknown.join(', ')}. Validas: ${valid.join(', ')}`;
+    if (t.skills.length > SKILLS.maxPerTask) return `la tarea "${t.title}" tiene ${t.skills.length} skills; el maximo es ${SKILLS.maxPerTask}`;
+  }
+  return null;
+}
+function skillsCatalogText() {
+  if (!SKILLS) return '(No hay catalogo de skills configurado; omite las lineas "Skills:".)';
+  return Object.entries(SKILLS.skills).map(([n, v]) => `- \`${n}\` (${v.path}): ${v.use}`).join('\n');
+}
+function skillsAssignedText(state, role) {
+  if (!SKILLS) return 'No hay catalogo de skills configurado.';
+  const phase = role === 'reviewer' ? 'review' : 'implement';
+  const md = readText(path.join(specsRoot(), state.dir, 'tasks.md'));
+  const names = new Map();
+  for (const n of SKILLS.always[phase] || []) if (SKILLS.skills[n]) names.set(n, 'siempre');
+  for (let r = phase === 'review' ? 1 : state.round; r <= state.round; r += 1) {
+    for (const t of parseTasks(roundSection(md, r))) for (const n of t.skills || []) if (SKILLS.skills[n] && !names.has(n)) names.set(n, 'asignada por el plan');
+  }
+  if (!names.size) return 'Ninguna.';
+  return [...names].map(([n, why]) => `- \`${n}\` — lee \`${SKILLS.skills[n].path}\` (${why}). Cuando aplica: ${SKILLS.skills[n].use}`).join('\n');
+}
+
 function validatePlanFiles(state) {
   const d = path.join(specsRoot(), state.dir);
   const missing = ['spec.md', 'plan.md', 'tasks.md', 'HANDOFF.md'].filter((f) => !fs.existsSync(path.join(d, f)));
@@ -631,7 +709,7 @@ async function doPlan(state) {
     const res = await callAgent({ state, role: 'planner', template: 'planner', tag: 'plan', timeoutKey: 'plan', vars: { FEEDBACK: feedback } });
     if (!res.ok) return block(state, `El planificador fallo: ${res.reason}`, 'PLAN');
     enforceTerritory('planner', state);
-    const problem = validatePlanFiles(state);
+    const problem = validatePlanFiles(state) || validateSkills(state, 1);
     if (!problem) {
       commit(`flow(${state.id}): plan`);
       state.phase = 'IMPLEMENT';
@@ -801,13 +879,14 @@ async function doReplan(state) {
     enforceTerritory('replanner', state);
     const md = readText(tasksPath);
     const hasSection = new RegExp(`^##\\s+Ronda\\s+${next}\\b`, 'im').test(md);
-    if (hasSection && countTasks(md).open > 0) {
+    const skillsProblem = hasSection ? validateSkills(state, next) : null;
+    if (hasSection && countTasks(md).open > 0 && !skillsProblem) {
       commit(`flow(${state.id}): replanificacion ronda ${next}`);
       state.round = next;
       state.phase = 'IMPLEMENT';
       return undefined;
     }
-    feedback = `\n## CORRECCION OBLIGATORIA\nTu intento anterior fue rechazado: tasks.md debe tener una seccion "## Ronda ${next}" con tareas nuevas "- [ ]".\n`;
+    feedback = `\n## CORRECCION OBLIGATORIA\nTu intento anterior fue rechazado: ${skillsProblem || `tasks.md debe tener una seccion "## Ronda ${next}" con tareas nuevas "- [ ]"`}.\n`;
   }
   return block(state, 'El planificador no produjo tareas de correccion validas.', 'REPLAN');
 }
@@ -922,6 +1001,8 @@ async function doctor(flags) {
   line(Boolean((git(['config', 'user.email']).stdout || '').trim()), 'git user.email configurado', 'git config --global user.email "tu@correo"');
   line(fs.existsSync(path.join(ROOT, 'node_modules')), 'dependencias instaladas (node_modules)', 'npm ci');
   for (const t of ['jest', 'eslint']) line(fs.existsSync(path.join(ROOT, 'node_modules', '.bin', t)), `herramienta ${t} instalada`, 'npm run flow -- setup');
+  if (SKILLS) line(!SKILLS.missing.length && Object.keys(SKILLS.skills).length > 0, `catalogo de skills (${Object.keys(SKILLS.skills).length} disponibles)`, `faltan en ${SKILLS.dir}: ${SKILLS.missing.join(', ')}. Instalalas o quitalas de workflow/skills.json`);
+  else console.log('[opcional] sin catalogo de skills (workflow/skills.json)');
   const dirty = changedPaths();
   line(dirty.length === 0, 'arbol de trabajo limpio', 'haz commit o stash de tus cambios antes de correr el flujo');
   for (const [name, spec] of [['claude', CFG.planner], ['agy', CFG.implementer]]) {
@@ -971,6 +1052,7 @@ async function main() {
   if (!cmd || cmd === 'help' || flags.help) return usage();
   ROOT = findRoot();
   CFG = loadConfig(flags.config);
+  SKILLS = loadSkills();
   if (cmd === 'doctor') return doctor(flags);
   if (cmd === 'setup') return setupCmd();
   if (cmd === 'status') return statusCmd(pos[1]);

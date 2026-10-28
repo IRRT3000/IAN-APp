@@ -1,0 +1,20 @@
+{
+  "dir": ".agents/skills",
+  "maxPerTask": 3,
+  "always": {
+    "implement": ["vercel-react-native-skills"],
+    "review": ["vercel-react-native-skills"]
+  },
+  "skills": {
+    "vercel-react-native-skills": "Buenas practicas de rendimiento en React Native/Expo: listas, renders, modulos nativos. Se carga siempre al implementar y revisar; no hace falta asignarla.",
+    "expo-native-ui": "Pantallas y controles que se sientan nativos: HIG, colores semanticos, layout responsivo, medios, gradientes, almacenamiento. Tareas que crean o cambian vistas.",
+    "expo-design-system": "Tema y tokens (src/theme/tokens.js), variantes de componentes, cuando extraer un componente compartido, deteccion de colores/espacios hardcodeados. Tareas que tocan estilos globales o crean componentes reutilizables.",
+    "expo-animation": "Animacion, gestos, sheets, transiciones y haptics con Reanimated y Gesture Handler. Tareas con movimiento o gestos.",
+    "review-animations": "Lista de revision de movimiento con barra alta. Solo para tareas con animaciones (el revisor la usa; las reglas de severidad del flujo prevalecen).",
+    "expo-data-fetching": "Llamadas de red, manejo de errores, cache, offline y estados de carga/vacio/error. Tareas que tocan src/services/gemini.js o cualquier fetch.",
+    "gemini-api-dev": "API de Gemini: salida estructurada, modelos, multimodal, buenas practicas. Tareas que cambian analisis de comida o de fisico con Gemini.",
+    "expo-upgrade": "Actualizar el SDK de Expo y resolver conflictos de dependencias. Solo specs de actualizacion.",
+    "ui-taste": "Pulido visual y revision final de UI para evitar el aspecto generico. Tareas de rediseño o con mucho componente visual."
+  },
+  "notes": "Catalogo curado para React Native + Expo. No se enrutan: skills solo web (animate, animation-performance, apple-design, mobile-native, web-design-guidelines, ui-styling, design-taste-frontend, ask-sonner, remotion-best-practices), de marca o piezas graficas (brand, design, design-system, banner-design, slides, design-mobile-apps), de Swift (write-swift), duplicadas (animate-expo = expo-animation) y las interactivas o de otra herramienta (grill-me, prototype, pick-ui-library, to-spec, code-review, find-skills, find-animation-opportunities, improve-animations, break-ui, emil-design-eng). Para agregar una, ponla en skills con su criterio de uso."
+}

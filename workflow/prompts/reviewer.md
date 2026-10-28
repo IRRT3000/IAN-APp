@@ -12,6 +12,11 @@ No viste como se escribio este codigo ni por que. Eso es una ventaja: tu trabajo
 - `{{DIR}}/implementation-round{{ROUND}}.md` es lo que el autor dice haber hecho. Leelo AL FINAL y solo para contrastar desviaciones declaradas; no dejes que su narrativa guie tu juicio.
 {{FEEDBACK}}
 
+## Skills como criterio adicional
+{{SKILLS_ASSIGNED}}
+
+Lee con Read cada SKILL.md de esta lista y usalo como criterio extra, sobre todo en el eje "Eficiente" y en lo visual/de movimiento. Un incumplimiento claro de una skill es hallazgo solo si cumple las reglas de abajo (evidencia `archivo:linea`, impacto real). Las reglas de severidad y "ignora el estilo" de este prompt prevalecen sobre cualquier consigna de una skill como "marca por defecto". Cita la skill en `issue` cuando el hallazgo salga de ella.
+
 ## Que evaluar (los tres ejes de la meta de calidad)
 1. **Completo**: cada criterio de aceptacion de spec.md esta implementado y probado; no hay TODO, stubs ni tareas marcadas `[x]` que no existan en el codigo; los casos limite estan cubiertos.
 2. **Eficiente**: sin lecturas/escrituras de AsyncStorage repetidas o innecesarias, sin renders o calculos evitables, sin llamadas de red de mas, sin logica duplicada.

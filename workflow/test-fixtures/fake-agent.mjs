@@ -29,18 +29,22 @@ if (role === 'planner') {
   const incomplete = scenario === 'badformat' && !retried;
   write(`${dir}/spec.md`, '# Spec\n\n## Criterios de aceptación\n1. Existe src/feature.txt\n');
   write(`${dir}/plan.md`, '# Plan\nEscribir el archivo.\n');
-  if (!incomplete) write(`${dir}/tasks.md`, '# Tareas\n\n## Ronda 1\n- [ ] T1 — Crear archivo\n- [ ] T2 — Actualizar MEMORY\n');
+  const badSkill = scenario === 'badskill' && !retried;
+  const skillsT1 = badSkill ? 'skill-inventada' : 'expo-native-ui';
+  if (!incomplete) write(`${dir}/tasks.md`, `# Tareas\n\n## Ronda 1\n- [ ] T1 — Crear archivo\n  - Skills: ${skillsT1}\n- [ ] T2 — Actualizar MEMORY\n  - Skills: ninguna\n`);
+  fs.writeFileSync(`${dir}/.flow/catalog-seen.txt`, /expo-native-ui/.test(prompt) ? 'catalogo visible' : 'sin catalogo');
   write(`${dir}/HANDOFF.md`, '# Handoff\nLee el plan.\n');
   done();
 } else if (role === 'replanner') {
   const next = round + 1;
-  fs.appendFileSync(`${dir}/tasks.md`, `\n## Ronda ${next}\n- [ ] T9 — Corregir hallazgos de la ronda ${round}\n`);
+  fs.appendFileSync(`${dir}/tasks.md`, `\n## Ronda ${next}\n- [ ] T9 — Corregir hallazgos de la ronda ${round}\n  - Skills: expo-native-ui, vercel-react-native-skills\n`);
   done();
 } else if (role === 'implementer') {
   write('src/feature.txt', scenario === 'happy' ? (round === 1 ? 'v1' : 'v2') : `r${round}`);
   const tasks = fs.readFileSync(`${dir}/tasks.md`, 'utf8').replace(/- \[ \]/g, '- [x]');
   fs.writeFileSync(`${dir}/tasks.md`, tasks);
-  write(`${dir}/implementation-round${round}.md`, `Ronda ${round} hecha.\n`);
+  const seen = [...prompt.matchAll(/lee `(\.agents\/skills\/[^`]+)`/g)].map((m) => m[1]);
+  write(`${dir}/implementation-round${round}.md`, `Ronda ${round} hecha.\nskills: ${seen.join(' ')}\n`);
   if (scenario === 'happy' && round === 1) fs.appendFileSync('AGENTS.md', '\nregla inventada por el agente\n'); // violacion de territorio a propósito
   done();
 } else if (role === 'reviewer') {
@@ -59,6 +63,7 @@ if (role === 'planner') {
   } else {
     review = { ...base, verdict: 'APPROVED', objective_met: true, findings: [] };
   }
+  fs.writeFileSync(`${dir}/.flow/review-skills-seen.txt`, [...prompt.matchAll(/lee `(\.agents\/skills\/[^`]+)`/g)].map((m) => m[1]).join(' '));
   write(reviewRel, `${JSON.stringify(review, null, 2)}\n`);
   done();
 } else {

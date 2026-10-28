@@ -44,6 +44,14 @@ function makeRepo(name, maxRounds, baselineCheck = false) {
       gate: { reviewOnBlockingFailure: false, baselineCheck, steps: [{ name: 'check', cmd: `"${process.execPath}" check.mjs`, blocking: true, timeoutMinutes: 1 }] },
     })
   );
+  for (const sk of ['expo-native-ui', 'vercel-react-native-skills']) {
+    fs.mkdirSync(path.join(repo, '.agents', 'skills', sk), { recursive: true });
+    fs.writeFileSync(path.join(repo, '.agents', 'skills', sk, 'SKILL.md'), `---\nname: ${sk}\n---\n`);
+  }
+  fs.writeFileSync(
+    path.join(repo, 'workflow', 'skills.json'),
+    JSON.stringify({ dir: '.agents/skills', maxPerTask: 3, always: { implement: ['vercel-react-native-skills'], review: ['vercel-react-native-skills'] }, skills: { 'expo-native-ui': 'pantallas nativas', 'vercel-react-native-skills': 'rendimiento RN' } })
+  );
   fs.writeFileSync(path.join(repo, '.gitignore'), 'node_modules/\nspecs/*/.flow/\n');
   fs.writeFileSync(path.join(repo, 'AGENTS.md'), '# agents\n');
   fs.writeFileSync(path.join(repo, 'MEMORY.md'), '# memory\n');
@@ -82,6 +90,11 @@ const clean = (repo) => sh('git', ['status', '--porcelain'], repo).stdout.trim()
   const report = fs.readFileSync(path.join(repo, 'specs', s.dir, 'REPORT.md'), 'utf8');
   check(report.includes('APROBADO') && report.includes('Probar en el celular') && report.includes('mejora menor'), 'REPORT.md incluye resultado, pruebas manuales y mejoras menores');
   check(clean(repo), 'el arbol de trabajo termina limpio (todo commiteado)');
+  const impl1 = fs.readFileSync(path.join(repo, 'specs', s.dir, 'implementation-round1.md'), 'utf8');
+  check(impl1.includes('.agents/skills/expo-native-ui/SKILL.md') && impl1.includes('.agents/skills/vercel-react-native-skills/SKILL.md'), 'el implementador recibe la skill asignada y la "siempre" en su prompt');
+  const rev = fs.readFileSync(path.join(repo, 'specs', s.dir, '.flow', 'review-skills-seen.txt'), 'utf8');
+  check(rev.includes('expo-native-ui') && rev.includes('vercel-react-native-skills'), 'el revisor recibe las skills de todas las rondas');
+  check(fs.readFileSync(path.join(repo, 'specs', s.dir, '.flow', 'catalog-seen.txt'), 'utf8') === 'catalogo visible', 'el planificador ve el catalogo de skills');
   check(sh('git', ['ls-files'], repo).stdout.split('\n').every((f) => !f.includes('/.flow/')), 'los registros .flow no se versionan');
   const log = sh('git', ['log', '--format=%s'], repo).stdout;
   check(/revision ronda 2 \(APPROVED\)/.test(log) && /puerta de calidad ronda 1 \(roja\)/.test(log), 'el historial de git cuenta la historia del ciclo');
@@ -141,6 +154,26 @@ const clean = (repo) => sh('git', ['status', '--porcelain'], repo).stdout.trim()
   check(!fs.existsSync(path.join(repo, 'specs')) && sh('git', ['rev-parse', '--abbrev-ref', 'HEAD'], repo).stdout.trim() === 'main', 'no creo la spec ni cambio de rama');
   const r2 = flow(repo, ['run', 'objetivo base', '--type', 'spec', '--skip-baseline'], 'happy');
   check(r2.status === 0 && readState(repo).phase === 'DONE', `--skip-baseline permite continuar (codigo ${r2.status})`);
+}
+
+// 7) Skill inexistente en el plan: se rechaza y se reintenta con retroalimentacion.
+{
+  console.log('\n== Escenario 7: skill inventada en el plan ==');
+  const repo = makeRepo('badskill', 3);
+  const r = flow(repo, ['run', 'objetivo skills', '--type', 'spec'], 'badskill');
+  const s = readState(repo);
+  check(r.status === 0 && s.history.filter((h) => h.phase === 'plan').length === 2, `el plan con skill inexistente se corrigio en el 2o intento (fase ${s.phase})`);
+}
+
+// 8) El catalogo real del repo apunta a skills que existen.
+{
+  console.log('\n== Escenario 8: catalogo real ==');
+  const root = path.resolve(HERE, '..');
+  const cat = JSON.parse(fs.readFileSync(path.join(HERE, 'skills.json'), 'utf8'));
+  const all = [...Object.keys(cat.skills), ...(cat.always.implement || []), ...(cat.always.review || [])];
+  const missing = all.filter((n) => !fs.existsSync(path.join(root, cat.dir, n, 'SKILL.md')));
+  check(missing.length === 0 && Object.keys(cat.skills).length > 0, `todas las skills del catalogo existen en ${cat.dir}${missing.length ? ` (faltan: ${missing.join(', ')})` : ''}`);
+  check((cat.always.implement || []).every((n) => cat.skills[n]), 'las skills "siempre" estan en el catalogo');
 }
 
 fs.rmSync(TMP, { recursive: true, force: true });

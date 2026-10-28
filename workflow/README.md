@@ -62,9 +62,23 @@ Ctrl+C detiene al agente en curso; el estado queda guardado y se reanuda con `ru
 
 El orquestador **revierte** lo que un agente toque fuera de su territorio (y se lo recuerda en la ronda siguiente). `workflow/`, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.github/` y `.agents/` estan protegidos para todos. Ningun agente hace commit ni push.
 
+## Skills: como se aprovechan
+
+El repo trae ~40 skills en `.agents/skills/`, pero la mayoria son web, de marca o interactivas, y cargarlas todas gasta contexto y distrae. Por eso `workflow/skills.json` es un **catalogo curado** para React Native + Expo (`expo-native-ui`, `expo-design-system`, `expo-animation`, `expo-data-fetching`, `gemini-api-dev`, `expo-upgrade`, `ui-taste`, `review-animations`, `vercel-react-native-skills`) y el flujo las enruta por fase:
+
+| Fase | Que pasa con las skills |
+| - | - |
+| PLAN / REPLAN | El planificador ve el catalogo, lee las que importan para el objetivo y asigna 0 a 3 por tarea con una linea `Skills:` en `tasks.md` (obligatoria; `ninguna` si no aplica). El orquestador rechaza nombres inexistentes y lo reintenta. |
+| IMPLEMENT | El prompt de Antigravity lista las `SKILL.md` de las tareas de la ronda mas las "siempre" (`vercel-react-native-skills`); debe leerlas y dejar en `implementation-roundN.md` que regla aplico. |
+| REVIEW | Claude Code recibe las skills de todas las rondas como criterio extra (sobre todo "Eficiente", UI y movimiento). Las reglas de severidad del flujo mandan sobre cualquier consigna de una skill. |
+
+Claude Code las lee con `Read` desde `.agents/skills/` (no depende de `.claude/`, que esta en `.gitignore`). Para agregar o quitar una, edita `workflow/skills.json` (`npm run flow:selftest` verifica que todas existan). `doctor` tambien lo comprueba.
+
+Limitaciones honestas: no se sabe si `agy -p` ademas carga skills por su cuenta (no importa: se las pedimos de forma explicita), y las skills interactivas (`grill-me`, `prototype`) no corren dentro del ciclo automatico. `grill-me` si sirve **antes** de `run`: afina tu objetivo en una sesion normal y luego lanzas el flujo con la frase ya mejorada.
+
 ## Archivos de cada spec (`specs/NNN-slug/`)
 
-`objective.md`, `spec.md` (criterios de aceptacion medibles), `plan.md`, `tasks.md` (tareas con "listo cuando"), `HANDOFF.md`, `gate-roundN.{json,md}`, `review-roundN.json`, `REVIEW.md`, `implementation-roundN.md`, `REPORT.md` y `state.json`. Los registros crudos y los prompts viven en `.flow/` (ignorado por git).
+`objective.md`, `spec.md` (criterios de aceptacion medibles), `plan.md`, `tasks.md` (tareas con skills y "listo cuando"), `HANDOFF.md`, `gate-roundN.{json,md}`, `review-roundN.json`, `REVIEW.md`, `implementation-roundN.md`, `REPORT.md` y `state.json`. Los registros crudos y los prompts viven en `.flow/` (ignorado por git).
 
 ## Que revisa la puerta de calidad (automatica, sin dispositivo)
 
@@ -118,7 +132,7 @@ DESKA ejecuta tareas de agentes en worktrees. Abre una terminal de DESKA en el p
 
 ## Lo que no se pudo verificar al construirlo
 
-Esto se armo en un entorno sin acceso a npm ni a los agentes reales. Verificado: el orquestador completo con agentes simulados (`npm run flow:selftest`, 20 comprobaciones: ciclo, re-planificacion, tope, reanudacion, territorios, formato invalido, linea base) y las pruebas base con un ejecutor equivalente. **Sin verificar:**
+Esto se armo en un entorno sin acceso a npm ni a los agentes reales. Verificado: el orquestador completo con agentes simulados (`npm run flow:selftest`, 27 comprobaciones: ciclo, re-planificacion, tope, reanudacion, territorios, formato invalido, linea base, enrutamiento de skills) y las pruebas base con un ejecutor equivalente. **Sin verificar:**
 
 - `jest`, `eslint` y `expo export` reales (jest-expo, eslint-config-expo/flat y el script `bundle:check` con SDK 58). `npm run gate` es la primera prueba real.
 - Las llamadas reales a `claude -p` y `agy -p` (banderas, formato JSON y esquema de permisos de `agy`). `doctor` las prueba.
