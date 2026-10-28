@@ -17,3 +17,10 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 - Manejo de Teclado en Modales: Detección activa con `Keyboard.addListener` para alternar barras de acción o replegar elementos superpuestos.
 - Persistencia inmutable en AsyncStorage: Registros con fechas locales `YYYY-MM-DD` (`obtenerFechaLocal()`). Prohibido `toISOString()`.
 - Dependencias nativas: Obligatorio `npx expo install` para compatibilidad binaria con Expo SDK 58.
+
+## Flujo multi-agente (nuevo)
+- Todo cambio (spec o bug) entra por `npm run flow -- run "objetivo" --type spec|bug`: PLAN (Claude Code) -> IMPLEMENT (Antigravity) -> GATE (lint + jest + `expo export`) -> REVIEW (Claude Code, sesion limpia) -> REPLAN si falla -> hasta aprobar o tope de rondas. Detalle: `workflow/README.md`.
+- Una rama por spec (`flow/NNN-slug`); el orquestador hace los commits; el humano prueba `[MANUAL]` en el celular y decide el merge.
+- Estado reanudable en `specs/NNN-*/state.json`; registros por agente en `specs/*/.flow/` (ignorado por git).
+- Pruebas base en `__tests__/` (fechas, vaso de agua, API key). `workflow/selftest.mjs` valida el orquestador con agentes simulados.
+- Pendiente del humano al llegar: `npm ci`, `npm run flow -- setup` (instala jest-expo/eslint y deja el lock actualizado), `npm run flow -- doctor`.

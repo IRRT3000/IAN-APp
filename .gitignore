@@ -50,3 +50,7 @@ yarn-error.*
 googlecloudtools.datacloud_telemetry/
 .claude/
 
+
+# Flujo multi-agente (registros por agente y empaquetado de verificacion)
+specs/*/.flow/
+.flow-export/

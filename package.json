@@ -23,7 +23,30 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint": "eslint .",
+    "test": "jest --ci",
+    "test:watch": "jest --watchAll",
+    "bundle:check": "expo export --platform android --output-dir .flow-export",
+    "gate": "npm run lint && npm test && npm run bundle:check",
+    "flow": "node workflow/flow.mjs",
+    "flow:doctor": "node workflow/flow.mjs doctor",
+    "flow:setup": "node workflow/flow.mjs setup",
+    "flow:selftest": "node workflow/selftest.mjs"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/.agents/",
+      "/workflow/",
+      "/.flow-export/"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/.agents/",
+      "<rootDir>/.flow-export/",
+      "<rootDir>/workflow/"
+    ]
   },
   "private": true
 }

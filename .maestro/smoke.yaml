@@ -1,0 +1,9 @@
+# Prueba de humo E2E (Maestro). Requiere un emulador/dispositivo Android con la APK instalada.
+# Se activa en workflow/config.json: gate.steps -> e2e -> "enabled": true
+appId: com.ian.mifitnessapp
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Fitness Tracker"
+- assertVisible: "Entrenos"
+- assertVisible: "Nutrición"

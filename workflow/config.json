@@ -1,0 +1,39 @@
+{
+  "maxRounds": 3,
+  "branchPrefix": "flow/",
+  "agentRetries": 1,
+  "retryDelaySeconds": 20,
+  "timeoutMinutes": { "plan": 25, "implement": 45, "review": 25, "replan": 20 },
+  "protectedPaths": ["workflow/", "AGENTS.md", "CLAUDE.md", ".claude/", ".github/", ".agents/"],
+  "planner": {
+    "cmd": "claude",
+    "args": [
+      "--permission-mode", "dontAsk",
+      "--allowedTools", "Read,Grep,Glob,Write,Edit,Bash(git log *),Bash(git diff *),Bash(git status *),Bash(git show *),Bash(git ls-files *)",
+      "--output-format", "json"
+    ]
+  },
+  "reviewer": {
+    "cmd": "claude",
+    "args": [
+      "--permission-mode", "dontAsk",
+      "--allowedTools", "Read,Grep,Glob,Write,Bash(git log *),Bash(git diff *),Bash(git status *),Bash(git show *),Bash(git ls-files *)",
+      "--output-format", "json"
+    ]
+  },
+  "implementer": {
+    "cmd": "agy",
+    "args": ["--output-format", "json", "--print-timeout", "45m"]
+  },
+  "gate": {
+    "reviewOnBlockingFailure": false,
+    "baselineCheck": true,
+    "steps": [
+      { "name": "lint", "cmd": "npm run lint", "blocking": true, "timeoutMinutes": 5 },
+      { "name": "test", "cmd": "npm test", "blocking": true, "timeoutMinutes": 10 },
+      { "name": "bundle", "cmd": "npm run bundle:check", "blocking": true, "timeoutMinutes": 15 },
+      { "name": "expo-doctor", "cmd": "npx expo-doctor", "blocking": false, "timeoutMinutes": 5 },
+      { "name": "e2e", "cmd": "maestro test .maestro", "blocking": true, "timeoutMinutes": 20, "enabled": false }
+    ]
+  }
+}
