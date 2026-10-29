@@ -10,6 +10,7 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 - Touch Targets y Modales: Touch targets >= 44x44pt en toda la app (`DaySummaryModal`, `CambioFisicoView`, `CatalogoEjerciciosModal`). Barra de navegación flotante adaptada dinámicamente a `insets.bottom`.
 - 100% Erradicación de Emojis: Cero glifos en UI, alertas y catálogo; uso exclusivo de `@expo/vector-icons` (`Feather`).
 - Sistema de Tokens (`src/theme/tokens.js`): Paleta `#0A0A0A`/`#141414`/`#262626`, `touchTarget` y `safeArea`.
+- En curso (rama `chore/modo-dual`): Modo Dual Claude Code (planifica/revisa) + Antigravity (implementa). Plan aprobado en `docs/plan-modo-dual.md`; siguiente paso: Fase 0 (pruebas de `agy`, permisos y skills). La rama `flow/setup-multi-harness` queda solo como respaldo.
 
 ## Decisiones Técnicas Clave
 - Safe Areas Resilientes (`useSafeInsets.js`): Pisos mínimos obligatorios contra Dynamic Island, barras de estado y gestos (`top >= 28` Android / `20` iOS; `bottom >= 12` Android / `20` iOS).
