@@ -281,7 +281,7 @@ export default function CatalogoEjerciciosModal({
                     style={{ marginRight: 8 }}
                   />
                   <Text style={styles.textoCrearDesdeBusqueda}>
-                    Crear "{busqueda.trim()}" como nuevo ejercicio
+                    Crear &quot;{busqueda.trim()}&quot; como nuevo ejercicio
                   </Text>
                 </TouchableOpacity>
               ) : null}

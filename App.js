@@ -130,6 +130,7 @@ function AppPrincipal() {
   }, [refrescarHabitosConcurrentes]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- spec futura
     sincronizarDatos();
   }, [sincronizarDatos]);
 

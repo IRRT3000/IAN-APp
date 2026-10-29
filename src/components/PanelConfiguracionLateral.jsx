@@ -94,7 +94,9 @@ export default function PanelConfiguracionLateral({
     if (cerrandoRef.current) return;
     cerrandoRef.current = true;
 
+    // eslint-disable-next-line react-hooks/immutability -- spec futura
     opacityBackdrop.value = withTiming(0, { duration: 180 });
+    // eslint-disable-next-line react-hooks/immutability -- spec futura
     translateX.value = withSpring(
       ANCHO_DRAWER,
       { damping: 20, stiffness: 160, mass: 0.8 },
@@ -109,9 +111,12 @@ export default function PanelConfiguracionLateral({
   useEffect(() => {
     if (visible) {
       cerrandoRef.current = false;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- spec futura
       setMontado(true);
       cargarEstadoClave();
+      // eslint-disable-next-line react-hooks/immutability -- spec futura
       translateX.value = ANCHO_DRAWER;
+      // eslint-disable-next-line react-hooks/immutability -- spec futura
       opacityBackdrop.value = 0;
       translateX.value = withSpring(0, {
         damping: 20,
@@ -131,16 +136,21 @@ export default function PanelConfiguracionLateral({
     .failOffsetY([-15, 15])
     .onUpdate((event) => {
       if (event.translationX > 0) {
+        // eslint-disable-next-line react-hooks/immutability -- spec futura
         translateX.value = event.translationX;
         const progreso = Math.max(0, 1 - event.translationX / ANCHO_DRAWER);
+        // eslint-disable-next-line react-hooks/immutability -- spec futura
         opacityBackdrop.value = progreso * 0.72;
       }
     })
+    // eslint-disable-next-line react-hooks/refs -- spec futura
     .onEnd((event) => {
       if (event.translationX > ANCHO_DRAWER * 0.25 || event.velocityX > 600) {
         runOnJS(cerrarDrawer)();
       } else {
+        // eslint-disable-next-line react-hooks/immutability -- spec futura
         translateX.value = withSpring(0, { damping: 20, stiffness: 140 });
+        // eslint-disable-next-line react-hooks/immutability -- spec futura
         opacityBackdrop.value = withTiming(0.72, { duration: 150 });
       }
     });

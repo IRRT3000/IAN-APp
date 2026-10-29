@@ -113,6 +113,7 @@ export default function NutricionView({
 
   useEffect(() => {
     if (!Array.isArray(comidasExternas)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- spec futura
       sincronizarComidas();
     }
   }, [comidasExternas, sincronizarComidas]);

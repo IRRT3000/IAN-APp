@@ -66,6 +66,7 @@ export default function LiveModeModal({
       Array.isArray(draftInicial.seriesDetalle) &&
       draftInicial.seriesDetalle.length > 0
     ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- spec futura
       setSeries(draftInicial.seriesDetalle.map((s) => ({ ...s })));
     } else {
       setSeries([

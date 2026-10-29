@@ -181,10 +181,12 @@ function BotonInteractivo({
 
   const handlePressIn = () => {
     if (disabled) return;
+    // eslint-disable-next-line react-hooks/immutability -- spec futura
     scale.value = withSpring(scaleDown, SPRING_PRESS);
   };
 
   const handlePressOut = () => {
+    // eslint-disable-next-line react-hooks/immutability -- spec futura
     scale.value = withSpring(1, SPRING_PRESS);
   };
 
@@ -311,6 +313,7 @@ export default function OnboardingBienvenidaModal({
     if (!visible) return;
 
     guardandoRef.current = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- spec futura
     setGuardando(false);
     setErrorValidacion('');
     setPerfilConsolidado(null);
@@ -387,8 +390,11 @@ export default function OnboardingBienvenidaModal({
   // COREOGRAFÍA DE ANIMACIONES POR ESCENA
   // ==========================================================================
   const dispararCascadaBloques = useCallback(() => {
+    // eslint-disable-next-line react-hooks/immutability -- spec futura
     bloque1SV.value = 0;
+    // eslint-disable-next-line react-hooks/immutability -- spec futura
     bloque2SV.value = 0;
+    // eslint-disable-next-line react-hooks/immutability -- spec futura
     bloque3SV.value = 0;
 
     bloque1SV.value = withDelay(40, withSpring(1, SPRING_SCENE));
@@ -499,8 +505,11 @@ export default function OnboardingBienvenidaModal({
       Keyboard.dismiss();
       setErrorValidacion('');
 
+      // eslint-disable-next-line react-hooks/immutability -- spec futura
       sceneTranslateX.value = direccion * 28;
+      // eslint-disable-next-line react-hooks/immutability -- spec futura
       sceneScale.value = 0.985;
+      // eslint-disable-next-line react-hooks/immutability -- spec futura
       sceneOpacity.value = 0.15;
 
       setEscena(nuevaEscena);

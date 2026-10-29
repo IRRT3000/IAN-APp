@@ -491,7 +491,7 @@ export default function EntrenamientosView({
             </Text>
             {esHoy ? (
               <Text style={styles.subtextoEstadoVacio}>
-                Pulsa en "Iniciar Nuevo Ejercicio" para registrar tus series con
+                Pulsa en &quot;Iniciar Nuevo Ejercicio&quot; para registrar tus series con
                 autorrelleno y auto-save.
               </Text>
             ) : null}

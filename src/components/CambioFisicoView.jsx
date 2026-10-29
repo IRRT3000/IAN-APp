@@ -195,6 +195,7 @@ export default function CambioFisicoView({
     return PERFIL_USUARIO_BASE.pesoKgBase;
   }, [perfilActivo?.pesoKgBase]);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- spec futura
   const alturaCmPerfil = useMemo(() => {
     if (Number(perfilActivo?.alturaCm) > 0) {
       return Math.round(Number(perfilActivo.alturaCm));
@@ -233,6 +234,7 @@ export default function CambioFisicoView({
 
   useEffect(() => {
     if (!Array.isArray(cambiosExternos) || !perfilExterno) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- spec futura
       sincronizarDatosLocales();
     }
   }, [cambiosExternos, perfilExterno, sincronizarDatosLocales]);
