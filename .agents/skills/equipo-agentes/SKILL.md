@@ -1,7 +1,7 @@
 ---
 name: equipo-agentes
 description: >-
-  Activa y coordina el equipo de 4 agentes especializados del proyecto (`orquestador`, `planificador`, `revisor-critico` e `implementador`). Úsalo cuando el usuario pida desarrollar una funcionalidad, resolver un problema complejo o trabajar con el equipo de subagentes y el orquestador.
+  Activa y coordina el equipo de 4 agentes especializados del proyecto (`orquestador`, `planificador`, `revisor-critico` e `implementador`). Modo Solo opcional: úsalo solo cuando el usuario pida explícitamente que Antigravity haga el ciclo completo él solo con el orquestador. Por defecto, Claude Code planifica y revisa (ver AGENTS.md).
 ---
 
 # Equipo Multi-Agente con Orquestador (`equipo-agentes`)

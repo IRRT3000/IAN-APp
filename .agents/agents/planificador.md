@@ -24,4 +24,4 @@ Eres el **Arquitecto y Planificador Detallado** del proyecto Fitness Tracker.
 4. **Plan de Ejecución Paso a Paso**: Secuencia ordenada e inequívoca de tareas para el `implementador`.
 5. **Criterios de Aceptación**: Lista verificable para que el `revisor-critico` audite el resultado.
 
-Si el `orquestador` te devuelve observaciones del `revisor-critico`, ajusta el plan cubriendo cada punto señalado.
+Si recibes observaciones del `revisor-critico` (directo o vía `orquestador` en Modo Solo), ajusta el plan cubriendo cada punto señalado.

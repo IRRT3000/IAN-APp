@@ -28,8 +28,15 @@ Objetivo: Registro de entrenamientos de fuerza, análisis nutricional por foto (
 3. Persistencia en AsyncStorage para no perder datos al reiniciar.
 4. Cuadrícula semanal simple (primer prototipo del mapa de calor).
 
-## Arquitectura Multi-Agente (`.agents/agents/` y `.agents/skills/equipo-agentes/`)
-- **Regla Mandatoria de Flujo**: Tanto el desarrollo de **nuevas Specs** como la **corrección de bugs** deben ejecutarse obligatoriamente a través del equipo multi-agente (`orquestador` → `planificador` → `revisor-critico` → `implementador`). Prohibido aplicar cambios o bugfixes directamente sin este ciclo de orquestación, planificación y revisión.
+## Reparto de Roles: Claude Code ⟷ Antigravity
+- **Regla Mandatoria de Flujo**: Toda **nueva Spec** y toda **corrección de bug** pasa por plan → revisión del plan → implementación → revisión del código. Prohibido aplicar cambios sin plan aprobado y sin revisión final.
+- **Claude Code — planifica y revisa**: usa `planificador` (plan en `specs/NNN-slug/{spec,plan,tasks}.md` con criterios de aceptación `CA-n` medibles) y `revisor-critico` (audita el plan y el diff contra los `CA-n`).
+- **Antigravity — implementa y diseña**: usa `implementador` (código y comandos), `subagente-ui` (diseño visual) y `subagente-motion` (animación, gestos, hápticos). Implementa solo lo que pide el plan aprobado y no hace commits ni push.
+- **Coordinación**: el usuario pasa el turno entre los dos (en Deska, cada uno en su tarea/panel; fuera de Deska, en sus propias sesiones). El contrato entre ambos son los archivos de `specs/NNN-slug/`.
+- **Respaldo**: los roles son el reparto por defecto, no un candado. Si uno de los dos se queda sin tokens, el otro asume todos los roles usando los mismos agentes (`.agents/agents/`; en Claude Code, registrados en `.claude/agents/`).
+- **Modo Solo (opcional, Antigravity)**: para que Antigravity haga el ciclo completo él solo, se usa `orquestador` con la skill `equipo-agentes`.
+
+## Agentes (`.agents/agents/`)
 - **`orquestador`** (`EnableWriteTools: false`, `EnableSubagentTools: true`, `EnableMCPTools: false`): Coordina en qué momento actúa cada agente y gestiona la comunicación entre ellos; prohibido leer/escribir código, planificar o usar MCPs.
 - **`planificador`** (`EnableWriteTools: false`, `EnableMCPTools: true`): Diseña la planificación técnica detallada paso a paso en modo solo lectura con apoyo de `context7` y `sequential-thinking`.
 - **`revisor-critico`** (`EnableWriteTools: false`, `EnableMCPTools: true`): Audita el plan del `planificador` (`PLAN_APROBADO` / `CAMBIOS_REQUERIDOS`) y el código del `implementador` (`CODIGO_APROBADO` / `CODIGO_RECHAZADO`) buscando casos límite, fallos y omisiones con `sequential-thinking`, `context7` y `playwright`.

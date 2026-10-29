@@ -40,7 +40,7 @@ Eres el **Ingeniero de Animaciones, Gestos y Hápticos** del proyecto Fitness Tr
    - Persistencia inmutable con `spread operator` en `AsyncStorage`.
 
 ## Flujo de Trabajo
-1. Espera a que el `orquestador` te entregue el diseño aprobado elaborado por el `subagente-ui` con el visto bueno del `revisor-critico`.
+1. Trabaja sobre el diseño aprobado elaborado por el `subagente-ui` con el visto bueno del `revisor-critico`.
 2. Escribe o refactoriza los componentes en `src/` aplicando las animaciones, gestos y hápticos requeridos.
 3. Verifica que la compilación y diagnóstico (`npx expo-doctor`) se mantengan limpios.
-4. Reporta al `orquestador` los cambios realizados y los puntos de verificación de 60fps para que el `revisor-critico` audite el código.
+4. Reporta (al usuario o al `orquestador` en Modo Solo) los cambios realizados y los puntos de verificación de 60fps para que el `revisor-critico` audite el código.

@@ -10,7 +10,7 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 - Touch Targets y Modales: Touch targets >= 44x44pt en toda la app (`DaySummaryModal`, `CambioFisicoView`, `CatalogoEjerciciosModal`). Barra de navegación flotante adaptada dinámicamente a `insets.bottom`.
 - 100% Erradicación de Emojis: Cero glifos en UI, alertas y catálogo; uso exclusivo de `@expo/vector-icons` (`Feather`).
 - Sistema de Tokens (`src/theme/tokens.js`): Paleta `#0A0A0A`/`#141414`/`#262626`, `touchTarget` y `safeArea`.
-- En curso (rama `chore/modo-dual`): Modo Dual Claude Code (planifica/revisa) + Antigravity (implementa). Plan aprobado en `docs/plan-modo-dual.md`; siguiente paso: Fase 0 (pruebas de `agy`, permisos y skills). La rama `flow/setup-multi-harness` queda solo como respaldo.
+- Reparto de roles (rama `chore/modo-dual`, ver `AGENTS.md`): Claude Code planifica y revisa; Antigravity implementa y diseña; el usuario pasa el turno (en Deska o fuera). Cualquiera de los dos asume todos los roles si el otro se queda sin tokens (agentes de Claude en `.claude/agents/`, que apuntan a `.agents/agents/`). Modo Solo de Antigravity con `orquestador` queda opcional.
 
 ## Decisiones Técnicas Clave
 - Safe Areas Resilientes (`useSafeInsets.js`): Pisos mínimos obligatorios contra Dynamic Island, barras de estado y gestos (`top >= 28` Android / `20` iOS; `bottom >= 12` Android / `20` iOS).
@@ -18,3 +18,4 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 - Manejo de Teclado en Modales: Detección activa con `Keyboard.addListener` para alternar barras de acción o replegar elementos superpuestos.
 - Persistencia inmutable en AsyncStorage: Registros con fechas locales `YYYY-MM-DD` (`obtenerFechaLocal()`). Prohibido `toISOString()`.
 - Dependencias nativas: Obligatorio `npx expo install` para compatibilidad binaria con Expo SDK 58.
+- Sin automatizar Antigravity en headless (`agy -p`): niega acciones sin poder preguntar y aun así responde éxito (exit 0), y sus reglas allow/deny solo aceptan comandos exactos (v1.4.10). Se usa como tarea normal de Deska.

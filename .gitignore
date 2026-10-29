@@ -48,5 +48,6 @@ yarn-error.*
 
 # Telemetría y cachés locales de herramientas/extensiones
 googlecloudtools.datacloud_telemetry/
-.claude/
+.claude/*
+!.claude/agents/
 
