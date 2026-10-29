@@ -32,6 +32,7 @@ Objetivo: Registro de entrenamientos de fuerza, análisis nutricional por foto (
 - **Regla Mandatoria de Flujo**: Toda **nueva Spec** y toda **corrección de bug** pasa por plan → revisión del plan → implementación → revisión del código. Prohibido aplicar cambios sin plan aprobado y sin revisión final.
 - **Claude Code — planifica y revisa**: usa `planificador` (plan en `specs/NNN-slug/{spec,plan,tasks}.md` con criterios de aceptación `CA-n` medibles) y `revisor-critico` (audita el plan y el diff contra los `CA-n`).
 - **Antigravity — implementa y diseña**: usa `implementador` (código y comandos), `subagente-ui` (diseño visual) y `subagente-motion` (animación, gestos, hápticos). Implementa solo lo que pide el plan aprobado y no hace commits ni push.
+- **Autonomía**: cada harness decide por su cuenta qué agentes de su lado invoca y en qué orden; el usuario no necesita indicarlo (basta con «Planea…» o «Implementa `specs/NNN-slug/plan.md`»).
 - **Coordinación**: el usuario pasa el turno entre los dos (en Deska, cada uno en su tarea/panel; fuera de Deska, en sus propias sesiones). El contrato entre ambos son los archivos de `specs/NNN-slug/`.
 - **Respaldo**: los roles son el reparto por defecto, no un candado. Si uno de los dos se queda sin tokens, el otro asume todos los roles usando los mismos agentes (`.agents/agents/`; en Claude Code, registrados en `.claude/agents/`).
 - **Modo Solo (opcional, Antigravity)**: para que Antigravity haga el ciclo completo él solo, se usa `orquestador` con la skill `equipo-agentes`.
