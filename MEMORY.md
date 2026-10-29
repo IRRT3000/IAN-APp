@@ -2,7 +2,7 @@
 Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o eliminar lo obsoleto.
 
 ## Estado Actual
-- Versión v1.1.1 (build 3) publicada en GitHub Releases con compilación APK en CI/CD.
+- Versión v1.2.0 (build 4) publicada en GitHub Releases con compilación APK en CI/CD.
 - Specs completadas: 001 a 009 (borrado seguro, físico IA, live mode, heatmap, rediseño Matte Luxury, BYOK API Key, adaptación ergonómica Mobile-First).
 - Spec 010 completada (`specs/010-onboarding-perfil-biometrico/`): Onboarding cinemático de 6 escenas (`OnboardingBienvenidaModal.jsx`: Hero Intro, 4 pasos biométricos con paneles reactivos en vivo y celebración "Pasaporte Biométrico Calibrado" con Reanimated) y perfil 100% dinámico en `AsyncStorage` (`guardarPerfilCompletoUsuario`, `parsearFechaLocalYYYYMMDD`, `pesoKgBase` inicial vs `pesoKgActual` actualizado en cada chequeo físico). Integración completa con Gemini Vision en Nutrición (con evaluación en `"detalles"`) y Cambio Físico, más re-calibración desde Inicio, Configuración o Cambio Físico.
 - Fix del Drawer de Configuración: Resuelto desbordamiento con `useWindowDimensions`, `flex: 1` e inoperancia táctil en Android (cambio a `activeOffsetX(25)`, `cancelsTouchesInView(false)`, `TouchableOpacity` de RNGH y `expo-clipboard` para pegar API key nativamente).
