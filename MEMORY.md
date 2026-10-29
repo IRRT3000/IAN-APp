@@ -11,7 +11,7 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 - Touch Targets y Modales: Touch targets >= 44x44pt en toda la app (`DaySummaryModal`, `CambioFisicoView`, `CatalogoEjerciciosModal`). Barra de navegación flotante adaptada dinámicamente a `insets.bottom`.
 - 100% Erradicación de Emojis: Cero glifos en UI, alertas y catálogo; uso exclusivo de `@expo/vector-icons` (`Feather`).
 - Sistema de Tokens (`src/theme/tokens.js`): Paleta `#0A0A0A`/`#141414`/`#262626`, `touchTarget` y `safeArea`.
-- Reparto de roles (rama `chore/modo-dual`, ver `AGENTS.md`): Claude Code planifica y revisa; Antigravity implementa y diseña; el usuario pasa el turno (en Deska o fuera). Cualquiera de los dos asume todos los roles si el otro se queda sin tokens (agentes de Claude en `.claude/agents/`, que apuntan a `.agents/agents/`). Modo Solo de Antigravity con `orquestador` queda opcional.
+- Reparto de roles (en `main`, ver `AGENTS.md`): Claude Code planifica y revisa; Antigravity implementa y diseña; el usuario pasa el turno (en Deska o fuera). Cualquiera de los dos asume todos los roles si el otro se queda sin tokens (agentes de Claude en `.claude/agents/`, que apuntan a `.agents/agents/`). Modo Solo de Antigravity con `orquestador` queda opcional.
 
 ## Decisiones Técnicas Clave
 - Puerta de Calidad (`npm run gate`): Valida en serie `lint` (código 0, sin errores), `test` (`jest --ci` con 4 suites) y `bundle:check` (`expo export --platform android` limpiando `.bundle-check/` en `finally` para proteger secretos).
