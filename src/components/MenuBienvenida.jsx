@@ -34,12 +34,14 @@ export default function MenuBienvenida({
   caloriasHoy = 0,
   ultimoEjercicioHoy = null,
   resumenAnual = {},
+  perfilUsuario = null,
   onAlternarDescanso,
   onIrAFitnessTracker,
   onIrANutricion,
   onIrACambioFisico,
   onIrAHeatmap,
   onAbrirConfiguracion,
+  onAbrirEdicionPerfil,
 }) {
   const metaCumplidaHoy = totalEjerciciosHoy > 0;
   const mesActualIndex = new Date().getMonth();
@@ -77,6 +79,13 @@ export default function MenuBienvenida({
   }));
 
   const fechaFormateadaEditorial = formatearFechaLegible(fechaHoy).toUpperCase();
+  const nombreLimpio = String(perfilUsuario?.nombre || '').trim();
+  const tituloSaludo = nombreLimpio ? `Hola, ${nombreLimpio}` : 'Fitness Tracker';
+  const alturaPerfil = Number(perfilUsuario?.alturaCm) || 182;
+  const pesoPerfil = Number(
+    perfilUsuario?.pesoKgActual ?? perfilUsuario?.pesoKgBase ?? 74
+  ).toFixed(1);
+  const objetivoPerfil = perfilUsuario?.objetivo || 'Mantenimiento';
 
   return (
     <ScrollView
@@ -120,10 +129,43 @@ export default function MenuBienvenida({
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={styles.tituloHero}>Fitness Tracker</Text>
+        <Text style={styles.tituloHero} numberOfLines={1}>
+          {tituloSaludo}
+        </Text>
         <Text style={styles.subtituloEditorial}>
           Entrenamiento de fuerza, nutrición IA y análisis físico de alta precisión.
         </Text>
+
+        {/* Píldora Interactiva del Pasaporte Biométrico (Spec 010) */}
+        <TouchableOpacity
+          style={styles.pildoraPasaporte}
+          activeOpacity={0.8}
+          onPress={
+            typeof onAbrirEdicionPerfil === 'function'
+              ? onAbrirEdicionPerfil
+              : onAbrirConfiguracion
+          }
+          accessibilityLabel="Editar Pasaporte Biométrico"
+        >
+          <View style={styles.iconoPasaporteContenedor}>
+            <Feather name="user" size={13} color={TOKENS.colors.textPrimary} />
+          </View>
+          <View style={styles.textoPasaporteContenedor}>
+            <Text style={styles.etiquetaPasaporte}>PASAPORTE BIOMÉTRICO</Text>
+            <Text style={styles.resumenPasaporte} numberOfLines={1}>
+              {alturaPerfil} cm · {pesoPerfil} kg · {objetivoPerfil}
+            </Text>
+          </View>
+          <View style={styles.accionPasaporteDerecha}>
+            <Text style={styles.textoAccionPasaporte}>Calibrar</Text>
+            <Feather
+              name="sliders"
+              size={12}
+              color={TOKENS.colors.textSecondary}
+              style={{ marginLeft: 5 }}
+            />
+          </View>
+        </TouchableOpacity>
       </View>
 
       {/* 2. Caja de 3 KPIs con Divisores Hairline de 1px */}
@@ -359,6 +401,61 @@ const styles = StyleSheet.create({
     fontWeight: TOKENS.typography.subtitle.fontWeight,
     color: TOKENS.colors.textSecondary,
     lineHeight: 18,
+  },
+  pildoraPasaporte: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 46,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.md,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 12,
+  },
+  iconoPasaporteContenedor: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  textoPasaporteContenedor: {
+    flex: 1,
+  },
+  etiquetaPasaporte: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    color: TOKENS.colors.textMuted,
+    marginBottom: 1,
+  },
+  resumenPasaporte: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: TOKENS.colors.textPrimary,
+  },
+  accionPasaporteDerecha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.pill,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginLeft: 8,
+  },
+  textoAccionPasaporte: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: TOKENS.colors.textSecondary,
+    letterSpacing: 0.3,
   },
   contenedorKpis: {
     flexDirection: 'row',

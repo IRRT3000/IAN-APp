@@ -34,6 +34,11 @@ import {
   eliminarApiKeyGemini,
   guardarApiKeyGemini,
 } from '../services/apiKeyStorage';
+import {
+  PERFIL_USUARIO_BASE,
+  calcularEdadExacta,
+  calcularTiempoEntrenando,
+} from '../services/storage';
 import { validarApiKeyGemini } from '../services/gemini';
 import {
   vibrarConfirmacionBorrado,
@@ -43,7 +48,14 @@ import {
 import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';
 
-export default function PanelConfiguracionLateral({ visible, onCerrar }) {
+export default function PanelConfiguracionLateral({
+  visible,
+  onCerrar,
+  perfilUsuario = null,
+  onEditarPerfil,
+  onAbrirOnboardingPerfil,
+  onAbrirEdicionPerfil,
+}) {
   const insets = useSafeInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const ANCHO_DRAWER = Math.min(Math.round(windowWidth * 0.85), 380);
@@ -251,6 +263,38 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
     ? `${claveGuardada.slice(0, 6)}••••••••${claveGuardada.slice(-4)}`
     : '';
 
+  const perfilActivo = perfilUsuario || PERFIL_USUARIO_BASE;
+  const nombrePasaporte = String(perfilActivo?.nombre || '').trim() || 'Atleta';
+  const sexoPasaporte = perfilActivo?.sexo || PERFIL_USUARIO_BASE.sexo;
+  const alturaPasaporte =
+    Number(perfilActivo?.alturaCm) || PERFIL_USUARIO_BASE.alturaCm;
+  const pesoActualPasaporte = Number(
+    perfilActivo?.pesoKgActual ??
+      perfilActivo?.pesoKgBase ??
+      PERFIL_USUARIO_BASE.pesoKgBase
+  ).toFixed(1);
+  const objetivoPasaporte =
+    perfilActivo?.objetivo || PERFIL_USUARIO_BASE.objetivo;
+  const edadPasaporte = calcularEdadExacta(
+    new Date(),
+    perfilActivo?.fechaNacimiento || PERFIL_USUARIO_BASE.fechaNacimiento
+  );
+  const tiempoEntrenoPasaporte = calcularTiempoEntrenando(
+    new Date(),
+    perfilActivo?.fechaInicioEntreno || PERFIL_USUARIO_BASE.fechaInicioEntreno
+  );
+
+  const handleRecalibrarPasaporte = () => {
+    vibrarInicioPresionBorrado();
+    const callbackEdicion =
+      onEditarPerfil || onAbrirOnboardingPerfil || onAbrirEdicionPerfil;
+    if (typeof callbackEdicion === 'function') {
+      callbackEdicion();
+    } else {
+      cerrarDrawer();
+    }
+  };
+
   return (
     <Modal
       visible={montado}
@@ -312,6 +356,85 @@ export default function PanelConfiguracionLateral({ visible, onCerrar }) {
                   showsVerticalScrollIndicator={false}
                   keyboardShouldPersistTaps="handled"
                 >
+                  {/* Tarjeta Pasaporte Biométrico (Spec 010) */}
+                  <View style={styles.tarjetaPasaporte}>
+                    <View style={styles.filaPasaporteHeader}>
+                      <View style={styles.iconoPasaporteCirculo}>
+                        <Feather
+                          name="user"
+                          size={14}
+                          color={TOKENS.colors.textPrimary}
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.etiquetaPasaporteDrawer}>
+                          PASAPORTE BIOMÉTRICO
+                        </Text>
+                        <Text
+                          style={styles.nombrePasaporteDrawer}
+                          numberOfLines={1}
+                        >
+                          {nombrePasaporte} · {sexoPasaporte}
+                        </Text>
+                      </View>
+                      <View style={styles.badgeObjetivoPasaporte}>
+                        <Text style={styles.textoBadgeObjetivoPasaporte}>
+                          {objetivoPasaporte.toUpperCase()}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.gridMetricasPasaporte}>
+                      <View style={styles.celdaMetricaPasaporte}>
+                        <Text style={styles.valorMetricaPasaporte}>
+                          {alturaPasaporte} cm
+                        </Text>
+                        <Text style={styles.etiquetaMetricaPasaporte}>
+                          ESTATURA
+                        </Text>
+                      </View>
+                      <View style={styles.divisorVerticalPasaporte} />
+                      <View style={styles.celdaMetricaPasaporte}>
+                        <Text style={styles.valorMetricaPasaporte}>
+                          {pesoActualPasaporte} kg
+                        </Text>
+                        <Text style={styles.etiquetaMetricaPasaporte}>
+                          PESO
+                        </Text>
+                      </View>
+                      <View style={styles.divisorVerticalPasaporte} />
+                      <View style={styles.celdaMetricaPasaporte}>
+                        <Text style={styles.valorMetricaPasaporte}>
+                          {edadPasaporte.texto}
+                        </Text>
+                        <Text style={styles.etiquetaMetricaPasaporte}>
+                          EDAD
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text style={styles.subtextoExperienciaPasaporte}>
+                      Experiencia entrenando: {tiempoEntrenoPasaporte.texto} (desde{' '}
+                      {tiempoEntrenoPasaporte.fechaInicio})
+                    </Text>
+
+                    <TouchableOpacity
+                      style={styles.botonRecalibrarPasaporte}
+                      activeOpacity={0.85}
+                      onPress={handleRecalibrarPasaporte}
+                    >
+                      <Feather
+                        name="sliders"
+                        size={14}
+                        color={TOKENS.colors.textPrimary}
+                        style={{ marginRight: 8 }}
+                      />
+                      <Text style={styles.textoBotonRecalibrarPasaporte}>
+                        Re-calibrar Pasaporte Biométrico
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
                   {/* Tarjeta de Estado de Conexión */}
                   <View style={styles.tarjetaEstado}>
                     <View style={styles.filaEstadoEncabezado}>
@@ -591,6 +714,109 @@ const styles = StyleSheet.create({
   },
   cuerpoScrollContenido: {
     paddingVertical: 18,
+  },
+  tarjetaPasaporte: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    borderRadius: TOKENS.radii.md,
+    padding: 14,
+    marginBottom: 18,
+  },
+  filaPasaporteHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  iconoPasaporteCirculo: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: TOKENS.colors.surfaceInteractive,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  etiquetaPasaporteDrawer: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    color: TOKENS.colors.textMuted,
+  },
+  nombrePasaporteDrawer: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: TOKENS.colors.textPrimary,
+    marginTop: 1,
+  },
+  badgeObjetivoPasaporte: {
+    backgroundColor: TOKENS.colors.surfaceInteractive,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: TOKENS.radii.xs,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    marginLeft: 8,
+  },
+  textoBadgeObjetivoPasaporte: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    color: TOKENS.colors.textSecondary,
+  },
+  gridMetricasPasaporte: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.sm,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    paddingVertical: 10,
+    marginBottom: 10,
+  },
+  celdaMetricaPasaporte: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  divisorVerticalPasaporte: {
+    width: 1,
+    height: 22,
+    backgroundColor: TOKENS.colors.borderDefault,
+  },
+  valorMetricaPasaporte: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: TOKENS.colors.textPrimary,
+  },
+  etiquetaMetricaPasaporte: {
+    fontSize: 8,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: TOKENS.colors.textMuted,
+    marginTop: 2,
+  },
+  subtextoExperienciaPasaporte: {
+    fontSize: 11,
+    color: TOKENS.colors.textSecondary,
+    marginBottom: 12,
+  },
+  botonRecalibrarPasaporte: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 46,
+    backgroundColor: TOKENS.colors.surfaceInteractive,
+    borderRadius: TOKENS.radii.md,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+  },
+  textoBotonRecalibrarPasaporte: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
   tarjetaEstado: {
     backgroundColor: TOKENS.colors.surfaceElevated,

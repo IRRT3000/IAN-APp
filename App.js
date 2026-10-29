@@ -1,5 +1,5 @@
 // @refresh reset
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -11,6 +11,7 @@ import EntrenamientosView from './src/components/EntrenamientosView';
 import HeatmapView from './src/components/HeatmapView';
 import MenuBienvenida from './src/components/MenuBienvenida';
 import NutricionView from './src/components/NutricionView';
+import OnboardingBienvenidaModal from './src/components/OnboardingBienvenidaModal';
 import PanelConfiguracionLateral from './src/components/PanelConfiguracionLateral';
 import {
   PERFIL_USUARIO_BASE,
@@ -36,6 +37,9 @@ function AppPrincipal() {
   const [vistaActiva, setVistaActiva] = useState('bienvenida');
   const [enLiveMode, setEnLiveMode] = useState(false);
   const [panelConfiguracionVisible, setPanelConfiguracionVisible] = useState(false);
+  const [onboardingVisible, setOnboardingVisible] = useState(false);
+  const [modoEdicionPerfil, setModoEdicionPerfil] = useState(false);
+  const timerTransicionModalRef = useRef(null);
 
   // Funciones memoizadas para controlar el drawer de configuracion
   const abrirConfiguracion = useCallback(
@@ -46,6 +50,31 @@ function AppPrincipal() {
     () => setPanelConfiguracionVisible(false),
     []
   );
+
+  // Defensa 9: Transición limpia si el Drawer de Configuración estaba abierto para evitar conflicto de doble <Modal>
+  const abrirEdicionPerfil = useCallback(() => {
+    if (timerTransicionModalRef.current) {
+      clearTimeout(timerTransicionModalRef.current);
+    }
+    if (panelConfiguracionVisible) {
+      setPanelConfiguracionVisible(false);
+      timerTransicionModalRef.current = setTimeout(() => {
+        setModoEdicionPerfil(true);
+        setOnboardingVisible(true);
+      }, 220);
+    } else {
+      setModoEdicionPerfil(true);
+      setOnboardingVisible(true);
+    }
+  }, [panelConfiguracionVisible]);
+
+  useEffect(() => {
+    return () => {
+      if (timerTransicionModalRef.current) {
+        clearTimeout(timerTransicionModalRef.current);
+      }
+    };
+  }, []);
 
   // Estados separados para el año del widget de Inicio y el año del Heatmap (RF-1, RF-4)
   const fechaHoy = obtenerFechaLocal();
@@ -92,15 +121,29 @@ function AppPrincipal() {
     setComidas(comidasGuardadas);
     setCambiosFisicos(cambiosGuardados);
     setPerfilUsuario(perfilCargado);
+
+    // Defensa 7: Activar onboarding únicamente tras resolver la carga asíncrona si no se ha completado
+    if (!perfilCargado?.onboardingCompletado) {
+      setModoEdicionPerfil(false);
+      setOnboardingVisible(true);
+    }
   }, [refrescarHabitosConcurrentes]);
 
   useEffect(() => {
     sincronizarDatos();
   }, [sincronizarDatos]);
 
-  // Soporte Android-First: BackHandler retorna a bienvenida antes de salir de la app (RF-4)
+  // Soporte Android-First: BackHandler retorna a bienvenida antes de salir de la app (RF-4, Spec 010)
   useEffect(() => {
     const onBackPress = () => {
+      if (onboardingVisible) {
+        if (modoEdicionPerfil) {
+          setOnboardingVisible(false);
+          setModoEdicionPerfil(false);
+          return true;
+        }
+        return true; // Bloquea salida accidental durante la calibración inicial
+      }
       if (panelConfiguracionVisible) {
         setPanelConfiguracionVisible(false);
         return true;
@@ -120,7 +163,13 @@ function AppPrincipal() {
       onBackPress
     );
     return () => suscripcion.remove();
-  }, [vistaActiva, enLiveMode, panelConfiguracionVisible]);
+  }, [
+    vistaActiva,
+    enLiveMode,
+    panelConfiguracionVisible,
+    onboardingVisible,
+    modoEdicionPerfil,
+  ]);
 
   const manejarCambiarAnioHeatmap = useCallback(
     async (nuevoAnio) => {
@@ -227,8 +276,10 @@ function AppPrincipal() {
           entrenamientosHoy={entrenamientosDeHoy}
           comidasHoy={comidasDeHoy}
           perfilExterno={perfilUsuario}
+          perfilUsuario={perfilUsuario}
           onCambioFisicoActualizado={manejarCambioFisico}
           onPerfilActualizado={setPerfilUsuario}
+          onAbrirEdicionPerfil={abrirEdicionPerfil}
         />
       );
     }
@@ -237,7 +288,9 @@ function AppPrincipal() {
       return (
         <NutricionView
           comidasExternas={comidas}
+          perfilUsuario={perfilUsuario}
           onComidaRegistrada={manejarCambioComidas}
+          onAbrirEdicionPerfil={abrirEdicionPerfil}
         />
       );
     }
@@ -261,12 +314,14 @@ function AppPrincipal() {
         caloriasHoy={caloriasHoy}
         ultimoEjercicioHoy={entrenamientosDeHoy[0] || null}
         resumenAnual={resumenAnioActual}
+        perfilUsuario={perfilUsuario}
         onAlternarDescanso={manejarAlternarDescanso}
         onIrAFitnessTracker={() => setVistaActiva('tracker')}
         onIrANutricion={() => setVistaActiva('nutricion')}
         onIrACambioFisico={() => setVistaActiva('fisico')}
         onIrAHeatmap={() => setVistaActiva('heatmap')}
         onAbrirConfiguracion={abrirConfiguracion}
+        onAbrirEdicionPerfil={abrirEdicionPerfil}
       />
     );
   };
@@ -309,6 +364,26 @@ function AppPrincipal() {
       <PanelConfiguracionLateral
         visible={panelConfiguracionVisible}
         onCerrar={cerrarConfiguracion}
+        perfilUsuario={perfilUsuario}
+        onEditarPerfil={abrirEdicionPerfil}
+        onAbrirOnboardingPerfil={abrirEdicionPerfil}
+        onAbrirEdicionPerfil={abrirEdicionPerfil}
+      />
+
+      <OnboardingBienvenidaModal
+        visible={onboardingVisible}
+        modoEdicion={modoEdicionPerfil}
+        perfilInicial={perfilUsuario}
+        onPerfilActualizado={(nuevoPerfil) => setPerfilUsuario(nuevoPerfil)}
+        onCompletado={(nuevoPerfil) => {
+          if (nuevoPerfil) setPerfilUsuario(nuevoPerfil);
+          setOnboardingVisible(false);
+          setModoEdicionPerfil(false);
+        }}
+        onCerrar={() => {
+          setOnboardingVisible(false);
+          setModoEdicionPerfil(false);
+        }}
       />
     </View>
   );

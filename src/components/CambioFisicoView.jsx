@@ -135,8 +135,10 @@ export default function CambioFisicoView({
   entrenamientosHoy = [],
   comidasHoy = [],
   perfilExterno = null,
+  perfilUsuario = null,
   onCambioFisicoActualizado,
   onPerfilActualizado,
+  onAbrirEdicionPerfil,
 }) {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(obtenerFechaLocal());
   const [registrosInternos, setRegistrosInternos] = useState([]);
@@ -163,13 +165,49 @@ export default function CambioFisicoView({
 
   const fechaHoy = obtenerFechaLocal();
   const esHoy = fechaSeleccionada === fechaHoy;
-  const edadInfo = useMemo(() => calcularEdadExacta(), []);
-  const tiempoEntrenoInfo = useMemo(() => calcularTiempoEntrenando(), []);
 
   const listaRegistros = Array.isArray(cambiosExternos)
     ? cambiosExternos
     : registrosInternos;
-  const perfilActivo = perfilExterno || perfilInterno;
+  const perfilActivo = perfilExterno || perfilUsuario || perfilInterno;
+
+  const edadInfo = useMemo(
+    () =>
+      calcularEdadExacta(
+        new Date(),
+        perfilActivo?.fechaNacimiento || PERFIL_USUARIO_BASE.fechaNacimiento
+      ),
+    [perfilActivo?.fechaNacimiento]
+  );
+  const tiempoEntrenoInfo = useMemo(
+    () =>
+      calcularTiempoEntrenando(
+        new Date(),
+        perfilActivo?.fechaInicioEntreno || PERFIL_USUARIO_BASE.fechaInicioEntreno
+      ),
+    [perfilActivo?.fechaInicioEntreno]
+  );
+
+  const pesoBasePerfil = useMemo(() => {
+    if (Number(perfilActivo?.pesoKgBase) > 0) {
+      return Math.round(Number(perfilActivo.pesoKgBase) * 10) / 10;
+    }
+    return PERFIL_USUARIO_BASE.pesoKgBase;
+  }, [perfilActivo?.pesoKgBase]);
+
+  const alturaCmPerfil = useMemo(() => {
+    if (Number(perfilActivo?.alturaCm) > 0) {
+      return Math.round(Number(perfilActivo.alturaCm));
+    }
+    return PERFIL_USUARIO_BASE.alturaCm;
+  }, [perfilActivo?.alturaCm]);
+
+  const alturaMetrosPerfil = useMemo(
+    () => Math.round(alturaCmPerfil) / 100,
+    [alturaCmPerfil]
+  );
+
+  const sexoPerfil = perfilActivo?.sexo || PERFIL_USUARIO_BASE.sexo;
 
   // Extraer días con registros fotográficos para los puntos de actividad del selector semanal
   const diasConFoto = useMemo(() => {
@@ -214,8 +252,8 @@ export default function CambioFisicoView({
     if (Number(perfilActivo?.pesoKgActual) > 0) {
       return Math.round(Number(perfilActivo.pesoKgActual) * 10) / 10;
     }
-    return PERFIL_USUARIO_BASE.pesoKgBase;
-  }, [listaRegistros, perfilActivo]);
+    return pesoBasePerfil;
+  }, [listaRegistros, perfilActivo, pesoBasePerfil]);
 
   const cambiarObjetivo = async (nuevoObjetivo) => {
     if (analizando) return;
@@ -385,18 +423,25 @@ export default function CambioFisicoView({
     setMensajeError('');
 
     try {
-      const edadActual = calcularEdadExacta(new Date());
-      const antiguedadActual = calcularTiempoEntrenando(new Date());
+      const edadActual = calcularEdadExacta(
+        new Date(),
+        perfilActivo?.fechaNacimiento || PERFIL_USUARIO_BASE.fechaNacimiento
+      );
+      const antiguedadActual = calcularTiempoEntrenando(
+        new Date(),
+        perfilActivo?.fechaInicioEntreno || PERFIL_USUARIO_BASE.fechaInicioEntreno
+      );
 
       const contextoUsuario = {
         edadTexto: edadActual.texto,
         fechaNacimiento: edadActual.fechaNacimiento,
         tiempoEntrenandoTexto: antiguedadActual.texto,
         fechaInicioEntreno: antiguedadActual.fechaInicio,
-        alturaCm: PERFIL_USUARIO_BASE.alturaCm,
-        alturaMetros: PERFIL_USUARIO_BASE.alturaMetros,
+        alturaCm: alturaCmPerfil,
+        alturaMetros: alturaMetrosPerfil,
         pesoKg: pesoSeleccionadoKg,
-        sexo: PERFIL_USUARIO_BASE.sexo,
+        pesoKgBase: pesoBasePerfil,
+        sexo: sexoPerfil,
         objetivo: perfilActivo?.objetivo || PERFIL_USUARIO_BASE.objetivo,
         hora12h: horaFormateada,
         momentoDia,
@@ -435,8 +480,10 @@ export default function CambioFisicoView({
         hora12h: horaFormateada,
         momentoDia,
         pesoKg: pesoSeleccionadoKg,
-        alturaCm: PERFIL_USUARIO_BASE.alturaCm,
+        alturaCm: alturaCmPerfil,
         edadExacta: edadActual.anios,
+        fechaNacimiento: edadActual.fechaNacimientoISO,
+        fechaInicioEntreno: antiguedadActual.fechaInicioISO,
         tiempoEntrenandoTexto: antiguedadActual.texto,
         objetivo: perfilActivo?.objetivo || PERFIL_USUARIO_BASE.objetivo,
         urisFotos,
@@ -493,6 +540,7 @@ export default function CambioFisicoView({
         registroActual,
         registroAnterior,
         imagenesActualesBase64: imagenesEnMemoria,
+        perfilUsuario: perfilActivo,
       });
 
       const datosComparacion = {
@@ -782,13 +830,13 @@ export default function CambioFisicoView({
   };
 
   const diferenciaContraBase =
-    Math.round((pesoSeleccionadoKg - PERFIL_USUARIO_BASE.pesoKgBase) * 10) / 10;
+    Math.round((pesoSeleccionadoKg - pesoBasePerfil) * 10) / 10;
   const textoDiferenciaBase =
     diferenciaContraBase === 0
-      ? 'En tu peso base (74.0 kg)'
+      ? `En tu peso base (${pesoBasePerfil.toFixed(1)} kg)`
       : `${diferenciaContraBase > 0 ? '+' : ''}${diferenciaContraBase.toFixed(
           1
-        )} kg vs base (74.0 kg)`;
+        )} kg vs base (${pesoBasePerfil.toFixed(1)} kg)`;
 
   return (
     <View style={styles.contenedor}>
@@ -828,6 +876,41 @@ export default function CambioFisicoView({
             ) : null}
 
             <View style={styles.tarjetaPerfil}>
+              <View style={styles.cabeceraTarjetaPerfil}>
+                <View style={styles.tituloPasaporteFila}>
+                  <Feather
+                    name="user"
+                    size={12}
+                    color={TOKENS.colors.textSecondary}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text style={styles.etiquetaPasaporteBio}>
+                    {perfilActivo?.nombre
+                      ? `PASAPORTE BIOMÉTRICO · ${String(perfilActivo.nombre).toUpperCase()}`
+                      : 'PASAPORTE BIOMÉTRICO'}
+                  </Text>
+                </View>
+
+                {typeof onAbrirEdicionPerfil === 'function' ? (
+                  <TouchableOpacity
+                    style={styles.botonEditarPerfilBio}
+                    activeOpacity={0.8}
+                    onPress={onAbrirEdicionPerfil}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Feather
+                      name="sliders"
+                      size={11}
+                      color={TOKENS.colors.textPrimary}
+                      style={{ marginRight: 5 }}
+                    />
+                    <Text style={styles.textoBotonEditarPerfilBio}>
+                      Editar Perfil
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+
               <View style={styles.filaMetricasBio}>
                 <View style={styles.itemBio}>
                   <Text style={styles.etiquetaBio}>EDAD EXACTA</Text>
@@ -848,10 +931,10 @@ export default function CambioFisicoView({
                 <View style={styles.itemBio}>
                   <Text style={styles.etiquetaBio}>PERFIL FÍSICO</Text>
                   <Text style={styles.valorBio}>
-                    {PERFIL_USUARIO_BASE.alturaCm} cm · {ultimoPesoConocido.toFixed(1)} kg
+                    {alturaCmPerfil} cm · {ultimoPesoConocido.toFixed(1)} kg
                   </Text>
                   <Text style={styles.subvalorBio}>
-                    {PERFIL_USUARIO_BASE.sexo} ({PERFIL_USUARIO_BASE.alturaMetros} m)
+                    {sexoPerfil} ({alturaMetrosPerfil.toFixed(2)} m)
                   </Text>
                 </View>
               </View>
@@ -1328,6 +1411,39 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: TOKENS.colors.borderDefault,
+  },
+  cabeceraTarjetaPerfil: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  tituloPasaporteFila: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 8,
+  },
+  etiquetaPasaporteBio: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  botonEditarPerfilBio: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+  },
+  textoBotonEditarPerfilBio: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 10,
+    fontWeight: '700',
   },
   filaMetricasBio: {
     flexDirection: 'row',

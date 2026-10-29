@@ -3,8 +3,8 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 
 ## Estado Actual
 - Versión v1.1.1 (build 3) publicada en GitHub Releases con compilación APK en CI/CD.
-- Specs completadas: 001 a 008 (borrado seguro, físico IA, live mode, heatmap, rediseño Matte Luxury, BYOK API Key).
-- Spec 009 completada (`specs/009-adaptacion-movil-ergonomica/`): Adaptación ergonómica Mobile-First (iOS & Android). Safe Areas con `react-native-safe-area-context` y hook defensivo `useSafeInsets`.
+- Specs completadas: 001 a 009 (borrado seguro, físico IA, live mode, heatmap, rediseño Matte Luxury, BYOK API Key, adaptación ergonómica Mobile-First).
+- Spec 010 completada (`specs/010-onboarding-perfil-biometrico/`): Onboarding cinemático de 6 escenas (`OnboardingBienvenidaModal.jsx`: Hero Intro, 4 pasos biométricos con paneles reactivos en vivo y celebración "Pasaporte Biométrico Calibrado" con Reanimated) y perfil 100% dinámico en `AsyncStorage` (`guardarPerfilCompletoUsuario`, `parsearFechaLocalYYYYMMDD`, `pesoKgBase` inicial vs `pesoKgActual` actualizado en cada chequeo físico). Integración completa con Gemini Vision en Nutrición (con evaluación en `"detalles"`) y Cambio Físico, más re-calibración desde Inicio, Configuración o Cambio Físico.
 - Fix del Drawer de Configuración: Resuelto desbordamiento con `useWindowDimensions`, `flex: 1` e inoperancia táctil en Android (cambio a `activeOffsetX(25)`, `cancelsTouchesInView(false)`, `TouchableOpacity` de RNGH y `expo-clipboard` para pegar API key nativamente).
 - Live Mode Thumb-Zone: Guardado primario (54dp) y secundario reubicados en la barra inferior al alcance natural del pulgar; ocultamiento dinámico ante teclado con botón de descarte rápido; validación visual de series incompletas en rojo.
 - Touch Targets y Modales: Touch targets >= 44x44pt en toda la app (`DaySummaryModal`, `CambioFisicoView`, `CatalogoEjerciciosModal`). Barra de navegación flotante adaptada dinámicamente a `insets.bottom`.

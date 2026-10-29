@@ -14,6 +14,12 @@
  */
 
 import { cargarApiKeyGemini } from './apiKeyStorage';
+import {
+  PERFIL_USUARIO_BASE,
+  calcularEdadExacta,
+  calcularTiempoEntrenando,
+  cargarPerfilUsuario,
+} from './storage';
 
 const GEMINI_API_BASE_URL =
   'https://generativelanguage.googleapis.com/v1beta/models';
@@ -164,13 +170,33 @@ export const obtenerModelos = () => {
 };
 
 /**
- * Construye el prompt de análisis nutricional exhaustivo priorizando exactitud y rigor cuantitativo.
+ * Construye el prompt de análisis nutricional exhaustivo priorizando exactitud y rigor cuantitativo,
+ * integrando el perfil biométrico y objetivo físico actual del usuario (Spec 010, Defensa 6).
  * @param {string} tipoComida - 'Desayuno' | 'Comida' | 'Cena' | 'Snack'
+ * @param {Object} [contextoPerfil={}]
  * @returns {string}
  */
-const construirPromptAltaPrecision = (tipoComida) => `
+const construirPromptAltaPrecision = (tipoComida, contextoPerfil = {}) => {
+  const {
+    sexo = PERFIL_USUARIO_BASE.sexo,
+    edadTexto = '15 años',
+    alturaCm = PERFIL_USUARIO_BASE.alturaCm,
+    pesoKgActual = PERFIL_USUARIO_BASE.pesoKgActual,
+    tiempoEntrenandoTexto = 'En progreso',
+    objetivo = PERFIL_USUARIO_BASE.objetivo,
+  } = contextoPerfil || {};
+
+  return `
 Actúa como un nutricionista clínico y especialista en bromatología e inspección visual de alimentos.
 Estás analizando una fotografía correspondiente al tiempo de comida: "${tipoComida}".
+
+PERFIL BIOMÉTRICO Y OBJETIVO DEL USUARIO:
+- Sexo biológico: ${sexo}
+- Edad exacta: ${edadTexto}
+- Estatura: ${alturaCm} cm
+- Peso actual: ${Number(pesoKgActual || PERFIL_USUARIO_BASE.pesoKgBase).toFixed(1)} kg
+- Experiencia entrenando fuerza: ${tiempoEntrenandoTexto}
+- Objetivo físico actual: ${objetivo}
 
 Prioriza la MÁXIMA PRECISIÓN Y EXACTITUD por encima de la brevedad en tu razonamiento interno:
 1. Identifica exhaustivamente todos los ingredientes visibles en el plato, vaso o envase (proteínas animales/vegetales, cereales, tubérculos, verduras, frutas, salsas, aderezos, quesos, cremas y aceites de cocción).
@@ -178,6 +204,7 @@ Prioriza la MÁXIMA PRECISIÓN Y EXACTITUD por encima de la brevedad en tu razon
 3. Considera el método de preparación observable (frito, empanizado, salteado con aceite, a la plancha, al vapor, horneado o crudo) y suma las calorías y lípidos ocultos derivados de la cocción o aderezos.
 4. Calcula para cada ingrediente individual sus kilocalorías (kcal), gramos de proteína, gramos de carbohidratos netos/totales y gramos de grasas, basándote en tablas nutricionales estándar (USDA / equivalentes).
 5. Verifica que la suma calórica sea termodinámicamente consistente con los macronutrientes estimados (aprox. 4 kcal/g de proteína, 4 kcal/g de carbohidratos, 9 kcal/g de grasa).
+6. Redacta en "detalles" una evaluación concisa de 1 a 2 oraciones sobre cómo encaja este platillo con el perfil biométrico (${alturaCm} cm, ${Number(pesoKgActual || PERFIL_USUARIO_BASE.pesoKgBase).toFixed(1)} kg, ${edadTexto}) y el objetivo actual de "${objetivo}" del usuario (sin usar emojis).
 
 Devuelve ÚNICAMENTE un objeto JSON válido (sin bloques markdown ni texto adicional) con esta estructura exacta:
 {
@@ -185,10 +212,12 @@ Devuelve ÚNICAMENTE un objeto JSON válido (sin bloques markdown ni texto adici
   "calorias": 0,
   "proteinas": 0,
   "carbohidratos": 0,
-  "grasas": 0
+  "grasas": 0,
+  "detalles": "Evaluación concisa de 1 a 2 oraciones sobre cómo aporta este plato al objetivo actual del usuario."
 }
 Donde "calorias", "proteinas", "carbohidratos" y "grasas" sean números (enteros o decimales con máximo 1 decimal) representando el total estimado de toda la porción mostrada.
 `.trim();
+};
 
 /**
  * Construye el prompt multimodal para evaluar de 1 a 10 fotos de cambio físico
@@ -203,11 +232,12 @@ const construirPromptCambioFisico = (contexto, cantidadFotos) => {
     fechaNacimiento = '26/11/2010',
     tiempoEntrenandoTexto = 'En progreso',
     fechaInicioEntreno = '01/11/2025',
-    alturaCm = 182,
-    alturaMetros = 1.82,
-    pesoKg = 74,
-    sexo = 'Hombre',
-    objetivo = 'Mantenimiento',
+    alturaCm = PERFIL_USUARIO_BASE.alturaCm,
+    alturaMetros = PERFIL_USUARIO_BASE.alturaMetros,
+    pesoKg = PERFIL_USUARIO_BASE.pesoKgBase,
+    pesoKgBase = PERFIL_USUARIO_BASE.pesoKgBase,
+    sexo = PERFIL_USUARIO_BASE.sexo,
+    objetivo = PERFIL_USUARIO_BASE.objetivo,
     hora12h = '12:00 PM',
     momentoDia = 'Mediodía',
     fechaHoy = '',
@@ -269,7 +299,7 @@ DATOS BIOLÓGICOS Y DE PERFIL DEL USUARIO (OBLIGATORIO CONSIDERAR TODOS):
 - Fecha de nacimiento: ${fechaNacimiento} -> Edad exacta actual: ${edadTexto}
 - Fecha de inicio entrenando: ${fechaInicioEntreno} -> Tiempo entrenando actual: ${tiempoEntrenandoTexto}
 - Estatura: ${alturaCm} cm (${alturaMetros} m)
-- Peso actual en báscula circular hoy: ${pesoKg} kg (Peso base de referencia: 74.0 kg)
+- Peso actual en báscula circular hoy: ${pesoKg} kg (Peso base de referencia: ${Number(pesoKgBase).toFixed(1)} kg)
 - Objetivo físico actual: ${objetivo}
 - Hora exacta de las fotografías (formato 12h): ${hora12h}
 - Condición / Momento del día de las fotos: ${momentoDia}
@@ -308,20 +338,36 @@ Devuelve ÚNICAMENTE un objeto JSON válido (sin bloques markdown ni texto adici
  * @param {Object} registroActual
  * @param {Object} registroAnterior
  * @param {number} cantidadFotosActuales
+ * @param {Object} [perfilUsuario=PERFIL_USUARIO_BASE]
  * @returns {string}
  */
 const construirPromptComparacionFisica = (
   registroActual,
   registroAnterior,
-  cantidadFotosActuales
+  cantidadFotosActuales,
+  perfilUsuario = PERFIL_USUARIO_BASE
 ) => {
-  const diffPeso =
-    Math.round(
-      ((Number(registroActual?.pesoKg) || 74) -
-        (Number(registroAnterior?.pesoKg) || 74)) *
-        10
-    ) / 10;
+  const pesoBaseDefault =
+    Number(perfilUsuario?.pesoKgBase) || PERFIL_USUARIO_BASE.pesoKgBase;
+  const pesoActualNum = Number(registroActual?.pesoKg) || pesoBaseDefault;
+  const pesoAnteriorNum = Number(registroAnterior?.pesoKg) || pesoBaseDefault;
+  const diffPeso = Math.round((pesoActualNum - pesoAnteriorNum) * 10) / 10;
   const signoPeso = diffPeso > 0 ? `+${diffPeso}` : `${diffPeso}`;
+
+  const sexo = perfilUsuario?.sexo || PERFIL_USUARIO_BASE.sexo;
+  const alturaCm =
+    Number(registroActual?.alturaCm) ||
+    Number(perfilUsuario?.alturaCm) ||
+    PERFIL_USUARIO_BASE.alturaCm;
+  const alturaMetros = (Math.round(alturaCm) / 100).toFixed(2);
+  const edadInfo = calcularEdadExacta(
+    new Date(),
+    perfilUsuario?.fechaNacimiento || PERFIL_USUARIO_BASE.fechaNacimiento
+  );
+  const tiempoInfo = calcularTiempoEntrenando(
+    new Date(),
+    perfilUsuario?.fechaInicioEntreno || PERFIL_USUARIO_BASE.fechaInicioEntreno
+  );
 
   return `
 Actúa como un preparador físico experto en seguimiento antropométrico y optimización corporal.
@@ -332,19 +378,19 @@ Compara el REGISTRO ANTERIOR del usuario contra su NUEVO REGISTRO ACTUAL${
   }.
 
 PERFIL DEL USUARIO:
-- Sexo: Hombre | Estatura: 182 cm (1.82 m) | Fecha de nacimiento: 26/11/2010 | Inicio entrenando: 01/11/2025
-- Objetivo actual: ${registroActual?.objetivo || 'Mantenimiento'}
+- Sexo: ${sexo} | Estatura: ${alturaCm} cm (${alturaMetros} m) | Fecha de nacimiento: ${edadInfo.fechaNacimiento} (${edadInfo.texto}) | Inicio entrenando: ${tiempoInfo.fechaInicio} (${tiempoInfo.texto})
+- Objetivo actual: ${registroActual?.objetivo || perfilUsuario?.objetivo || PERFIL_USUARIO_BASE.objetivo}
 
 REGISTRO ANTERIOR:
 - Fecha y hora: ${registroAnterior?.fecha || 'N/D'} a las ${registroAnterior?.hora12h || 'N/D'} (${registroAnterior?.momentoDia || 'N/D'})
-- Peso en báscula: ${registroAnterior?.pesoKg ?? 74} kg
+- Peso en báscula: ${pesoAnteriorNum} kg
 - Veredicto anterior: ${registroAnterior?.veredicto ?? 'N/D'}/10
 - Resumen simple anterior: ${registroAnterior?.resumenSimple || 'Sin resumen'}
 - Análisis detallado anterior: ${registroAnterior?.resumenDetallado || 'Sin detalle previo'}
 
 NUEVO REGISTRO ACTUAL:
 - Fecha y hora: ${registroActual?.fecha || 'N/D'} a las ${registroActual?.hora12h || 'N/D'} (${registroActual?.momentoDia || 'N/D'})
-- Peso en báscula: ${registroActual?.pesoKg ?? 74} kg (Variación de peso: ${signoPeso} kg)
+- Peso en báscula: ${pesoActualNum} kg (Variación de peso: ${signoPeso} kg)
 - Veredicto actual: ${registroActual?.veredicto ?? 'N/D'}/10
 - Resumen simple actual: ${registroActual?.resumenSimple || ''}
 - Análisis detallado actual: ${registroActual?.resumenDetallado || ''}
@@ -464,12 +510,13 @@ const solicitarAnalisis = async ({
   apiKey,
   base64Limpio,
   tipoComida,
+  contextoPerfil,
   timeoutMs,
 }) => {
   const resultado = await ejecutarLlamadaGemini({
     modelo,
     apiKey,
-    promptTexto: construirPromptAltaPrecision(tipoComida),
+    promptTexto: construirPromptAltaPrecision(tipoComida, contextoPerfil),
     imagenesBase64: [base64Limpio],
     temperature: 0.1,
     timeoutMs,
@@ -512,6 +559,7 @@ const solicitarAnalisis = async ({
 /**
  * Analiza una imagen de comida en Base64 usando la API REST de Gemini Vision.
  * Recorre la cadena de modelos (principal + respaldos) hasta que uno responda.
+ * Defensa 6 (Spec 010): carga automáticamente el perfil biométrico del usuario si no viene en opciones.
  */
 export const analizarComidaConGemini = async (
   base64Image,
@@ -524,6 +572,28 @@ export const analizarComidaConGemini = async (
   if (!base64Image || typeof base64Image !== 'string') {
     throw new GeminiError('No se recibió una imagen válida en formato Base64.');
   }
+
+  const perfil = opciones?.perfilUsuario || (await cargarPerfilUsuario());
+  const edadInfo = calcularEdadExacta(
+    new Date(),
+    perfil?.fechaNacimiento || PERFIL_USUARIO_BASE.fechaNacimiento
+  );
+  const tiempoInfo = calcularTiempoEntrenando(
+    new Date(),
+    perfil?.fechaInicioEntreno || PERFIL_USUARIO_BASE.fechaInicioEntreno
+  );
+
+  const contextoPerfil = {
+    sexo: perfil?.sexo || PERFIL_USUARIO_BASE.sexo,
+    edadTexto: edadInfo.texto,
+    alturaCm: Number(perfil?.alturaCm) || PERFIL_USUARIO_BASE.alturaCm,
+    pesoKgActual:
+      Number(perfil?.pesoKgActual) ||
+      Number(perfil?.pesoKgBase) ||
+      PERFIL_USUARIO_BASE.pesoKgBase,
+    tiempoEntrenandoTexto: tiempoInfo.texto,
+    objetivo: perfil?.objetivo || PERFIL_USUARIO_BASE.objetivo,
+  };
 
   const base64Limpio = base64Image.replace(/^data:image\/[a-zA-Z+]+;base64,/, '');
   const modelos = obtenerModelos();
@@ -544,6 +614,7 @@ export const analizarComidaConGemini = async (
         apiKey,
         base64Limpio,
         tipoComida,
+        contextoPerfil,
         timeoutMs,
       });
     } catch (error) {
@@ -665,10 +736,15 @@ export const analizarCambioFisicoConGemini = async (
 };
 
 /**
- * Compara bajo demanda el registro físico actual contra el registro anterior (RF-14, RF-15).
+ * Compara bajo demanda el registro físico actual contra el registro anterior (RF-14, RF-15, Spec 010).
  */
 export const compararCambioFisicoConGemini = async (
-  { registroActual, registroAnterior, imagenesActualesBase64 = [] } = {},
+  {
+    registroActual,
+    registroAnterior,
+    imagenesActualesBase64 = [],
+    perfilUsuario = null,
+  } = {},
   opciones = {}
 ) => {
   const { onProgreso, timeoutMs = TIMEOUT_POR_PETICION_MS } = opciones;
@@ -679,6 +755,9 @@ export const compararCambioFisicoConGemini = async (
       'Se requieren tanto el registro actual como un registro anterior para realizar la comparación.'
     );
   }
+
+  const perfilActivo =
+    perfilUsuario || opciones?.perfilUsuario || (await cargarPerfilUsuario());
 
   const fotosLimpias = Array.isArray(imagenesActualesBase64)
     ? imagenesActualesBase64
@@ -694,7 +773,8 @@ export const compararCambioFisicoConGemini = async (
   const promptTexto = construirPromptComparacionFisica(
     registroActual,
     registroAnterior,
-    fotosLimpias.length
+    fotosLimpias.length,
+    perfilActivo
   );
   const modelos = obtenerModelos();
   const fallos = [];

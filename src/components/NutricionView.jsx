@@ -86,7 +86,9 @@ function CapsulaBorradoSeguroNutricion({ onBorrar, onAvisoCorto }) {
 
 export default function NutricionView({
   comidasExternas,
+  perfilUsuario = null,
   onComidaRegistrada,
+  onAbrirEdicionPerfil,
 }) {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(obtenerFechaLocal());
   const [tipoSeleccionado, setTipoSeleccionado] = useState('Desayuno');
@@ -215,7 +217,9 @@ export default function NutricionView({
       setMensajeError('');
       setTextoProgreso('Analizando nutrientes con Gemini Vision...');
 
-      const resultado = await analizarComidaConGemini(base64, tipoSeleccionado);
+      const resultado = await analizarComidaConGemini(base64, tipoSeleccionado, {
+        perfilUsuario,
+      });
 
       setTextoProgreso('Guardando comida...');
       const nombreLimpio =
@@ -314,6 +318,36 @@ export default function NutricionView({
         <Text style={styles.subtitulo}>
           Ojo Nutricional Multimodal con Gemini · Fecha: {fechaSeleccionada}
         </Text>
+
+        {/* Insignia de Calibración Biométrica IA (Spec 010) */}
+        <TouchableOpacity
+          style={styles.insigniaCalibracionIA}
+          activeOpacity={typeof onAbrirEdicionPerfil === 'function' ? 0.8 : 1}
+          disabled={typeof onAbrirEdicionPerfil !== 'function'}
+          onPress={onAbrirEdicionPerfil}
+        >
+          <Feather
+            name="cpu"
+            size={12}
+            color={TOKENS.colors.textPrimary}
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.textoInsigniaCalibracionIA} numberOfLines={1}>
+            Calibrado IA · Objetivo: {perfilUsuario?.objetivo || 'Mantenimiento'} ·{' '}
+            {Number(
+              perfilUsuario?.pesoKgActual ?? perfilUsuario?.pesoKgBase ?? 74
+            ).toFixed(1)}{' '}
+            kg
+          </Text>
+          {typeof onAbrirEdicionPerfil === 'function' ? (
+            <Feather
+              name="sliders"
+              size={11}
+              color={TOKENS.colors.textSecondary}
+              style={{ marginLeft: 'auto' }}
+            />
+          ) : null}
+        </TouchableOpacity>
       </View>
 
       {/* Selector Semanal Superior (Spec 007) */}
@@ -526,6 +560,25 @@ export default function NutricionView({
                 </View>
               </View>
 
+              {item.detalles && String(item.detalles).trim().length > 0 ? (
+                <View style={styles.bloqueDetallesIA}>
+                  <View style={styles.filaCabeceraDetallesIA}>
+                    <Feather
+                      name="target"
+                      size={11}
+                      color={TOKENS.colors.textSecondary}
+                      style={{ marginRight: 5 }}
+                    />
+                    <Text style={styles.etiquetaDetallesIA}>
+                      EVALUACIÓN BIOMÉTRICA IA
+                    </Text>
+                  </View>
+                  <Text style={styles.textoDetallesIA}>
+                    {String(item.detalles).trim()}
+                  </Text>
+                </View>
+              ) : null}
+
               {avisoBorradoId === item.id ? (
                 <View style={styles.bannerAvisoBorrado}>
                   <Feather
@@ -585,6 +638,24 @@ const styles = StyleSheet.create({
     color: TOKENS.colors.textSecondary,
     fontSize: 12,
     marginTop: 2,
+  },
+  insigniaCalibracionIA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.sm,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    marginTop: 8,
+  },
+  textoInsigniaCalibracionIA: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+    flex: 1,
+    marginRight: 6,
   },
   bannerModoHistorial: {
     flexDirection: 'row',
@@ -884,6 +955,30 @@ const styles = StyleSheet.create({
     color: TOKENS.colors.textSecondary,
     fontSize: 11,
     fontWeight: '600',
+  },
+  bloqueDetallesIA: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.sm,
+    padding: 10,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderSubtle,
+  },
+  filaCabeceraDetallesIA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  etiquetaDetallesIA: {
+    color: TOKENS.colors.textMuted,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  textoDetallesIA: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 11,
+    lineHeight: 16,
   },
   bannerAvisoBorrado: {
     flexDirection: 'row',

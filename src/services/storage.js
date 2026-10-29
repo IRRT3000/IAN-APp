@@ -20,28 +20,55 @@ export const OBJETIVOS_PERFIL_VALIDOS = [
   'Recomposición',
 ];
 
+export const SEXOS_PERFIL_VALIDOS = ['Hombre', 'Mujer'];
+
 /**
- * Propiedades base fijas del perfil del usuario (RF-2, RF-3, RF-4).
- * Fecha de nacimiento fija: 26/11/2010 (2010-11-26).
- * Fecha de inicio de entrenamiento: 01/11/2025 (2025-11-01).
+ * Propiedades base por defecto del perfil del usuario (RF-2, RF-3, RF-4, Spec 010).
+ * Se emplean como fallback seguro antes de completar el Onboarding Biométrico.
  */
 export const PERFIL_USUARIO_BASE = {
+  nombre: '',
   alturaCm: 182,
   alturaMetros: 1.82,
   pesoKgBase: 74,
+  pesoKgActual: 74,
   sexo: 'Hombre',
   fechaNacimiento: '2010-11-26',
   fechaInicioEntreno: '2025-11-01',
   objetivo: 'Mantenimiento',
+  onboardingCompletado: false,
+  actualizadoEn: null,
 };
 
-const NACIMIENTO_ANIO = 2010;
-const NACIMIENTO_MES = 11;
-const NACIMIENTO_DIA = 26;
+const sanitizarNombrePerfil = (nombre) =>
+  String(nombre ?? '')
+    .replace(/[\r\n]+/g, ' ')
+    .trim()
+    .slice(0, 40);
 
-const INICIO_ENTRENO_ANIO = 2025;
-const INICIO_ENTRENO_MES = 11;
-const INICIO_ENTRENO_DIA = 1;
+const sanitizarAlturaCm = (valor, fallback = PERFIL_USUARIO_BASE.alturaCm) => {
+  if (valor === undefined || valor === null || valor === '') {
+    return fallback;
+  }
+  const num = Number(valor);
+  if (!Number.isFinite(num) || num <= 0) {
+    return fallback;
+  }
+  const redondeado = Math.round(num);
+  return Math.min(230, Math.max(120, redondeado));
+};
+
+const sanitizarPesoKg = (valor, fallback = PERFIL_USUARIO_BASE.pesoKgBase) => {
+  if (valor === undefined || valor === null || valor === '') {
+    return fallback;
+  }
+  const num = Number(valor);
+  if (!Number.isFinite(num) || num <= 0) {
+    return fallback;
+  }
+  const redondeado = Math.round(num * 10) / 10;
+  return Math.min(250, Math.max(30, redondeado));
+};
 
 /**
  * Calcula una fecha en formato local YYYY-MM-DD empleando el reloj del dispositivo.
@@ -56,20 +83,86 @@ export const obtenerFechaLocal = (fecha = new Date()) => {
 };
 
 /**
- * Calcula en tiempo constante O(1) la edad exacta del usuario a partir del 26/11/2010
- * usando únicamente aritmética entera sobre la fecha local (RF-2, Caso Límite 4).
- * @param {Date} [fechaReferencia=new Date()]
- * @returns {{ anios: number, fechaNacimiento: string, texto: string }}
+ * Parsea y valida una fecha local en formato YYYY-MM-DD usando aritmética entera
+ * sin invocar jamás new Date("YYYY-MM-DD") ni toISOString() (Defensa 2).
+ * Verifica años bisiestos y el número máximo de días de cada mes.
+ * @param {string} fechaISO
+ * @param {string} [fallbackISO='2010-11-26']
+ * @returns {{ anio: number, mes: number, dia: number, iso: string, legible: string }}
  */
-export const calcularEdadExacta = (fechaReferencia = new Date()) => {
+export const parsearFechaLocalYYYYMMDD = (
+  fechaISO,
+  fallbackISO = '2010-11-26'
+) => {
+  const intentarParsear = (cadena) => {
+    const limpio = String(cadena || '').trim();
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(limpio);
+    if (!match) return null;
+
+    const anio = parseInt(match[1], 10);
+    const mes = parseInt(match[2], 10);
+    const dia = parseInt(match[3], 10);
+
+    if (anio < 1900 || anio > 2100) return null;
+    if (mes < 1 || mes > 12) return null;
+
+    const maxDiasMes = new Date(anio, mes, 0).getDate();
+    if (dia < 1 || dia > maxDiasMes) return null;
+
+    const mm = String(mes).padStart(2, '0');
+    const dd = String(dia).padStart(2, '0');
+
+    return {
+      anio,
+      mes,
+      dia,
+      iso: `${anio}-${mm}-${dd}`,
+      legible: `${dd}/${mm}/${anio}`,
+    };
+  };
+
+  return (
+    intentarParsear(fechaISO) ||
+    intentarParsear(fallbackISO) || {
+      anio: 2010,
+      mes: 11,
+      dia: 26,
+      iso: '2010-11-26',
+      legible: '26/11/2010',
+    }
+  );
+};
+
+/**
+ * Calcula en tiempo constante O(1) la edad exacta del usuario a partir de su fecha de nacimiento
+ * usando únicamente aritmética entera sobre la fecha local (RF-2, Spec 010).
+ * @param {Date} [fechaReferencia=new Date()]
+ * @param {string} [fechaNacimientoISO=PERFIL_USUARIO_BASE.fechaNacimiento]
+ * @returns {{ anios: number, fechaNacimiento: string, fechaNacimientoISO: string, texto: string }}
+ */
+export const calcularEdadExacta = (
+  fechaReferencia = new Date(),
+  fechaNacimientoISO = PERFIL_USUARIO_BASE.fechaNacimiento
+) => {
+  if (typeof fechaReferencia === 'string') {
+    fechaNacimientoISO = fechaReferencia;
+    fechaReferencia = new Date();
+  } else if (!(fechaReferencia instanceof Date)) {
+    fechaReferencia = new Date();
+  }
+
+  const parsed = parsearFechaLocalYYYYMMDD(
+    fechaNacimientoISO,
+    PERFIL_USUARIO_BASE.fechaNacimiento
+  );
   const anioActual = fechaReferencia.getFullYear();
   const mesActual = fechaReferencia.getMonth() + 1;
   const diaActual = fechaReferencia.getDate();
 
-  let anios = anioActual - NACIMIENTO_ANIO;
+  let anios = anioActual - parsed.anio;
   if (
-    mesActual < NACIMIENTO_MES ||
-    (mesActual === NACIMIENTO_MES && diaActual < NACIMIENTO_DIA)
+    mesActual < parsed.mes ||
+    (mesActual === parsed.mes && diaActual < parsed.dia)
   ) {
     anios -= 1;
   }
@@ -77,25 +170,41 @@ export const calcularEdadExacta = (fechaReferencia = new Date()) => {
   const edadSegura = Math.max(0, anios);
   return {
     anios: edadSegura,
-    fechaNacimiento: '26/11/2010',
+    fechaNacimiento: parsed.legible,
+    fechaNacimientoISO: parsed.iso,
     texto: `${edadSegura} años`,
   };
 };
 
 /**
  * Calcula en tiempo constante O(1) el tiempo que el usuario lleva entrenando
- * desde el 01/11/2025 usando únicamente aritmética entera local (RF-3).
+ * desde su fecha de inicio usando únicamente aritmética entera local (RF-3, Spec 010).
  * @param {Date} [fechaReferencia=new Date()]
- * @returns {{ anios: number, meses: number, dias: number, mesesTotales: number, fechaInicio: string, texto: string }}
+ * @param {string} [fechaInicioISO=PERFIL_USUARIO_BASE.fechaInicioEntreno]
+ * @returns {{ anios: number, meses: number, dias: number, mesesTotales: number, fechaInicio: string, fechaInicioISO: string, texto: string }}
  */
-export const calcularTiempoEntrenando = (fechaReferencia = new Date()) => {
+export const calcularTiempoEntrenando = (
+  fechaReferencia = new Date(),
+  fechaInicioISO = PERFIL_USUARIO_BASE.fechaInicioEntreno
+) => {
+  if (typeof fechaReferencia === 'string') {
+    fechaInicioISO = fechaReferencia;
+    fechaReferencia = new Date();
+  } else if (!(fechaReferencia instanceof Date)) {
+    fechaReferencia = new Date();
+  }
+
+  const parsed = parsearFechaLocalYYYYMMDD(
+    fechaInicioISO,
+    PERFIL_USUARIO_BASE.fechaInicioEntreno
+  );
   const anioActual = fechaReferencia.getFullYear();
   const mesActual = fechaReferencia.getMonth() + 1;
   const diaActual = fechaReferencia.getDate();
 
   let mesesTotales =
-    (anioActual - INICIO_ENTRENO_ANIO) * 12 + (mesActual - INICIO_ENTRENO_MES);
-  let dias = diaActual - INICIO_ENTRENO_DIA;
+    (anioActual - parsed.anio) * 12 + (mesActual - parsed.mes);
+  let dias = diaActual - parsed.dia;
 
   if (dias < 0) {
     mesesTotales -= 1;
@@ -103,13 +212,14 @@ export const calcularTiempoEntrenando = (fechaReferencia = new Date()) => {
     dias += diasMesAnterior;
   }
 
-  if (mesesTotales < 0) {
+  if (mesesTotales < 0 || (mesesTotales === 0 && dias <= 0)) {
     return {
       anios: 0,
       meses: 0,
       dias: 0,
       mesesTotales: 0,
-      fechaInicio: '01/11/2025',
+      fechaInicio: parsed.legible,
+      fechaInicioISO: parsed.iso,
       texto: 'Recién iniciado',
     };
   }
@@ -133,14 +243,45 @@ export const calcularTiempoEntrenando = (fechaReferencia = new Date()) => {
     meses,
     dias,
     mesesTotales,
-    fechaInicio: '01/11/2025',
+    fechaInicio: parsed.legible,
+    fechaInicioISO: parsed.iso,
     texto: partes.join(' y '),
   };
 };
 
 /**
+ * Calcula una fecha local YYYY-MM-DD de inicio de entrenamiento a partir de
+ * años y meses de antigüedad usando aritmética entera local (Spec 010).
+ * @param {{ anios?: number, meses?: number }} [antiguedad={}]
+ * @param {Date} [fechaReferencia=new Date()]
+ * @returns {string} Fecha en formato YYYY-MM-DD
+ */
+export const calcularFechaInicioDesdeAntiguedad = (
+  { anios = 0, meses = 0 } = {},
+  fechaReferencia = new Date()
+) => {
+  const aniosLimpios = Math.max(0, Math.min(80, parseInt(anios, 10) || 0));
+  const mesesLimpios = Math.max(0, Math.min(11, parseInt(meses, 10) || 0));
+  const totalMesesRestar = aniosLimpios * 12 + mesesLimpios;
+
+  const anioRef = fechaReferencia.getFullYear();
+  const mesRef = fechaReferencia.getMonth() + 1;
+  const diaRef = fechaReferencia.getDate();
+
+  const mesesAbsolutos = anioRef * 12 + (mesRef - 1) - totalMesesRestar;
+  const anioInicio = Math.max(1900, Math.floor(mesesAbsolutos / 12));
+  const mesInicio = (((mesesAbsolutos % 12) + 12) % 12) + 1;
+  const maxDiasMesDestino = new Date(anioInicio, mesInicio, 0).getDate();
+  const diaInicio = Math.min(diaRef, maxDiasMesDestino);
+
+  const mm = String(mesInicio).padStart(2, '0');
+  const dd = String(diaInicio).padStart(2, '0');
+  return `${anioInicio}-${mm}-${dd}`;
+};
+
+/**
  * Carga el perfil físico del usuario desde AsyncStorage fusionándolo de forma inmutable
- * con las propiedades base (`182 cm`, `74 kg`, `Hombre`, `26/11/2010`, `01/11/2025`, `Mantenimiento`).
+ * con las propiedades base y sanitizando rangos biométricos (Defensa 4, Spec 010).
  * @returns {Promise<Object>}
  */
 export const cargarPerfilUsuario = async () => {
@@ -155,21 +296,164 @@ export const cargarPerfilUsuario = async () => {
       return { ...PERFIL_USUARIO_BASE };
     }
 
+    const nombreResuelto = sanitizarNombrePerfil(parsed.nombre);
+    const sexoResuelto = SEXOS_PERFIL_VALIDOS.includes(parsed.sexo)
+      ? parsed.sexo
+      : PERFIL_USUARIO_BASE.sexo;
+    const fechaNacimientoResuelta = parsearFechaLocalYYYYMMDD(
+      parsed.fechaNacimiento,
+      PERFIL_USUARIO_BASE.fechaNacimiento
+    ).iso;
+    const fechaInicioEntrenoResuelta = parsearFechaLocalYYYYMMDD(
+      parsed.fechaInicioEntreno,
+      PERFIL_USUARIO_BASE.fechaInicioEntreno
+    ).iso;
+    const alturaCmResuelta = sanitizarAlturaCm(
+      parsed.alturaCm,
+      PERFIL_USUARIO_BASE.alturaCm
+    );
+    const alturaMetrosResuelta = Math.round(alturaCmResuelta) / 100;
+    const pesoKgBaseResuelto = sanitizarPesoKg(
+      parsed.pesoKgBase,
+      PERFIL_USUARIO_BASE.pesoKgBase
+    );
+    const pesoKgActualResuelto = sanitizarPesoKg(
+      parsed.pesoKgActual,
+      pesoKgBaseResuelto
+    );
     const objetivoGuardado = OBJETIVOS_PERFIL_VALIDOS.includes(parsed.objetivo)
       ? parsed.objetivo
       : PERFIL_USUARIO_BASE.objetivo;
 
     return {
       ...PERFIL_USUARIO_BASE,
+      nombre: nombreResuelto,
+      sexo: sexoResuelto,
+      fechaNacimiento: fechaNacimientoResuelta,
+      fechaInicioEntreno: fechaInicioEntrenoResuelta,
+      alturaCm: alturaCmResuelta,
+      alturaMetros: alturaMetrosResuelta,
+      pesoKgBase: pesoKgBaseResuelto,
+      pesoKgActual: pesoKgActualResuelto,
       objetivo: objetivoGuardado,
-      pesoKgActual:
-        Number.isFinite(Number(parsed.pesoKgActual)) &&
-        Number(parsed.pesoKgActual) > 0
-          ? Math.round(Number(parsed.pesoKgActual) * 10) / 10
-          : PERFIL_USUARIO_BASE.pesoKgBase,
+      onboardingCompletado: Boolean(parsed.onboardingCompletado),
+      actualizadoEn: Number(parsed.actualizadoEn) || null,
     };
   } catch (error) {
     console.error('Error al cargar perfil del usuario:', error);
+    return { ...PERFIL_USUARIO_BASE };
+  }
+};
+
+/**
+ * Guarda de forma inmutable el perfil biométrico completo del usuario en AsyncStorage
+ * sanitizando todos los campos y marcando onboardingCompletado = true (Spec 010).
+ * @param {Object} [datosPerfil={}]
+ * @returns {Promise<Object>} Copia inmutable del perfil guardado
+ */
+export const guardarPerfilCompletoUsuario = async (datosPerfil = {}) => {
+  try {
+    const perfilActual = await cargarPerfilUsuario();
+    const hoyISO = obtenerFechaLocal(new Date());
+
+    const nombreResuelto =
+      datosPerfil.nombre !== undefined
+        ? sanitizarNombrePerfil(datosPerfil.nombre)
+        : perfilActual.nombre;
+
+    const sexoResuelto = SEXOS_PERFIL_VALIDOS.includes(datosPerfil.sexo)
+      ? datosPerfil.sexo
+      : perfilActual.sexo;
+
+    let fechaNacimientoResuelta = parsearFechaLocalYYYYMMDD(
+      datosPerfil.fechaNacimiento ?? perfilActual.fechaNacimiento,
+      perfilActual.fechaNacimiento
+    ).iso;
+    if (fechaNacimientoResuelta > hoyISO) {
+      fechaNacimientoResuelta = perfilActual.fechaNacimiento;
+    }
+
+    let fechaInicioCandidata = datosPerfil.fechaInicioEntreno;
+    if (
+      !fechaInicioCandidata &&
+      (datosPerfil.antiguedadAnios !== undefined ||
+        datosPerfil.antiguedadMeses !== undefined)
+    ) {
+      fechaInicioCandidata = calcularFechaInicioDesdeAntiguedad({
+        anios: datosPerfil.antiguedadAnios,
+        meses: datosPerfil.antiguedadMeses,
+      });
+    }
+
+    let fechaInicioEntrenoResuelta = parsearFechaLocalYYYYMMDD(
+      fechaInicioCandidata ?? perfilActual.fechaInicioEntreno,
+      perfilActual.fechaInicioEntreno
+    ).iso;
+    if (fechaInicioEntrenoResuelta > hoyISO) {
+      fechaInicioEntrenoResuelta = hoyISO;
+    }
+
+    const alturaCandidata =
+      datosPerfil.alturaCm ?? datosPerfil.estaturaCm ?? perfilActual.alturaCm;
+    const alturaCmResuelta = sanitizarAlturaCm(
+      alturaCandidata,
+      perfilActual.alturaCm
+    );
+    const alturaMetrosResuelta = Math.round(alturaCmResuelta) / 100;
+
+    const pesoBaseCandidato =
+      datosPerfil.pesoKgBase ??
+      datosPerfil.pesoInicialKg ??
+      datosPerfil.pesoKg ??
+      perfilActual.pesoKgBase;
+    const pesoKgBaseResuelto = sanitizarPesoKg(
+      pesoBaseCandidato,
+      perfilActual.pesoKgBase
+    );
+
+    let pesoKgActualResuelto = perfilActual.pesoKgActual;
+    if (!perfilActual.onboardingCompletado) {
+      pesoKgActualResuelto = pesoKgBaseResuelto;
+    } else if (
+      datosPerfil.pesoKgActual !== undefined &&
+      datosPerfil.pesoKgActual !== null
+    ) {
+      pesoKgActualResuelto = sanitizarPesoKg(
+        datosPerfil.pesoKgActual,
+        pesoKgBaseResuelto
+      );
+    } else if (
+      datosPerfil.actualizarPesoActual !== false ||
+      perfilActual.pesoKgActual === perfilActual.pesoKgBase
+    ) {
+      pesoKgActualResuelto = pesoKgBaseResuelto;
+    }
+
+    const objetivoResuelto = OBJETIVOS_PERFIL_VALIDOS.includes(
+      datosPerfil.objetivo
+    )
+      ? datosPerfil.objetivo
+      : perfilActual.objetivo;
+
+    const nuevoPerfil = {
+      ...perfilActual,
+      nombre: nombreResuelto,
+      sexo: sexoResuelto,
+      fechaNacimiento: fechaNacimientoResuelta,
+      fechaInicioEntreno: fechaInicioEntrenoResuelta,
+      alturaCm: alturaCmResuelta,
+      alturaMetros: alturaMetrosResuelta,
+      pesoKgBase: pesoKgBaseResuelto,
+      pesoKgActual: pesoKgActualResuelto,
+      objetivo: objetivoResuelto,
+      onboardingCompletado: true,
+      actualizadoEn: Date.now(),
+    };
+
+    await AsyncStorage.setItem(STORAGE_KEY_PERFIL, JSON.stringify(nuevoPerfil));
+    return { ...nuevoPerfil };
+  } catch (error) {
+    console.error('Error al guardar el perfil completo del usuario:', error);
     return { ...PERFIL_USUARIO_BASE };
   }
 };
@@ -680,9 +964,12 @@ const clonarCambioFisico = (registro) => ({
     Math.round((Number(registro?.pesoKg) || PERFIL_USUARIO_BASE.pesoKgBase) * 10) /
     10,
   alturaCm: Number(registro?.alturaCm) || PERFIL_USUARIO_BASE.alturaCm,
-  edadExacta: Number(registro?.edadExacta) || calcularEdadExacta().anios,
+  edadExacta:
+    Number(registro?.edadExacta) ||
+    calcularEdadExacta(new Date(), registro?.fechaNacimiento).anios,
   tiempoEntrenandoTexto: String(
-    registro?.tiempoEntrenandoTexto ?? calcularTiempoEntrenando().texto
+    registro?.tiempoEntrenandoTexto ??
+      calcularTiempoEntrenando(new Date(), registro?.fechaInicioEntreno).texto
   ),
   objetivo: String(registro?.objetivo ?? PERFIL_USUARIO_BASE.objetivo),
   urisFotos: Array.isArray(registro?.urisFotos)
