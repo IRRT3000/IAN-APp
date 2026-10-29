@@ -36,7 +36,8 @@
 
 ## 3. Coreografía y Flujo de Pantallas
 - **`src/components/OnboardingBienvenidaModal.jsx`**:
-  - Modal de 4 escenas con barra superior de progreso animada con `react-native-reanimated`, transiciones suaves entre pasos, detección de teclado para proteger la Thumb-Zone y modo dual (`modoEdicion = false` en primer uso vs `modoEdicion = true` al re-calibrar).
+  - Modal coreografiado con barra superior de progreso animada con `react-native-reanimated`, transiciones suaves entre pasos, detección de teclado para proteger la Thumb-Zone y modo dual (`modoEdicion = false` en primer uso vs `modoEdicion = true` al re-calibrar).
+  - **Refinamiento del Paso 03 (`Experiencia bajo la barra`)**: El usuario ingresa la fecha exacta de inicio de entrenamiento mediante un selector táctil de 3 columnas (`DÍA`, `MES`, `AÑO`) bloqueando fechas futuras mayores al día local de hoy, acompañado de un único botón rápido superior `"Empecé hoy (Usar fecha actual)"` y una tarjeta en vivo que muestra el cálculo exacto en años, meses y días mediante `calcularTiempoEntrenando`.
 - **`App.js`**:
   - Coordina `onboardingVisible` y `modoEdicionPerfil`, intercepta `BackHandler` en Android y expone `abrirEdicionPerfil` con transición limpia desde `PanelConfiguracionLateral`.
 - **Vistas Conectadas**:

@@ -29,7 +29,6 @@ import {
   PERFIL_USUARIO_BASE,
   SEXOS_PERFIL_VALIDOS,
   calcularEdadExacta,
-  calcularFechaInicioDesdeAntiguedad,
   calcularTiempoEntrenando,
   guardarPerfilCompletoUsuario,
   parsearFechaLocalYYYYMMDD,
@@ -86,13 +85,6 @@ const PILARES_HERO = [
     titulo: 'Análisis Físico IA',
     subtitulo: 'Evaluación contextualizada según tu estatura, etapa física y tiempo entrenando.',
   },
-];
-
-const PRESETS_ANTIGUEDAD = [
-  { id: 'recien', label: 'Recién empiezo', sub: '0 meses', anios: 0, meses: 0 },
-  { id: '6m', label: '6 meses', sub: 'Base inicial', anios: 0, meses: 6 },
-  { id: '1a', label: '1 año', sub: 'Intermedio', anios: 1, meses: 0 },
-  { id: '2a', label: '2+ años', sub: 'Avanzado', anios: 2, meses: 0 },
 ];
 
 const CATALOGO_OBJETIVOS = [
@@ -245,9 +237,9 @@ export default function OnboardingBienvenidaModal({
   const [estaturaCm, setEstaturaCm] = useState(175);
   const [pesoInicialKg, setPesoInicialKg] = useState(75.0);
 
-  const [aniosEntreno, setAniosEntreno] = useState(0);
-  const [mesesEntreno, setMesesEntreno] = useState(6);
-  const [antiguedadModificada, setAntiguedadModificada] = useState(false);
+  const [anioInicio, setAnioInicio] = useState(2025);
+  const [mesInicio, setMesInicio] = useState(11);
+  const [diaInicio, setDiaInicio] = useState(1);
 
   const [objetivo, setObjetivo] = useState('Recomposición');
 
@@ -329,6 +321,7 @@ export default function OnboardingBienvenidaModal({
     setSexo(SEXOS_PERFIL_VALIDOS.includes(base.sexo) ? base.sexo : 'Hombre');
 
     const fechaNacParsed = parsearFechaLocalYYYYMMDD(base.fechaNacimiento);
+    let yNacResuelto = Math.max(minAnioPermitido, Math.min(maxAnioPermitido, 2000));
     if (fechaNacParsed) {
       const y = Math.max(
         minAnioPermitido,
@@ -337,12 +330,12 @@ export default function OnboardingBienvenidaModal({
       const m = fechaNacParsed.mes;
       const maxD = obtenerMaxDiasMes(y, m);
       const d = Math.min(fechaNacParsed.dia, maxD);
+      yNacResuelto = y;
       setAnioNac(y);
       setMesNac(m);
       setDiaNac(d);
     } else {
-      const defaultY = Math.max(minAnioPermitido, Math.min(maxAnioPermitido, 2000));
-      setAnioNac(defaultY);
+      setAnioNac(yNacResuelto);
       setMesNac(1);
       setDiaNac(1);
     }
@@ -355,15 +348,32 @@ export default function OnboardingBienvenidaModal({
       Number.isFinite(peso) && peso >= 30 && peso <= 250 ? Number(peso.toFixed(1)) : 75.0
     );
 
-    const tiempo = calcularTiempoEntrenando(new Date(), base.fechaInicioEntreno);
-    if (tiempo) {
-      setAniosEntreno(Math.max(0, Math.min(30, tiempo.anios)));
-      setMesesEntreno(Math.max(0, Math.min(11, tiempo.meses)));
-    } else {
-      setAniosEntreno(0);
-      setMesesEntreno(6);
-    }
-    setAntiguedadModificada(false);
+    const hoyLocal = new Date();
+    const anioHoy = hoyLocal.getFullYear();
+    const mesHoy = hoyLocal.getMonth() + 1;
+    const diaHoy = hoyLocal.getDate();
+
+    const minAnioIni = Math.max(1950, yNacResuelto + 5, anioHoy - 60);
+    const fechaIniParsed = parsearFechaLocalYYYYMMDD(
+      base.fechaInicioEntreno,
+      PERFIL_USUARIO_BASE.fechaInicioEntreno
+    );
+    const yIni = Math.max(
+      minAnioIni,
+      Math.min(anioHoy, fechaIniParsed?.anio || anioHoy)
+    );
+    const maxMIni = yIni >= anioHoy ? mesHoy : 12;
+    const mIni = Math.max(1, Math.min(maxMIni, fechaIniParsed?.mes || 1));
+    const maxCalendarioIni = obtenerMaxDiasMes(yIni, mIni);
+    const maxDIni =
+      yIni >= anioHoy && mIni >= mesHoy
+        ? Math.min(diaHoy, maxCalendarioIni)
+        : maxCalendarioIni;
+    const dIni = Math.max(1, Math.min(maxDIni, fechaIniParsed?.dia || 1));
+
+    setAnioInicio(yIni);
+    setMesInicio(mIni);
+    setDiaInicio(dIni);
 
     setObjetivo(
       OBJETIVOS_PERFIL_VALIDOS.includes(base.objetivo) ? base.objetivo : 'Recomposición'
@@ -558,32 +568,64 @@ export default function OnboardingBienvenidaModal({
     );
   }, [imcCalculado, estaturaCm, pesoInicialKg, escena, imcProgressSV, metricaPulseSV]);
 
-  // Defensa 3: Fecha de inicio de entreno respetando modoEdicion si no se tocó la antigüedad
-  const fechaInicioEntrenoEfectiva = useMemo(() => {
-    if (
-      modoEdicion &&
-      !antiguedadModificada &&
-      perfilInicial?.fechaInicioEntreno &&
-      parsearFechaLocalYYYYMMDD(perfilInicial.fechaInicioEntreno)
-    ) {
-      return perfilInicial.fechaInicioEntreno;
+  // Defensas A, B y C: Fecha exacta de inicio de entreno acotada contra fechas futuras
+  const minAnioInicioPermitido = Math.max(1950, anioNac + 5, anioActual - 60);
+  const maxAnioInicioPermitido = anioActual;
+
+  const obtenerMaxMesInicio = useCallback((anioEval) => {
+    const hoy = new Date();
+    const anioHoy = hoy.getFullYear();
+    const mesHoy = hoy.getMonth() + 1;
+    return anioEval >= anioHoy ? mesHoy : 12;
+  }, []);
+
+  const obtenerMaxDiaInicio = useCallback((anioEval, mesEval) => {
+    const hoy = new Date();
+    const anioHoy = hoy.getFullYear();
+    const mesHoy = hoy.getMonth() + 1;
+    const diaHoy = hoy.getDate();
+    const maxCalendario = obtenerMaxDiasMes(anioEval, mesEval);
+    if (anioEval >= anioHoy && mesEval >= mesHoy) {
+      return Math.min(diaHoy, maxCalendario);
     }
-    return calcularFechaInicioDesdeAntiguedad({
-      anios: aniosEntreno,
-      meses: mesesEntreno,
-    });
-  }, [modoEdicion, antiguedadModificada, perfilInicial, aniosEntreno, mesesEntreno]);
+    return maxCalendario;
+  }, []);
+
+  const anioInicioSeguro = Math.max(
+    minAnioInicioPermitido,
+    Math.min(maxAnioInicioPermitido, anioInicio)
+  );
+  const maxMesInicioActual = obtenerMaxMesInicio(anioInicioSeguro);
+  const mesInicioSeguro = Math.max(1, Math.min(maxMesInicioActual, mesInicio));
+  const maxDiaInicioActual = obtenerMaxDiaInicio(anioInicioSeguro, mesInicioSeguro);
+  const diaInicioSeguro = Math.max(1, Math.min(maxDiaInicioActual, diaInicio));
+
+  const fechaInicioEntrenoEfectiva = useMemo(() => {
+    const y = String(anioInicioSeguro).padStart(4, '0');
+    const m = String(mesInicioSeguro).padStart(2, '0');
+    const d = String(diaInicioSeguro).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }, [anioInicioSeguro, mesInicioSeguro, diaInicioSeguro]);
+
+  const esFechaInicioHoy = useMemo(() => {
+    const hoy = new Date();
+    return (
+      anioInicioSeguro === hoy.getFullYear() &&
+      mesInicioSeguro === hoy.getMonth() + 1 &&
+      diaInicioSeguro === hoy.getDate()
+    );
+  }, [anioInicioSeguro, mesInicioSeguro, diaInicioSeguro]);
 
   const resumenTiempoEntreno = useMemo(
     () =>
       calcularTiempoEntrenando(new Date(), fechaInicioEntrenoEfectiva) || {
-        anios: aniosEntreno,
-        meses: mesesEntreno,
+        anios: 0,
+        meses: 0,
         dias: 0,
-        mesesTotales: aniosEntreno * 12 + mesesEntreno,
+        mesesTotales: 0,
         texto: 'Recién iniciado',
       },
-    [fechaInicioEntrenoEfectiva, aniosEntreno, mesesEntreno]
+    [fechaInicioEntrenoEfectiva]
   );
 
   const nivelExperienciaIA = useMemo(() => {
@@ -675,40 +717,65 @@ export default function OnboardingBienvenidaModal({
     });
   };
 
-  const aplicarPresetAntiguedad = (preset) => {
+  const dispararPulsoTimeline = () => {
+    timelinePulseSV.value = withSequence(
+      withTiming(1.03, { duration: 95 }),
+      withSpring(1, SPRING_SNAPPY)
+    );
+  };
+
+  const seleccionarEmpeceHoy = () => {
     vibrarToqueComparacion();
-    setAntiguedadModificada(true);
-    setAniosEntreno(preset.anios);
-    setMesesEntreno(preset.meses);
-    timelinePulseSV.value = withSequence(
-      withTiming(1.03, { duration: 100 }),
-      withSpring(1, SPRING_SNAPPY)
-    );
+    const hoy = new Date();
+    setAnioInicio(hoy.getFullYear());
+    setMesInicio(hoy.getMonth() + 1);
+    setDiaInicio(hoy.getDate());
+    dispararPulsoTimeline();
   };
 
-  const ajustarAniosEntreno = (delta) => {
+  const ajustarDiaInicio = (delta) => {
     vibrarSeleccionBascula();
-    setAntiguedadModificada(true);
-    setAniosEntreno((prev) => Math.max(0, Math.min(30, prev + delta)));
-    timelinePulseSV.value = withSequence(
-      withTiming(1.03, { duration: 90 }),
-      withSpring(1, SPRING_SNAPPY)
-    );
-  };
-
-  const ajustarMesesEntreno = (delta) => {
-    vibrarSeleccionBascula();
-    setAntiguedadModificada(true);
-    setMesesEntreno((prev) => {
-      let sig = prev + delta;
-      if (sig > 11) sig = 0;
-      if (sig < 0) sig = 11;
+    const maxD = obtenerMaxDiaInicio(anioInicioSeguro, mesInicioSeguro);
+    setDiaInicio((prev) => {
+      const baseDia = Math.min(prev, maxD);
+      let sig = baseDia + delta;
+      if (sig > maxD) sig = 1;
+      if (sig < 1) sig = maxD;
       return sig;
     });
-    timelinePulseSV.value = withSequence(
-      withTiming(1.03, { duration: 90 }),
-      withSpring(1, SPRING_SNAPPY)
-    );
+    dispararPulsoTimeline();
+  };
+
+  const ajustarMesInicio = (delta) => {
+    vibrarSeleccionBascula();
+    const maxM = obtenerMaxMesInicio(anioInicioSeguro);
+    setMesInicio((prevMes) => {
+      const baseMes = Math.min(prevMes, maxM);
+      let nuevoMes = baseMes + delta;
+      if (nuevoMes > maxM) nuevoMes = 1;
+      if (nuevoMes < 1) nuevoMes = maxM;
+      const maxD = obtenerMaxDiaInicio(anioInicioSeguro, nuevoMes);
+      setDiaInicio((prevDia) => Math.min(prevDia, maxD));
+      return nuevoMes;
+    });
+    dispararPulsoTimeline();
+  };
+
+  const ajustarAnioInicio = (delta) => {
+    vibrarSeleccionBascula();
+    setAnioInicio((prevAnio) => {
+      const nuevoAnio = Math.max(
+        minAnioInicioPermitido,
+        Math.min(maxAnioInicioPermitido, prevAnio + delta)
+      );
+      const maxM = obtenerMaxMesInicio(nuevoAnio);
+      const mesAcotado = Math.min(mesInicioSeguro, maxM);
+      setMesInicio(mesAcotado);
+      const maxD = obtenerMaxDiaInicio(nuevoAnio, mesAcotado);
+      setDiaInicio((prevDia) => Math.min(prevDia, maxD));
+      return nuevoAnio;
+    });
+    dispararPulsoTimeline();
   };
 
   const seleccionarObjetivo = (nuevoObj) => {
@@ -730,6 +797,20 @@ export default function OnboardingBienvenidaModal({
       }
       if (edadCalculada === null || edadCalculada < 10 || edadCalculada > 100) {
         setErrorValidacion('Verifica tu fecha de nacimiento (entre 10 y 90 años).');
+        vibrarInicioPresionBorrado();
+        return false;
+      }
+    }
+    if (escena === 3) {
+      const hoy = new Date();
+      const hoyISO = `${String(hoy.getFullYear()).padStart(4, '0')}-${String(
+        hoy.getMonth() + 1
+      ).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+      const parsedIni = parsearFechaLocalYYYYMMDD(fechaInicioEntrenoEfectiva);
+      if (!parsedIni || parsedIni.iso > hoyISO) {
+        setErrorValidacion(
+          'La fecha de inicio de entrenamiento no puede ser posterior al día de hoy.'
+        );
         vibrarInicioPresionBorrado();
         return false;
       }
@@ -1426,118 +1507,154 @@ export default function OnboardingBienvenidaModal({
 
   const renderPaso3Antiguedad = () => (
     <View style={styles.stepBlocksContainer}>
-      {/* Bloque 1: Presets rápidos */}
+      {/* Bloque 1: Encabezado + Botón Rápido "Empecé hoy (Usar fecha actual)" */}
       <Animated.View style={[styles.stepBlock, bloque1AnimStyle]}>
         <Text style={styles.stepKicker}>PASO 03 · TIEMPO ENTRENANDO</Text>
         <Text style={styles.stepTitle}>Experiencia bajo la barra</Text>
         <Text style={styles.stepSubtitle}>
-          Tu antigüedad se guarda como fecha de inicio para que tu experiencia crezca mes
-          a mes sin quedar congelada.
+          Selecciona el día, mes y año en que comenzaste a entrenar para que tu
+          antigüedad avance día a día con exactitud.
         </Text>
 
-        <Text style={styles.fieldLabel}>SELECCIÓN RÁPIDA</Text>
-        <View style={styles.presetsGrid}>
-          {PRESETS_ANTIGUEDAD.map((preset) => {
-            const activo =
-              aniosEntreno === preset.anios && mesesEntreno === preset.meses;
-            return (
-              <View key={preset.id} style={styles.presetCell}>
-                <BotonInteractivo
-                  accessibilityLabel={preset.label}
-                  onPress={() => aplicarPresetAntiguedad(preset)}
-                  style={[styles.presetCard, activo && styles.presetCardActive]}
-                >
-                  <Text
-                    style={[styles.presetCardTitle, activo && styles.presetCardTitleActive]}
-                  >
-                    {preset.label}
-                  </Text>
-                  <Text
-                    style={[styles.presetCardSub, activo && styles.presetCardSubActive]}
-                  >
-                    {preset.sub}
-                  </Text>
-                </BotonInteractivo>
-              </View>
-            );
-          })}
-        </View>
+        <BotonInteractivo
+          accessibilityLabel="Empecé hoy (Usar fecha actual)"
+          onPress={seleccionarEmpeceHoy}
+          style={[
+            styles.startedTodayButton,
+            esFechaInicioHoy && styles.startedTodayButtonActive,
+          ]}
+        >
+          <Feather
+            name={esFechaInicioHoy ? 'check-circle' : 'calendar'}
+            size={18}
+            color={
+              esFechaInicioHoy
+                ? TOKENS.colors.textInverse
+                : TOKENS.colors.textPrimary
+            }
+          />
+          <Text
+            style={[
+              styles.startedTodayButtonText,
+              esFechaInicioHoy && styles.startedTodayButtonTextActive,
+            ]}
+          >
+            Empecé hoy (Usar fecha actual)
+          </Text>
+        </BotonInteractivo>
       </Animated.View>
 
-      {/* Bloque 2: Contadores de Años y Meses */}
+      {/* Bloque 2: Selector Táctil de 3 Columnas (DÍA, MES, AÑO) */}
       <Animated.View style={[styles.stepBlock, bloque2AnimStyle]}>
-        <Text style={styles.fieldLabel}>AJUSTE PRECISO DE ANTIGÜEDAD</Text>
-        <View style={styles.dualCountersRow}>
-          {/* Contador Años */}
-          <View style={styles.counterCard}>
-            <Text style={styles.spinnerColLabel}>AÑOS (0–30)</Text>
-            <View style={styles.counterControlRow}>
-              <BotonInteractivo
-                accessibilityLabel="Menos 1 año de entreno"
-                onPress={() => ajustarAniosEntreno(-1)}
-                scaleDown={0.92}
-                style={styles.counterSquareBtn}
-              >
-                <Feather name="minus" size={18} color={TOKENS.colors.textPrimary} />
-              </BotonInteractivo>
-              <Text style={styles.counterBigNumber}>
-                {String(aniosEntreno).padStart(2, '0')}
+        <View style={styles.sectionHeaderSpread}>
+          <Text style={styles.fieldLabel}>FECHA DE INICIO</Text>
+          <Text style={styles.fieldSubtleHint}>
+            {formatearFechaLegible(fechaInicioEntrenoEfectiva)}
+          </Text>
+        </View>
+
+        <View style={styles.dateSpinnersGrid}>
+          {/* Columna Día */}
+          <View style={styles.dateSpinnerColumn}>
+            <Text style={styles.spinnerColLabel}>DÍA</Text>
+            <BotonInteractivo
+              accessibilityLabel="Aumentar día de inicio"
+              onPress={() => ajustarDiaInicio(1)}
+              scaleDown={0.93}
+              style={styles.spinnerTouchBtn}
+            >
+              <Feather name="plus" size={18} color={TOKENS.colors.textPrimary} />
+            </BotonInteractivo>
+            <View style={styles.spinnerValueBox}>
+              <Text style={styles.spinnerValueText}>
+                {String(diaInicioSeguro).padStart(2, '0')}
               </Text>
-              <BotonInteractivo
-                accessibilityLabel="Más 1 año de entreno"
-                onPress={() => ajustarAniosEntreno(1)}
-                scaleDown={0.92}
-                style={styles.counterSquareBtn}
-              >
-                <Feather name="plus" size={18} color={TOKENS.colors.textPrimary} />
-              </BotonInteractivo>
             </View>
+            <BotonInteractivo
+              accessibilityLabel="Disminuir día de inicio"
+              onPress={() => ajustarDiaInicio(-1)}
+              scaleDown={0.93}
+              style={styles.spinnerTouchBtn}
+            >
+              <Feather name="minus" size={18} color={TOKENS.colors.textPrimary} />
+            </BotonInteractivo>
           </View>
 
-          {/* Contador Meses */}
-          <View style={styles.counterCard}>
-            <Text style={styles.spinnerColLabel}>MESES (0–11)</Text>
-            <View style={styles.counterControlRow}>
-              <BotonInteractivo
-                accessibilityLabel="Menos 1 mes de entreno"
-                onPress={() => ajustarMesesEntreno(-1)}
-                scaleDown={0.92}
-                style={styles.counterSquareBtn}
-              >
-                <Feather name="minus" size={18} color={TOKENS.colors.textPrimary} />
-              </BotonInteractivo>
-              <Text style={styles.counterBigNumber}>
-                {String(mesesEntreno).padStart(2, '0')}
+          {/* Columna Mes */}
+          <View style={styles.dateSpinnerColumn}>
+            <Text style={styles.spinnerColLabel}>MES</Text>
+            <BotonInteractivo
+              accessibilityLabel="Aumentar mes de inicio"
+              onPress={() => ajustarMesInicio(1)}
+              scaleDown={0.93}
+              style={styles.spinnerTouchBtn}
+            >
+              <Feather name="plus" size={18} color={TOKENS.colors.textPrimary} />
+            </BotonInteractivo>
+            <View style={styles.spinnerValueBox}>
+              <Text style={styles.spinnerValueText}>
+                {MESES_CORTOS[mesInicioSeguro - 1] || 'ENE'}
               </Text>
-              <BotonInteractivo
-                accessibilityLabel="Más 1 mes de entreno"
-                onPress={() => ajustarMesesEntreno(1)}
-                scaleDown={0.92}
-                style={styles.counterSquareBtn}
-              >
-                <Feather name="plus" size={18} color={TOKENS.colors.textPrimary} />
-              </BotonInteractivo>
+              <Text style={styles.spinnerSubNumber}>
+                {String(mesInicioSeguro).padStart(2, '0')}
+              </Text>
             </View>
+            <BotonInteractivo
+              accessibilityLabel="Disminuir mes de inicio"
+              onPress={() => ajustarMesInicio(-1)}
+              scaleDown={0.93}
+              style={styles.spinnerTouchBtn}
+            >
+              <Feather name="minus" size={18} color={TOKENS.colors.textPrimary} />
+            </BotonInteractivo>
+          </View>
+
+          {/* Columna Año */}
+          <View style={styles.dateSpinnerColumn}>
+            <Text style={styles.spinnerColLabel}>AÑO</Text>
+            <BotonInteractivo
+              accessibilityLabel="Aumentar año de inicio"
+              onPress={() => ajustarAnioInicio(1)}
+              scaleDown={0.93}
+              style={styles.spinnerTouchBtn}
+            >
+              <Feather name="plus" size={18} color={TOKENS.colors.textPrimary} />
+            </BotonInteractivo>
+            <View style={styles.spinnerValueBox}>
+              <Text style={styles.spinnerValueText}>{String(anioInicioSeguro)}</Text>
+            </View>
+            <BotonInteractivo
+              accessibilityLabel="Disminuir año de inicio"
+              onPress={() => ajustarAnioInicio(-1)}
+              scaleDown={0.93}
+              style={styles.spinnerTouchBtn}
+            >
+              <Feather name="minus" size={18} color={TOKENS.colors.textPrimary} />
+            </BotonInteractivo>
           </View>
         </View>
       </Animated.View>
 
-      {/* Bloque 3: Tarjeta de Línea de Tiempo Viva */}
+      {/* Bloque 3: Tarjeta de Línea de Tiempo en Vivo Protagonista */}
       <Animated.View
         style={[styles.stepBlock, bloque3AnimStyle, timelineAnimStyle]}
       >
         <View style={styles.timelineLiveCard}>
           <View style={styles.timelineHeaderRow}>
+            <Text style={styles.timelineKickerLabel}>TIEMPO ENTRENANDO EN VIVO</Text>
             <View style={styles.timelineBadgePill}>
               <Feather name="clock" size={12} color={TOKENS.colors.textInverse} />
               <Text style={styles.timelineBadgePillText}>
-                {`ENTRENANDO DESDE: ${formatearFechaLegible(fechaInicioEntrenoEfectiva)}`}
+                {`INICIO: ${formatearFechaLegible(fechaInicioEntrenoEfectiva)}`}
               </Text>
             </View>
-            <Text style={styles.timelineElapsedLabel}>
-              {resumenTiempoEntreno.texto}
-            </Text>
           </View>
+
+          <Text style={styles.timelineHeroDuration}>
+            {resumenTiempoEntreno.texto}
+          </Text>
+
+          <View style={styles.timelineCalibrationDivider} />
 
           <Text style={styles.timelineLevelTitle}>{nivelExperienciaIA.nivel}</Text>
           <Text style={styles.timelineLevelDesc}>{nivelExperienciaIA.detalle}</Text>
@@ -2505,82 +2622,31 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 
-  // PASO 3: Antigüedad Entrenando
-  presetsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  presetCell: {
-    width: '48%',
-    flexGrow: 1,
-  },
-  presetCard: {
+  // PASO 3: Antigüedad Entrenando (Fecha Exacta de Inicio)
+  startedTodayButton: {
+    minHeight: 50,
+    borderRadius: 12,
     backgroundColor: TOKENS.colors.surface,
     borderWidth: 1,
-    borderColor: TOKENS.colors.borderDefault,
-    borderRadius: 12,
-    paddingVertical: 13,
-    paddingHorizontal: 14,
-    minHeight: 62,
+    borderColor: TOKENS.colors.borderStrong,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 16,
+    gap: 10,
   },
-  presetCardActive: {
+  startedTodayButtonActive: {
     backgroundColor: TOKENS.colors.accentWhite,
     borderColor: TOKENS.colors.accentWhite,
   },
-  presetCardTitle: {
+  startedTodayButtonText: {
     color: TOKENS.colors.textPrimary,
     fontSize: 14,
     fontWeight: '800',
-    marginBottom: 2,
+    letterSpacing: -0.1,
   },
-  presetCardTitleActive: {
+  startedTodayButtonTextActive: {
     color: TOKENS.colors.textInverse,
-  },
-  presetCardSub: {
-    color: TOKENS.colors.textSecondary,
-    fontSize: 11.5,
-  },
-  presetCardSubActive: {
-    color: '#2C2C2C',
-    fontWeight: '600',
-  },
-  dualCountersRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  counterCard: {
-    flex: 1,
-    backgroundColor: TOKENS.colors.surface,
-    borderWidth: 1,
-    borderColor: TOKENS.colors.borderDefault,
-    borderRadius: TOKENS.radii.md,
-    padding: 14,
-    alignItems: 'center',
-    gap: 12,
-  },
-  counterControlRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  counterSquareBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: TOKENS.colors.surfaceElevated,
-    borderWidth: 1,
-    borderColor: TOKENS.colors.borderStrong,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  counterBigNumber: {
-    color: TOKENS.colors.textPrimary,
-    fontSize: 24,
-    fontWeight: '900',
-    fontVariant: ['tabular-nums'],
   },
   timelineLiveCard: {
     backgroundColor: TOKENS.colors.surfaceElevated,
@@ -2596,6 +2662,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexWrap: 'wrap',
     gap: 8,
+  },
+  timelineKickerLabel: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.1,
   },
   timelineBadgePill: {
     flexDirection: 'row',
@@ -2613,17 +2685,24 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
     fontVariant: ['tabular-nums'],
   },
-  timelineElapsedLabel: {
+  timelineHeroDuration: {
     color: TOKENS.colors.textPrimary,
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    fontVariant: ['tabular-nums'],
+    marginTop: 2,
+  },
+  timelineCalibrationDivider: {
+    height: 1,
+    backgroundColor: TOKENS.colors.borderDefault,
+    marginVertical: 4,
   },
   timelineLevelTitle: {
     color: TOKENS.colors.textPrimary,
-    fontSize: 12,
+    fontSize: 11.5,
     fontWeight: '800',
     letterSpacing: 0.8,
-    marginTop: 4,
   },
   timelineLevelDesc: {
     color: TOKENS.colors.textSecondary,
