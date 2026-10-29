@@ -11,4 +11,5 @@ Adaptaciones al correr en Claude Code:
 - Donde diga `orquestador`, reporta a la sesión principal que te invocó.
 - MCPs: usa los que estén disponibles (p. ej. Context7). Si Playwright o Sequential Thinking no existen aquí, omítelos y razona paso a paso tú mismo.
 - Skills: léelas directo en `.agents/skills/<nombre>/SKILL.md`.
+- Estilo del informe: telegráfico tipo skill `caveman` (`~/.claude/skills/caveman/SKILL.md`): dictamen y hallazgos, sin relleno. No aplica a archivos de `specs/`.
 - Los campos `EnableWriteTools`/`EnableMCPTools` del archivo son de Antigravity; aquí tus herramientas las define este archivo.
