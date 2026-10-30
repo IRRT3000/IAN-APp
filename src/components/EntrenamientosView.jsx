@@ -18,6 +18,7 @@ import { Feather } from '@expo/vector-icons';
 import SelectorSemanal from './SelectorSemanal';
 import CatalogoEjerciciosModal from './CatalogoEjerciciosModal';
 import LiveModeModal from './LiveModeModal';
+import CalculadoraPesoModal from './CalculadoraPesoModal';
 import {
   cargarCatalogoPersonalizado,
   cargarSesionActivaDraft,
@@ -261,6 +262,7 @@ export default function EntrenamientosView({
 }) {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(obtenerFechaLocal());
   const [catalogoModalVisible, setCatalogoModalVisible] = useState(false);
+  const [calculadoraVisible, setCalculadoraVisible] = useState(false);
   const [liveModeVisible, setLiveModeVisible] = useState(false);
   const [ejercicioActivo, setEjercicioActivo] = useState(null);
   const [draftSesion, setDraftSesion] = useState(null);
@@ -454,12 +456,33 @@ export default function EntrenamientosView({
       ) : null}
 
       <View style={styles.encabezadoLista}>
-        <Text style={styles.tituloSeccion}>
-          {esHoy ? 'Entrenamientos de Hoy' : `Sesión del ${fechaSeleccionada}`}
-        </Text>
-        <Text style={styles.contadorLista}>
-          {entrenamientosFecha.length} ejercicio(s)
-        </Text>
+        <View style={styles.columnaTituloEncabezado}>
+          <Text style={styles.tituloSeccion}>
+            {esHoy ? 'Entrenamientos de Hoy' : `Sesión del ${fechaSeleccionada}`}
+          </Text>
+          <Text style={styles.contadorLista}>
+            {entrenamientosFecha.length} ejercicio(s)
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.botonCalculadoraPastilla}
+          activeOpacity={0.7}
+          onPress={() => {
+            vibrarSeleccionBascula();
+            setCalculadoraVisible(true);
+          }}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel="Abrir calculadora de conversión de peso"
+        >
+          <Feather
+            name="repeat"
+            size={13}
+            color={TOKENS.colors.textPrimary}
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.textoBotonCalculadoraPastilla}>Lbs ⟷ Kg</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -514,6 +537,11 @@ export default function EntrenamientosView({
         onTerminarEjercicio={manejarTerminarLiveMode}
         onDescartarEjercicio={manejarDescartarLiveMode}
       />
+
+      <CalculadoraPesoModal
+        visible={calculadoraVisible}
+        onCerrar={() => setCalculadoraVisible(false)}
+      />
     </View>
   );
 }
@@ -556,6 +584,27 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: -0.2,
+  },
+  columnaTituloEncabezado: {
+    flex: 1,
+    marginRight: 8,
+  },
+  botonCalculadoraPastilla: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    borderRadius: TOKENS.radii.pill,
+    paddingHorizontal: 12,
+    minHeight: 44,
+  },
+  textoBotonCalculadoraPastilla: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   encabezadoLista: {
     flexDirection: 'row',

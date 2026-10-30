@@ -1,0 +1,40 @@
+# .claudeignore — Exclusiones para optimizar tokens y contexto en Claude Code
+
+# Archivos de bloqueo masivos (evita inyecciones de cientos de miles de tokens)
+package-lock.json
+skills-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Assets binarios e imagenes (Claude no necesita leer bytes de imagenes)
+assets/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.ico
+*.svg
+*.ttf
+*.otf
+
+# Dependencias y compilaciones nativas/temporales
+node_modules/
+.expo/
+.bundle-check/
+dist/
+web-build/
+ios/
+android/
+.kotlin/
+
+# Reportes y cobertura
+coverage/
+*.lcov
+
+# Secretos y entorno
+.env*
+
+# NOTA: La carpeta specs/ SE MANTIENE 100% VISIBLE para que Claude pueda leer,
+# planificar y revisar cualquier spec nueva o existente.
+!specs/**

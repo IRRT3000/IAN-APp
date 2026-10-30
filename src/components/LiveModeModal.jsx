@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import CalculadoraPesoModal from './CalculadoraPesoModal';
 import {
   eliminarSesionActivaDraft,
   guardarSesionActivaDraft,
@@ -38,6 +39,7 @@ export default function LiveModeModal({
   const [errorValidacion, setErrorValidacion] = useState('');
   const [seriesInvalidas, setSeriesInvalidas] = useState([]);
   const [tecladoVisible, setTecladoVisible] = useState(false);
+  const [calculadoraVisible, setCalculadoraVisible] = useState(false);
   const autoSaveTimerRef = useRef(null);
 
   useEffect(() => {
@@ -296,7 +298,17 @@ export default function LiveModeModal({
           </View>
 
           {/* Elemento de balance visual para centrar perfectamente el badge */}
-          <View style={styles.espacioBalanceCabecera} />
+          <TouchableOpacity
+            style={styles.botonCalculadoraCabecera}
+            onPress={() => {
+              vibrarSeleccionBascula();
+              setCalculadoraVisible(true);
+            }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityLabel="Abrir calculadora de conversión de peso"
+          >
+            <Feather name="repeat" size={18} color={TOKENS.colors.textSecondary} />
+          </TouchableOpacity>
         </View>
 
         {/* Contenido scrolleable */}
@@ -480,6 +492,11 @@ export default function LiveModeModal({
             </TouchableOpacity>
           </View>
         )}
+
+        <CalculadoraPesoModal
+          visible={calculadoraVisible}
+          onCerrar={() => setCalculadoraVisible(false)}
+        />
       </View>
     </Modal>
   );
@@ -529,9 +546,11 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.8,
   },
-  espacioBalanceCabecera: {
-    width: 40,
-    height: 40,
+  botonCalculadoraCabecera: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollContenido: {
     flex: 1,
