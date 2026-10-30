@@ -6,6 +6,10 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 - Specs completadas: 001 a 011 (borrado seguro, físico IA, live mode, heatmap, rediseño Matte Luxury, BYOK API Key, adaptación ergonómica, onboarding biométrico, base de pruebas).
 - Spec 012 (IA por Supabase + login OTP) ARCHIVADA el 2026-10-30: no integrada; vive en rama `spec/012-acceso-ia-seguro`. La app opera en BYOK.
 - Spec 013 completada (`src/utils/conversionPeso.js`, `src/components/CalculadoraPesoModal.jsx`, `__tests__/conversionPeso.test.js`): Calculadora minimalista de conversión bidireccional Kg ⟷ Lbs con tokens OLED, selector pastilla háptico (`vibrarSeleccionBascula`), sanitización contra comas/múltiples puntos, defensa contra ceros/negativos/NaN y disparadores ergonómicos discretos (`repeat`, touch target >= 44pt) en cabecera de `EntrenamientosView` y `LiveModeModal`. Calidad verificada (5 suites, 56 tests Jest, lint 0 errores, bundle:check exitoso).
+- Spec 014 PLANIFICADA (`specs/014-previsualizacion-ejercicios/`), pendiente de que Antigravity la implemente.
+  - Contenido: miniatura line-art (47 PNG locales generados con Gemini, teñidos con `tintColor` y con un velo del color del grupo) en las filas del catálogo y en las tarjetas del día.
+  - En las tarjetas del día la imagen se busca por nombre: los registros no guardan el id del catálogo, y la persistencia no se toca.
+  - Sin dependencias nuevas.
 - Fix del Drawer de Configuración: Resuelto desbordamiento con `useWindowDimensions`, `flex: 1` e inoperancia táctil en Android (cambio a `activeOffsetX(25)`, `cancelsTouchesInView(false)`, `TouchableOpacity` de RNGH y `expo-clipboard` para pegar API key nativamente).
 - Live Mode Thumb-Zone: Guardado primario (54dp) y secundario reubicados en la barra inferior al alcance natural del pulgar; ocultamiento dinámico ante teclado con botón de descarte rápido; validación visual de series incompletas en rojo.
 - Touch Targets y Modales: Touch targets >= 44x44pt en toda la app (`DaySummaryModal`, `CambioFisicoView`, `CatalogoEjerciciosModal`, `CalculadoraPesoModal`). Barra de navegación flotante adaptada dinámicamente a `insets.bottom`.
