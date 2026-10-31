@@ -264,6 +264,15 @@ export default function PanelConfiguracionLateral({
     }
   };
 
+  // Crédito obligatorio de la licencia free tier de RepDB (Spec 014, CA-10)
+  const handleAbrirRepDB = async () => {
+    try {
+      await Linking.openURL('https://repdb.co');
+    } catch {
+      Alert.alert('Enlace externo', 'No se pudo abrir el navegador para acceder a RepDB.');
+    }
+  };
+
   if (!montado) {
     return null;
   }
@@ -654,6 +663,25 @@ export default function PanelConfiguracionLateral({
                       almacena en repositorios públicos.
                     </Text>
                   </View>
+
+                  {/* Créditos: ilustraciones de ejercicios (licencia RepDB free tier) */}
+                  <TouchableOpacity
+                    style={styles.botonCreditos}
+                    activeOpacity={0.7}
+                    onPress={handleAbrirRepDB}
+                    accessibilityRole="link"
+                    accessibilityLabel="Ilustraciones: Exercise data by RepDB, repdb.co"
+                  >
+                    <Feather
+                      name="image"
+                      size={14}
+                      color={TOKENS.colors.textMuted}
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text style={styles.textoCreditos}>
+                      Ilustraciones: Exercise data by RepDB (repdb.co)
+                    </Text>
+                  </TouchableOpacity>
                 </ScrollView>
               </KeyboardAvoidingView>
             </Animated.View>
@@ -1030,5 +1058,19 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 14,
     color: TOKENS.colors.textMuted,
+  },
+  botonCreditos: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: TOKENS.touchTarget.minSize,
+    paddingHorizontal: 4,
+    marginTop: 8,
+  },
+  textoCreditos: {
+    flex: 1,
+    fontSize: 10,
+    lineHeight: 14,
+    color: TOKENS.colors.textMuted,
+    textDecorationLine: 'underline',
   },
 });
