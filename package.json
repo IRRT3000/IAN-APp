@@ -41,11 +41,13 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/.agents/",
-      "/.bundle-check/"
+      "/.bundle-check/",
+      "/.claude/"
     ],
     "modulePathIgnorePatterns": [
       "<rootDir>/.agents/",
-      "<rootDir>/.bundle-check/"
+      "<rootDir>/.bundle-check/",
+      "<rootDir>/.claude/"
     ]
   },
   "private": true
