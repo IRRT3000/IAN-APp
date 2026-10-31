@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -47,10 +47,22 @@ export default function CatalogoEjerciciosModal({
   onSeleccionarEjercicio,
   ejerciciosPersonalizados = [],
   onEjercicioPersonalizadoCreado,
+  entrenamientos = [],
+  enfocarBusqueda = false,
 }) {
   const insets = useSafeInsets();
+  const inputBusquedaRef = useRef(null);
   const [busqueda, setBusqueda] = useState('');
   const [grupoFiltro, setGrupoFiltro] = useState('Todos');
+
+  useEffect(() => {
+    if (visible && enfocarBusqueda) {
+      const timer = setTimeout(() => {
+        inputBusquedaRef.current?.focus();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [visible, enfocarBusqueda]);
 
   const [subModalVisible, setSubModalVisible] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState('');
@@ -80,6 +92,104 @@ export default function CatalogoEjerciciosModal({
       return nombreCoincide || implementoCoincide;
     });
   }, [listaCompleta, busqueda, grupoFiltro]);
+
+  const ejerciciosRecientes = useMemo(() => {
+    if (!Array.isArray(entrenamientos) || entrenamientos.length === 0) return [];
+    const nombresVistos = new Set();
+    const recientes = [];
+
+    const ordenados = [...entrenamientos].sort(
+      (a, b) => (b.creadoEn || 0) - (a.creadoEn || 0)
+    );
+
+    for (let i = 0; i < ordenados.length; i++) {
+      const ent = ordenados[i];
+      const nombreNorm = String(ent.ejercicio ?? '').trim().toLowerCase();
+      if (!nombreNorm || nombresVistos.has(nombreNorm)) continue;
+      nombresVistos.add(nombreNorm);
+
+      const coincidencia = listaCompleta.find(
+        (item) => String(item.nombre ?? '').trim().toLowerCase() === nombreNorm
+      );
+
+      if (coincidencia) {
+        recientes.push(coincidencia);
+      } else {
+        recientes.push({
+          id: ent.idEjercicio || `reciente-${recientes.length}`,
+          nombre: String(ent.ejercicio ?? '').trim(),
+          grupoMuscular: ent.grupoMuscular || 'Pecho',
+          implemento: ent.implemento || 'Barra',
+        });
+      }
+
+      if (recientes.length >= 8) break;
+    }
+    return recientes;
+  }, [entrenamientos, listaCompleta]);
+
+  const recientesFiltrados = useMemo(() => {
+    if (busqueda.trim().length > 0) return [];
+    if (grupoFiltro === 'Todos') return ejerciciosRecientes;
+    return ejerciciosRecientes.filter(
+      (item) => item.grupoMuscular === grupoFiltro
+    );
+  }, [ejerciciosRecientes, busqueda, grupoFiltro]);
+
+  const renderListHeader = () => {
+    if (recientesFiltrados.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.seccionRecientesContenedor}>
+        <View style={styles.filaTituloRecientes}>
+          <Text style={styles.etiquetaRecientes}>RECIENTES</Text>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollRecientesContenido}
+          keyboardShouldPersistTaps="handled"
+        >
+          {recientesFiltrados.map((ejercicio) => (
+            <TouchableOpacity
+              key={`reciente-${ejercicio.id || ejercicio.nombre}`}
+              style={styles.miniTarjetaReciente}
+              activeOpacity={0.7}
+              onPress={() => {
+                vibrarSeleccionBascula();
+                onSeleccionarEjercicio(ejercicio);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`Ejercicio reciente: ${ejercicio.nombre}`}
+            >
+              <View style={styles.contenedorMiniaturaReciente}>
+                <MiniaturaEjercicio
+                  id={ejercicio.id}
+                  nombre={ejercicio.nombre}
+                  grupoMuscular={ejercicio.grupoMuscular}
+                  implemento={ejercicio.implemento}
+                  tamano={36}
+                />
+              </View>
+
+              <View style={styles.infoMiniTarjeta}>
+                <Text
+                  style={styles.textoNombreReciente}
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                >
+                  {ejercicio.nombre}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
 
   const abrirModalCrear = (nombreSugerido = '') => {
     setNuevoNombre(nombreSugerido || busqueda.trim());
@@ -168,6 +278,7 @@ export default function CatalogoEjerciciosModal({
             style={{ marginRight: 8 }}
           />
           <TextInput
+            ref={inputBusquedaRef}
             style={styles.inputBusqueda}
             placeholder="Buscar por ejercicio o implemento..."
             placeholderTextColor={TOKENS.colors.textMuted}
@@ -225,6 +336,7 @@ export default function CatalogoEjerciciosModal({
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          ListHeaderComponent={renderListHeader}
           renderItem={({ item }) => {
             const iconoFeather = obtenerIconoImplementoFeather(item.implemento);
             return (
@@ -639,5 +751,54 @@ const styles = StyleSheet.create({
     color: TOKENS.colors.textInverse,
     fontSize: 14,
     fontWeight: '800',
+  },
+  seccionRecientesContenedor: {
+    marginBottom: TOKENS.spacing.md,
+    paddingTop: TOKENS.spacing.xs,
+  },
+  filaTituloRecientes: {
+    paddingHorizontal: 2,
+    marginBottom: TOKENS.spacing.sm,
+  },
+  etiquetaRecientes: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: TOKENS.colors.textSecondary,
+    textTransform: 'uppercase',
+  },
+  scrollRecientesContenido: {
+    paddingRight: TOKENS.spacing.md,
+    gap: TOKENS.spacing.sm,
+  },
+  miniTarjetaReciente: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 160,
+    minHeight: TOKENS.touchTarget.minHeight,
+    backgroundColor: TOKENS.colors.surface,
+    borderRadius: TOKENS.radii.sm,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+  },
+  contenedorMiniaturaReciente: {
+    width: 36,
+    height: 36,
+    borderRadius: TOKENS.radii.xs,
+    overflow: 'hidden',
+  },
+  infoMiniTarjeta: {
+    flex: 1,
+    marginLeft: TOKENS.spacing.sm,
+    justifyContent: 'center',
+  },
+  textoNombreReciente: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 15,
+    letterSpacing: -0.1,
   },
 });

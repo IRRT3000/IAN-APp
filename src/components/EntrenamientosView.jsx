@@ -272,6 +272,7 @@ export default function EntrenamientosView({
 }) {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(obtenerFechaLocal());
   const [catalogoModalVisible, setCatalogoModalVisible] = useState(false);
+  const [abrirConBusqueda, setAbrirConBusqueda] = useState(false);
   const [calculadoraVisible, setCalculadoraVisible] = useState(false);
   const [liveModeVisible, setLiveModeVisible] = useState(false);
   const [ejercicioActivo, setEjercicioActivo] = useState(null);
@@ -282,6 +283,11 @@ export default function EntrenamientosView({
 
   const hoyDinamico = obtenerFechaLocal();
   const esHoy = fechaSeleccionada === hoyDinamico;
+
+  const abrirCatalogoConModo = (enfocar) => {
+    setAbrirConBusqueda(enfocar);
+    setCatalogoModalVisible(true);
+  };
 
   const cambiarEstadoLiveMode = useCallback(
     (activo) => {
@@ -448,21 +454,43 @@ export default function EntrenamientosView({
       ) : null}
 
       {esHoy ? (
-        <TouchableOpacity
-          style={styles.botonIniciarEjercicio}
-          activeOpacity={0.85}
-          onPress={() => setCatalogoModalVisible(true)}
-        >
-          <Feather
-            name="plus"
-            size={18}
-            color={TOKENS.colors.textInverse}
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.textoIniciarEjercicio}>
-            Iniciar Nuevo Ejercicio
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.filaAccionesPrimarias}>
+          <TouchableOpacity
+            style={styles.botonIniciarEjercicioPrimario}
+            activeOpacity={0.85}
+            onPress={() => abrirCatalogoConModo(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Iniciar nuevo ejercicio"
+          >
+            <Feather
+              name="plus"
+              size={18}
+              color={TOKENS.colors.textInverse}
+              style={styles.iconoBotonIniciar}
+            />
+            <Text style={styles.textoIniciarEjercicioPrimario}>
+              Iniciar Nuevo Ejercicio
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.botonAccesoBusqueda}
+            activeOpacity={0.75}
+            onPress={() => {
+              vibrarSeleccionBascula();
+              abrirCatalogoConModo(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Buscar en catálogo de ejercicios"
+            accessibilityHint="Abre el catálogo completo de ejercicios con el buscador activo"
+          >
+            <Feather
+              name="search"
+              size={20}
+              color={TOKENS.colors.textPrimary}
+            />
+          </TouchableOpacity>
+        </View>
       ) : null}
 
       <View style={styles.encabezadoLista}>
@@ -534,10 +562,15 @@ export default function EntrenamientosView({
 
       <CatalogoEjerciciosModal
         visible={catalogoModalVisible}
-        onCerrar={() => setCatalogoModalVisible(false)}
+        onCerrar={() => {
+          setCatalogoModalVisible(false);
+          setAbrirConBusqueda(false);
+        }}
         onSeleccionarEjercicio={manejarSeleccionarEjercicio}
         ejerciciosPersonalizados={ejerciciosPersonalizados}
         onEjercicioPersonalizadoCreado={setEjerciciosPersonalizados}
+        entrenamientos={entrenamientos}
+        enfocarBusqueda={abrirConBusqueda}
       />
 
       <LiveModeModal
@@ -579,21 +612,41 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 16,
   },
-  botonIniciarEjercicio: {
+  filaAccionesPrimarias: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: TOKENS.spacing.md,
+    gap: TOKENS.spacing.sm,
+  },
+  botonIniciarEjercicioPrimario: {
+    flex: 1,
+    height: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: TOKENS.colors.accentWhite,
     borderRadius: TOKENS.radii.md,
-    paddingVertical: 14,
-    marginBottom: 16,
-    elevation: 3,
+    elevation: 2,
   },
-  textoIniciarEjercicio: {
+  iconoBotonIniciar: {
+    marginRight: TOKENS.spacing.sm,
+  },
+  textoIniciarEjercicioPrimario: {
     color: TOKENS.colors.textInverse,
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: -0.2,
+  },
+  botonAccesoBusqueda: {
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderRadius: TOKENS.radii.md,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    elevation: 2,
   },
   columnaTituloEncabezado: {
     flex: 1,

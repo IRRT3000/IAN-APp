@@ -12,7 +12,7 @@ import {
 const DIRECTORIO_ASSETS = 'assets/ejercicios';
 const RUTA_MAPA = 'src/constants/imagenesEjercicios.js';
 const IDS_CATALOGO = CATALOGO_EJERCICIOS_BASE.map((ejercicio) => ejercicio.id);
-const TOTAL_EJERCICIOS = 47;
+const TOTAL_EJERCICIOS = 100;
 
 const listarWebps = () =>
   fs.readdirSync(DIRECTORIO_ASSETS).filter((archivo) => archivo.endsWith('.webp'));
@@ -65,7 +65,7 @@ describe('imagenesEjercicios - mapa id → imagen', () => {
 });
 
 describe('imagenesEjercicios - assets en disco (CA-1)', () => {
-  test('hay exactamente 47 WebP y coinciden uno a uno con los ids', () => {
+  test('hay exactamente 100 WebP y coinciden uno a uno con los ids', () => {
     const nombres = listarWebps().map((archivo) => archivo.replace(/\.webp$/, ''));
     expect(nombres.sort()).toEqual([...IDS_CATALOGO].sort());
   });
