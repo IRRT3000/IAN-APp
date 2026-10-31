@@ -20,6 +20,11 @@ import {
   calcularTiempoEntrenando,
   cargarPerfilUsuario,
 } from './storage';
+import { formatearFechaLegible } from '../utils/dateUtilsLocal';
+import {
+  formatearHora12h,
+  normalizarResumenEstudio,
+} from '../utils/resumenEstudio';
 
 const GEMINI_API_BASE_URL =
   'https://generativelanguage.googleapis.com/v1beta/models';
@@ -832,5 +837,184 @@ export const compararCambioFisicoConGemini = async (
   throw new GeminiError(
     `No se pudo completar la comparación física. Los ${modelos.length} modelos de Gemini fallaron:\n${resumen}`,
     { status: fallos[fallos.length - 1]?.status ?? null, fallos }
+  );
+};
+
+
+/**
+ * Construye el prompt para la evaluación pedagógica del día de estudio con Gemini (Spec 016).
+ * No contiene emojis.
+ * @param {Object} contexto
+ * @param {{ edadTexto: string, fechaLegible: string, hora12h: string }} perfilTexto
+ * @returns {string}
+ */
+export function construirPromptEstudioDelDia(contexto, perfilTexto = {}) {
+  const { edadTexto = 'Desconocida', fechaLegible = '', hora12h = '' } =
+    perfilTexto;
+
+  const sesionesHoy = contexto?.sesionesHoy || [];
+  const sesionesPrevias = contexto?.sesionesPrevias || [];
+  const minutosTotales = contexto?.minutosTotales || 0;
+
+  const sesionesHoyTexto = sesionesHoy
+    .map((s, idx) => {
+      const i = idx + 1;
+      return `${i}. [${s.categoria}] ${s.materia} — Tema: "${s.tema}"
+   Duración: ${s.minutos} min | Comprensión declarada por el usuario: ${s.comprension}
+   Apuntes:
+   """
+   ${s.apuntes}
+   """`;
+    })
+    .join('\n\n');
+
+  const minutosPorMateriaTexto =
+    (contexto?.materias || [])
+      .map((m) => `${m.materia} (${m.categoria}): ${m.minutos} min`)
+      .join(' | ') || 'Ninguna';
+
+  let bloqueHistorialPrevio = '';
+  if (sesionesPrevias.length > 0) {
+    const lineas = sesionesPrevias
+      .map(
+        (s) =>
+          `- ${s.fecha} | [${s.categoria}] ${s.materia} | "${s.tema}" | ${s.minutos} min | Comprensión: ${s.comprension}`
+      )
+      .join('\n');
+    bloqueHistorialPrevio = `HISTORIAL DE ESTUDIO DE LOS ÚLTIMOS 7 DÍAS (sin hoy, sin apuntes) — úsalo solo para dar contexto:
+${lineas}
+`;
+  }
+
+  const instruccionHistorial =
+    sesionesPrevias.length > 0
+      ? 'Relaciona lo de hoy con los últimos 7 días: temas que se repiten, temas que siguen con comprensión baja, materias abandonadas y constancia del hábito.'
+      : 'Es el primer registro de estudio disponible; no hagas comparaciones con días anteriores.';
+
+  return `Actúa como un pedagogo experto en ciencias del aprendizaje, técnicas de estudio basadas en evidencia (recuperación activa, repetición espaciada, interleaving, técnica Feynman) y acompañamiento académico.
+Estás evaluando el día de estudio del usuario de hoy (${fechaLegible}), registrado a las ${hora12h}.
+
+PERFIL DEL USUARIO:
+- Edad exacta: ${edadTexto}
+
+SESIONES DE ESTUDIO DE HOY (${sesionesHoy.length}) — fuente principal del análisis:
+${sesionesHoyTexto}
+
+TOTALES CALCULADOS POR LA APP (no los recalcules ni los cambies):
+- Minutos totales de hoy: ${minutosTotales}
+- Minutos por materia: ${minutosPorMateriaTexto}
+
+${bloqueHistorialPrevio}
+INSTRUCCIONES DE EVALUACIÓN:
+1. Analiza únicamente la información anterior. No inventes sesiones, temas, materias, minutos ni contenido que no aparezca en los datos.
+2. Evalúa la comprensión real de cada tema contrastando la comprensión declarada con la calidad, profundidad y coherencia de sus apuntes (definiciones correctas, ejemplos, conexiones entre ideas, errores conceptuales visibles).
+3. ${instruccionHistorial}
+4. Redacta "resumenSimple": 2 a 3 oraciones claras, directas y motivadoras sobre el día de estudio.
+5. Redacta "resumenDetallado": análisis completo por materia y tema (qué se estudió, nivel real de dominio según los apuntes, vacíos detectados y relación con el historial si existe).
+6. Asigna "veredicto" de 0 a 10 (número, máximo 1 decimal) que califique de forma realista el día de estudio, considerando tiempo invertido, comprensión, calidad de los apuntes y constancia.
+7. "temasDominados": temas de hoy que el usuario domina según su comprensión declarada y sus apuntes.
+8. "temasPorRepasar": temas de hoy con comprensión "Más o menos", "No tanto" o "Nada", y también temas declarados como "Bien" cuyos apuntes muestren vacíos o errores. En "comprension" pon la comprensión que declaró el usuario para ese tema. Para cada uno, "sugerencia" debe ser una técnica concreta y accionable para repasarlo (por ejemplo: "Haz 5 tarjetas de recuperación activa con las fórmulas de derivadas y repásalas mañana y en 3 días").
+9. "puntosClave": 3 observaciones cortas y concretas del día.
+10. "recomendacionesManana": 3 acciones concretas para la próxima sesión de estudio.
+11. Escribe en español neutro, sin emojis.
+
+Devuelve ÚNICAMENTE un objeto JSON válido (sin bloques markdown ni texto adicional) con esta estructura exacta:
+{
+  "resumenSimple": "2 a 3 oraciones sobre el día de estudio.",
+  "resumenDetallado": "Análisis completo por materia y tema.",
+  "veredicto": 7.8,
+  "minutosTotales": ${minutosTotales},
+  "materias": [{ "materia": "Nombre", "categoria": "Escuela", "minutos": 0 }],
+  "temasDominados": ["Tema dominado"],
+  "temasPorRepasar": [{ "materia": "Nombre", "tema": "Tema", "comprension": "No tanto", "sugerencia": "Técnica concreta para repasarlo." }],
+  "puntosClave": ["Punto 1", "Punto 2", "Punto 3"],
+  "recomendacionesManana": ["Acción 1", "Acción 2", "Acción 3"]
+}
+"comprension" solo puede ser "Bien", "Más o menos", "No tanto" o "Nada". Si no hay temas por repasar o dominados, devuelve arreglos vacíos.`;
+}
+
+/**
+ * Analiza las sesiones del día de estudio usando Gemini con failover de modelos (Spec 016).
+ * @param {Object} contexto
+ * @param {Object} [opciones={}]
+ * @returns {Promise<{ resultado: Object, modeloUsado: string, hora12h: string }>}
+ */
+export const analizarEstudioDelDiaConGemini = async (
+  contexto,
+  opciones = {}
+) => {
+  const { onProgreso, timeoutMs = TIMEOUT_POR_PETICION_MS } = opciones;
+
+  if (!contexto?.sesionesHoy || contexto.sesionesHoy.length === 0) {
+    throw new GeminiError('No hay sesiones de estudio hoy para analizar.');
+  }
+
+  const apiKey = await obtenerApiKeyActiva();
+
+  const perfil = opciones?.perfilUsuario || (await cargarPerfilUsuario());
+  const edadInfo = calcularEdadExacta(
+    new Date(),
+    perfil?.fechaNacimiento || PERFIL_USUARIO_BASE.fechaNacimiento
+  );
+  const fechaLegible =
+    formatearFechaLegible(contexto.fechaHoy) || contexto.fechaHoy;
+  const hora12h = formatearHora12h();
+
+  const promptTexto = construirPromptEstudioDelDia(contexto, {
+    edadTexto: edadInfo.texto,
+    fechaLegible,
+    hora12h,
+  });
+
+  const modelos = obtenerModelos();
+  const fallos = [];
+
+  for (let indice = 0; indice < modelos.length; indice += 1) {
+    const modelo = modelos[indice];
+    onProgreso?.({
+      modelo,
+      indice: indice + 1,
+      total: modelos.length,
+      falloAnterior: fallos[fallos.length - 1],
+    });
+
+    try {
+      const json = await ejecutarLlamadaGemini({
+        modelo,
+        apiKey,
+        promptTexto,
+        temperature: 0.3,
+        timeoutMs,
+      });
+
+      const resultado = normalizarResumenEstudio(json, contexto);
+      if (!resultado) {
+        throw new GeminiError('respuesta inválida', { status: 'JSON' });
+      }
+
+      return {
+        resultado,
+        modeloUsado: modelo,
+        hora12h,
+      };
+    } catch (errorIntento) {
+      fallos.push({
+        modelo,
+        status: errorIntento?.status || 'ERROR',
+        mensaje: errorIntento?.message || 'Error desconocido',
+      });
+    }
+  }
+
+  const detalleFallos = fallos
+    .map((f) => `• ${f.modelo}: ${f.status || f.mensaje}`)
+    .join('\n');
+
+  throw new GeminiError(
+    `No se pudo analizar tu día de estudio. Los ${modelos.length} modelos de Gemini fallaron:\n${detalleFallos}\n\nIntenta de nuevo en unos minutos.`,
+    {
+      status: fallos[fallos.length - 1]?.status || 'FALLO_TOTAL',
+      fallos,
+    }
   );
 };

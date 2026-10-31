@@ -29,3 +29,7 @@
 ### INC-007: Inoperancia de Botones dentro de Drawer en Android (RNGH Pan Gesture)
 - **Causa Raíz:** `activeOffsetX([10, 500])` causaba que en `ACTION_DOWN` (`translationX = 0 < 10`) el handler Pan se activara de inmediato cancelando toques hijos (`ACTION_CANCEL`). Además faltaba `expo-clipboard`.
 - **Solución:** Configurar `.activeOffsetX(25)` (escalar positivo), `.cancelsTouchesInView(false)`, migrar a `TouchableOpacity` de RNGH, `elevation: 24` e instalar `expo-clipboard`.
+
+### INC-008: Regla `react-hooks/set-state-in-effect` en Candados de Módulo
+- **Causa Raíz:** Llamar a `setAnalizando(true)` síncronamente dentro de un `useEffect` dispara error fatal de cascading renders en ESLint de React 19.
+- **Solución:** Inicializar con lazy initializer en el estado `useState(() => Boolean(analisisEnCurso))` y dejar el efecto solo para suscripciones asíncronas (`finally`).

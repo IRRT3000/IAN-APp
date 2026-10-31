@@ -8,6 +8,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import BarraNavegacionInferior from './src/components/BarraNavegacionInferior';
 import CambioFisicoView from './src/components/CambioFisicoView';
 import EntrenamientosView from './src/components/EntrenamientosView';
+import EstudioView from './src/components/EstudioView';
 import HeatmapView from './src/components/HeatmapView';
 import MenuBienvenida from './src/components/MenuBienvenida';
 import NutricionView from './src/components/NutricionView';
@@ -24,6 +25,10 @@ import {
   obtenerFechaLocal,
   obtenerResumenAnualHabitos,
 } from './src/services/storage';
+import {
+  cargarMaterias,
+  cargarSesionesEstudio,
+} from './src/services/estudioStorage';
 import { TOKENS } from './src/theme/tokens';
 import { useSafeInsets } from './src/utils/useSafeInsets';
 
@@ -33,6 +38,9 @@ function AppPrincipal() {
   const [diasConActividad, setDiasConActividad] = useState([]);
   const [comidas, setComidas] = useState([]);
   const [cambiosFisicos, setCambiosFisicos] = useState([]);
+  const [sesionesEstudio, setSesionesEstudio] = useState([]);
+  const [materiasEstudio, setMateriasEstudio] = useState([]);
+  const [datosEstudioCargados, setDatosEstudioCargados] = useState(false);
   const [perfilUsuario, setPerfilUsuario] = useState(PERFIL_USUARIO_BASE);
   const [vistaActiva, setVistaActiva] = useState('bienvenida');
   const [enLiveMode, setEnLiveMode] = useState(false);
@@ -108,19 +116,27 @@ function AppPrincipal() {
       comidasGuardadas,
       cambiosGuardados,
       perfilCargado,
+      sesionesCargadas,
+      materiasCargadas,
     ] = await Promise.all([
       cargarEntrenamientos(),
       obtenerDiasConActividad(),
       cargarComidas(),
       cargarCambiosFisicos(),
       cargarPerfilUsuario(),
+      cargarSesionesEstudio(),
+      cargarMaterias(),
       refrescarHabitosConcurrentes(),
+
     ]);
     setEntrenamientos(listaGuardada);
     setDiasConActividad(diasActivos);
     setComidas(comidasGuardadas);
     setCambiosFisicos(cambiosGuardados);
     setPerfilUsuario(perfilCargado);
+    setSesionesEstudio(sesionesCargadas);
+    setMateriasEstudio(materiasCargadas);
+    setDatosEstudioCargados(true);
 
     // Defensa 7: Activar onboarding únicamente tras resolver la carga asíncrona si no se ha completado
     if (!perfilCargado?.onboardingCompletado) {
@@ -186,6 +202,7 @@ function AppPrincipal() {
       const [diasActualizados] = await Promise.all([
         obtenerDiasConActividad(),
         refrescarHabitosConcurrentes(),
+
       ]);
       setDiasConActividad(diasActualizados);
     },
@@ -200,6 +217,11 @@ function AppPrincipal() {
   const comidasDeHoy = useMemo(
     () => comidas.filter((item) => item.fecha === fechaHoy),
     [comidas, fechaHoy]
+  );
+
+  const sesionesEstudioDeHoy = useMemo(
+    () => sesionesEstudio.filter((item) => item.fecha === fechaHoy),
+    [sesionesEstudio, fechaHoy]
   );
 
   const cambiosFisicosDeHoy = useMemo(
@@ -223,6 +245,7 @@ function AppPrincipal() {
       const [diasActualizados] = await Promise.all([
         obtenerDiasConActividad(),
         refrescarHabitosConcurrentes(),
+
       ]);
       setDiasConActividad(diasActualizados);
     },
@@ -236,6 +259,7 @@ function AppPrincipal() {
       const [diasActualizados] = await Promise.all([
         obtenerDiasConActividad(),
         refrescarHabitosConcurrentes(),
+
       ]);
       setDiasConActividad(diasActualizados);
     },
@@ -249,6 +273,7 @@ function AppPrincipal() {
       const [diasActualizados] = await Promise.all([
         obtenerDiasConActividad(),
         refrescarHabitosConcurrentes(),
+
       ]);
       setDiasConActividad(diasActualizados);
     },
@@ -256,6 +281,18 @@ function AppPrincipal() {
   );
 
   const renderizarVistaActiva = () => {
+    if (vistaActiva === 'estudio') {
+      return (
+        <EstudioView
+          sesionesExternas={sesionesEstudio}
+          materiasExternas={materiasEstudio}
+          datosCargados={datosEstudioCargados}
+          onSesionesActualizadas={setSesionesEstudio}
+          onMateriasActualizadas={setMateriasEstudio}
+        />
+      );
+    }
+
     if (vistaActiva === 'heatmap') {
       return (
         <HeatmapView
@@ -358,6 +395,7 @@ function AppPrincipal() {
             contadorHoy={entrenamientosDeHoy.length}
             contadorComidasHoy={comidasDeHoy.length}
             contadorFisicoHoy={cambiosFisicosDeHoy.length}
+            contadorEstudioHoy={sesionesEstudioDeHoy.length}
           />
         ) : null}
       </View>

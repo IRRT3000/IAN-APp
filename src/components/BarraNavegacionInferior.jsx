@@ -21,6 +21,7 @@ export default function BarraNavegacionInferior({
   contadorHoy = 0,
   contadorComidasHoy = 0,
   contadorFisicoHoy = 0,
+  contadorEstudioHoy = 0,
 }) {
   const insets = useSafeInsets();
   const { width: anchoPantalla } = useWindowDimensions();
@@ -31,16 +32,19 @@ export default function BarraNavegacionInferior({
     { id: 'tracker', etiqueta: 'Entrenos', icono: 'activity', contador: contadorHoy },
     { id: 'nutricion', etiqueta: 'Nutrición', icono: 'pie-chart', contador: contadorComidasHoy },
     { id: 'fisico', etiqueta: 'Físico', icono: 'camera', contador: contadorFisicoHoy },
-    { id: 'heatmap', etiqueta: 'Heatmap', icono: 'calendar' },
+    { id: 'estudio', etiqueta: 'Estudio', icono: 'book-open', contador: contadorEstudioHoy },
   ];
 
   // Cálculo de ancho inicial inmediato para 0ms de parpadeo (FOUC)
   const anchoContenedorEstimado = Math.max(300, anchoPantalla - 32 - 8);
   const [anchoTab, setAnchoTab] = useState(anchoContenedorEstimado / PESTANAS.length);
 
+  // Defensa 8: Si la vista activa no es una pestaña (ej. heatmap), se resalta 'bienvenida'
+  const vistaResaltada = PESTANAS.some((t) => t.id === vistaActiva) ? vistaActiva : 'bienvenida';
+
   const indiceActivo = Math.max(
     0,
-    PESTANAS.findIndex((item) => item.id === vistaActiva)
+    PESTANAS.findIndex((item) => item.id === vistaResaltada)
   );
 
   const translateX = useSharedValue(indiceActivo * anchoTab);
@@ -89,7 +93,7 @@ export default function BarraNavegacionInferior({
         <Animated.View style={[styles.pillDeslizante, estiloPillAnimado]} />
 
         {PESTANAS.map((tab) => {
-          const esActivo = vistaActiva === tab.id;
+          const esActivo = vistaResaltada === tab.id;
           const tieneContador = tab.contador && tab.contador > 0;
 
           return (
