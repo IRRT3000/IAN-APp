@@ -19,6 +19,7 @@ import {
   IMPLEMENTOS,
 } from '../constants/catalogoEjercicios';
 import { guardarEjercicioPersonalizado } from '../services/storage';
+import MiniaturaEjercicio from './MiniaturaEjercicio';
 import { vibrarSeleccionBascula } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';
@@ -235,6 +236,15 @@ export default function CatalogoEjerciciosModal({
                   onSeleccionarEjercicio(item);
                 }}
               >
+                <View style={styles.miniatura}>
+                  <MiniaturaEjercicio
+                    id={item.id}
+                    nombre={item.nombre}
+                    grupoMuscular={item.grupoMuscular}
+                    implemento={item.implemento}
+                    tamano={44}
+                  />
+                </View>
                 <View style={styles.infoEjercicio}>
                   <Text style={styles.nombreEjercicio}>{item.nombre}</Text>
                   <View style={styles.filaSubinfo}>
@@ -478,6 +488,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderWidth: 1,
     borderColor: TOKENS.colors.borderDefault,
+  },
+  miniatura: {
+    marginRight: TOKENS.spacing.sm + TOKENS.spacing.xs,
   },
   infoEjercicio: {
     flex: 1,

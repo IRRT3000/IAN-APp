@@ -19,6 +19,7 @@ import SelectorSemanal from './SelectorSemanal';
 import CatalogoEjerciciosModal from './CatalogoEjerciciosModal';
 import LiveModeModal from './LiveModeModal';
 import CalculadoraPesoModal from './CalculadoraPesoModal';
+import MiniaturaEjercicio from './MiniaturaEjercicio';
 import {
   cargarCatalogoPersonalizado,
   cargarSesionActivaDraft,
@@ -134,6 +135,15 @@ function TarjetaEntrenamientoItem({
   return (
     <View style={styles.tarjetaEntrenamiento}>
       <View style={styles.cabeceraTarjeta}>
+        {/* Sin item.id: en esta lista es el id del registro, no el del catálogo */}
+        <View style={styles.miniaturaTarjeta}>
+          <MiniaturaEjercicio
+            nombre={item.ejercicio}
+            grupoMuscular={item.grupoMuscular}
+            implemento={item.implemento}
+            tamano={40}
+          />
+        </View>
         <View style={styles.infoTituloEjercicio}>
           <View style={styles.filaBadgesTarjeta}>
             {item.grupoMuscular ? (
@@ -640,6 +650,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 10,
+  },
+  miniaturaTarjeta: {
+    marginRight: TOKENS.spacing.sm + TOKENS.spacing.xs,
   },
   infoTituloEjercicio: {
     flex: 1,

@@ -42,3 +42,9 @@ Para garantizar la máxima seguridad y privacidad:
 - **Gestos & Hápticos**: `react-native-gesture-handler` y `expo-haptics`.
 - **Persistencia**: `@react-native-async-storage/async-storage`.
 - **Automatización**: GitHub Actions para compilación y firma digital automática de APKs en cada release.
+
+---
+
+## Créditos
+
+- Ilustraciones de ejercicios: Exercise data by [RepDB (repdb.co)](https://repdb.co) (free tier, con atribución).

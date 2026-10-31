@@ -29,3 +29,7 @@
 ### INC-007: Inoperancia de Botones dentro de Drawer en Android (RNGH Pan Gesture)
 - **Causa Raíz:** `activeOffsetX([10, 500])` causaba que en `ACTION_DOWN` (`translationX = 0 < 10`) el handler Pan se activara de inmediato cancelando toques hijos (`ACTION_CANCEL`). Además faltaba `expo-clipboard`.
 - **Solución:** Configurar `.activeOffsetX(25)` (escalar positivo), `.cancelsTouchesInView(false)`, migrar a `TouchableOpacity` de RNGH, `elevation: 24` e instalar `expo-clipboard`.
+
+### INC-008: Pruebas de assets de imagen en Jest (Spec 014)
+- **Causa Raíz:** `jest-expo` transforma cualquier `require` de imagen (PNG, WebP) a `1`, así que comparar los valores de `require` no detecta un mapa cruzado.
+- **Solución:** comparar ids y leer el texto del mapa y la cabecera de los archivos con `fs` y rutas relativas a la raíz (sin `__dirname` ni `process`, por `no-undef`). Los assets de terceros (RepDB) solo se pueden redimensionar: nada de quitar el fondo ni pasarlos por IA.
