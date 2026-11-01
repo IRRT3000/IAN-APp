@@ -2,7 +2,7 @@
 Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o eliminar lo obsoleto.
 
 ## Estado Actual
-- Versión v2.0.0 (build 5) con Módulo de Estudio (Spec 015), Resumen IA Gemini (Spec 016) y Seguridad API Key (Spec 017).
+- Versión v2.1.0 (build 6) — Release de Seguridad (Spec 017), Módulo de Estudio (Spec 015) y Resumen IA Gemini (Spec 016).
 - Specs completadas: 001 a 011, 013 a 017.
 - Spec 012 (IA por Supabase + login OTP) ARCHIVADA: rama `spec/012-acceso-ia-seguro`. App opera en BYOK.
 - Spec 015 completada: Pestaña Estudio reemplaza a Heatmap en la barra (Heatmap accesible desde Inicio), materias Escuela/Personal y sesiones con campos obligatorios, partición mensual `@fitness_tracker_sesiones_estudio_v1:YYYY-MM`, cola serial de escritura y borrado sostenido de 1000ms.
