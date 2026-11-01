@@ -21,7 +21,7 @@
 Para garantizar la máxima seguridad y privacidad:
 - **Cero claves quemadas en el instalador**: El archivo APK público se compila 100% limpio sin secretos expuestos.
 - **Tu propia clave gratuita**: En el panel lateral de Configuración (engranaje), ingresa tu clave gratuita generada en [Google AI Studio](https://aistudio.google.com/app/apikey).
-- **Almacenamiento Local**: La clave se guarda de forma privada en el almacenamiento local de tu teléfono (`AsyncStorage`). Jamás se envía a servidores de terceros ni se expone públicamente.
+- **Almacenamiento seguro**: La clave se guarda cifrada en el almacenamiento seguro de tu teléfono (Android Keystore / iOS Keychain) y no se incluye en copias de seguridad. Solo se envía a Google (Gemini) en cada consulta de IA.
 
 ---
 

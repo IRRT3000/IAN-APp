@@ -17,7 +17,11 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -28,7 +32,15 @@
         "expo-image-picker",
         {
           "photosPermission": "Permite acceder a tus fotos para analizar comidas y registrar tu cambio físico.",
-          "cameraPermission": "Permite usar la cámara para capturar fotos de tus comidas y registrar tu cambio físico."
+          "cameraPermission": "Permite usar la cámara para capturar fotos de tus comidas y registrar tu cambio físico.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true,
+          "faceIDPermission": false
         }
       ]
     ],

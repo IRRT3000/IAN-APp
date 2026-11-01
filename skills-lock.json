@@ -31,6 +31,24 @@
       "skillPath": "skills/apple-design/SKILL.md",
       "computedHash": "f3f1d2cbc8f3e79ccddff05f4e42d34d995f057fb30ff670e4edf8c87d568b69"
     },
+    "argent-metro-debugger": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "skillPath": "packages/skills/skills/argent-metro-debugger/SKILL.md",
+      "computedHash": "c759cc08518e58f921988c14ac6c040626036700ff29cc77320ada0e6e31630e"
+    },
+    "argent-react-native-optimization": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "skillPath": "packages/skills/skills/argent-react-native-optimization/SKILL.md",
+      "computedHash": "00a47d8a7ef4911181e2ff38fa2718c425021c0d57397e4a91704697b62d6221"
+    },
+    "argent-react-native-profiler": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "skillPath": "packages/skills/skills/argent-react-native-profiler/SKILL.md",
+      "computedHash": "f9078725e9ee06897f90514c3beb0ffec20d072c1c06c6116258d6e11d7a95df"
+    },
     "ask-sonner": {
       "source": "emilkowalski/skills",
       "sourceType": "github",
@@ -84,6 +102,18 @@
       "sourceType": "github",
       "skillPath": "skills/taste-skill/SKILL.md",
       "computedHash": "53590ee9325bee34d7888bf0d81bd3941a108b1e7850df46802d93104e3f2b90"
+    },
+    "eas-app-stores": {
+      "source": "expo/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/expo/skills/eas-app-stores/SKILL.md",
+      "computedHash": "414548d8c0dafc2e468d4785cef4528477e8078315acd5ecd36a4bbe7b058311"
+    },
+    "eas-workflows": {
+      "source": "expo/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/expo/skills/eas-workflows/SKILL.md",
+      "computedHash": "f45831433a602e4f2dcaa35c326bc12bc1997da8dd6865bb6525fb79253b0042"
     },
     "emil-design-eng": {
       "source": "emilkowalski/skills",
@@ -145,6 +175,12 @@
       "skillPath": "skills/gemini-api-dev/SKILL.md",
       "computedHash": "0fc9169d6b455798d9dc3146ab65839ccca97a40d5734410b40cf1ccc1192802"
     },
+    "github-actions": {
+      "source": "callstackincubator/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/github-actions/SKILL.md",
+      "computedHash": "0407e0b1d5aa45f4d4acd4f0dc6742453b3ec964097cb3a5f0383e3bb74615ed"
+    },
     "grill-me": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -156,6 +192,12 @@
       "sourceType": "github",
       "skillPath": "skills/improve-animations/SKILL.md",
       "computedHash": "b913ec7ef2b1aa900060eb6e5dbdccc94b6ea631059ec3474c4b61e2ffefeeb4"
+    },
+    "javascript-typescript-jest": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/javascript-typescript-jest/SKILL.md",
+      "computedHash": "0073d19ab0275eb6a8200aced6789a53744667bd717b5d1f44ce708a1740e5d4"
     },
     "mobile-native": {
       "source": "emilkowalski/skills",
@@ -174,6 +216,12 @@
       "sourceType": "github",
       "skillPath": "skills/prototype/SKILL.md",
       "computedHash": "165c803775adbe0df600b961167747b6ba6577e6e1dc9ae1b87fcf5dee800645"
+    },
+    "react-native-best-practices": {
+      "source": "callstackincubator/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-native-best-practices/SKILL.md",
+      "computedHash": "5b9722518860a462a9308759b7046725e4a1ab59642ad6a6e520afc45bc8373b"
     },
     "remotion-best-practices": {
       "source": "remotion-dev/skills",

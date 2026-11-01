@@ -1,7 +1,7 @@
 /**
  * Servicio Multimodal Gemini Vision para análisis nutricional y de cambio físico.
- * Lee la clave de API desde el almacenamiento local de usuario (BYOK) con fallback a
- * process.env.EXPO_PUBLIC_GEMINI_API_KEY, y el modelo desde process.env.EXPO_PUBLIC_GEMINI_MODEL.
+ * Lee la clave de API desde el almacenamiento seguro del dispositivo (BYOK),
+ * y el modelo desde process.env.EXPO_PUBLIC_GEMINI_MODEL.
  * Modelos de respaldo: process.env.EXPO_PUBLIC_GEMINI_FALLBACK_MODELS (por defecto 'gemini-3.5-flash-lite').
  *
  * NOTA CRÍTICA (RF-1): Cualquier variante 3.8 de Gemini está estrictamente prohibida
@@ -13,7 +13,12 @@
  *   pasa inmediatamente al siguiente. Cada petición tiene un máximo de 60 s.
  */
 
-import { cargarApiKeyGemini } from './apiKeyStorage';
+import {
+  cargarApiKeyGemini,
+  esFormatoApiKeyValido,
+  normalizarApiKey,
+  MENSAJE_FORMATO_API_KEY_INVALIDO,
+} from './apiKeyStorage';
 import {
   PERFIL_USUARIO_BASE,
   calcularEdadExacta,
@@ -28,6 +33,11 @@ import {
 
 const GEMINI_API_BASE_URL =
   'https://generativelanguage.googleapis.com/v1beta/models';
+
+const construirEncabezados = (apiKey) => ({
+  'Content-Type': 'application/json',
+  'x-goog-api-key': apiKey,
+});
 
 export const TIMEOUT_POR_PETICION_MS = 60000;
 export const MODELO_PRINCIPAL_DEFAULT = 'gemini-3-flash-preview';
@@ -66,19 +76,23 @@ export const validarApiKeyGemini = async (claveCandidata) => {
     return { valida: false, error: 'Ingresa una clave de API válida.' };
   }
 
-  const claveLimpia = claveCandidata.trim();
+  const claveLimpia = normalizarApiKey(claveCandidata);
   if (!claveLimpia) {
     return { valida: false, error: 'La clave de API no puede estar vacía.' };
   }
 
-  const endpoint = `${GEMINI_API_BASE_URL}?key=${encodeURIComponent(claveLimpia)}`;
+  if (!esFormatoApiKeyValido(claveLimpia)) {
+    return { valida: false, error: MENSAJE_FORMATO_API_KEY_INVALIDO };
+  }
+
+  const endpoint = GEMINI_API_BASE_URL;
   const controlador = new AbortController();
   const temporizador = setTimeout(() => controlador.abort(), 8000);
 
   try {
     const respuesta = await fetch(endpoint, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: construirEncabezados(claveLimpia),
       signal: controlador.signal,
     });
 
@@ -125,19 +139,13 @@ export const validarApiKeyGemini = async (claveCandidata) => {
 
 /**
  * Resuelve la clave de API activa:
- * Prioridad 1: Clave BYOK guardada por el usuario en AsyncStorage.
- * Prioridad 2: Variable de entorno EXPO_PUBLIC_GEMINI_API_KEY.
+ * Única fuente: Almacenamiento seguro del dispositivo (BYOK).
  * @returns {Promise<string>}
  */
 export const obtenerApiKeyActiva = async () => {
   const claveGuardada = await cargarApiKeyGemini();
   if (claveGuardada && claveGuardada.length > 0) {
     return claveGuardada;
-  }
-
-  const claveEnv = String(process.env.EXPO_PUBLIC_GEMINI_API_KEY || '').trim();
-  if (claveEnv && claveEnv.length > 0) {
-    return claveEnv;
   }
 
   throw new GeminiError(
@@ -424,7 +432,7 @@ const ejecutarLlamadaGemini = async ({
   temperature = 0.15,
   timeoutMs = TIMEOUT_POR_PETICION_MS,
 }) => {
-  const endpoint = `${GEMINI_API_BASE_URL}/${modelo}:generateContent?key=${apiKey}`;
+  const endpoint = `${GEMINI_API_BASE_URL}/${modelo}:generateContent`;
 
   const partesImagen = imagenesBase64.map((b64) => ({
     inline_data: {
@@ -453,7 +461,7 @@ const ejecutarLlamadaGemini = async ({
     try {
       response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: construirEncabezados(apiKey),
         body: JSON.stringify(payload),
         signal: controlador.signal,
       });

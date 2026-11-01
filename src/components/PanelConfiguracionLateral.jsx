@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  AppState,
   KeyboardAvoidingView,
   Linking,
   Modal,
@@ -33,6 +34,7 @@ import {
   cargarApiKeyGemini,
   eliminarApiKeyGemini,
   guardarApiKeyGemini,
+  esFormatoApiKeyValido,
 } from '../services/apiKeyStorage';
 import {
   PERFIL_USUARIO_BASE,
@@ -62,8 +64,10 @@ export default function PanelConfiguracionLateral({
 
   const [montado, setMontado] = useState(visible);
   const [claveInput, setClaveInput] = useState('');
-  const [claveGuardada, setClaveGuardada] = useState(null);
+  const [finClaveGuardada, setFinClaveGuardada] = useState(null);
+  const textoPegadoRef = useRef(null);
   const [mostrarClave, setMostrarClave] = useState(false);
+  const [inputEnfocado, setInputEnfocado] = useState(false);
   const [validando, setValidando] = useState(false);
   const [mensajeEstado, setMensajeEstado] = useState(null);
 
@@ -73,12 +77,10 @@ export default function PanelConfiguracionLateral({
 
   const cargarEstadoClave = useCallback(async () => {
     const clave = await cargarApiKeyGemini();
-    setClaveGuardada(clave);
-    if (clave) {
-      setClaveInput(clave);
-    } else {
-      setClaveInput('');
-    }
+    setFinClaveGuardada(clave ? clave.slice(-4) : null);
+    setClaveInput('');
+    setMostrarClave(false);
+    textoPegadoRef.current = null;
     setMensajeEstado(null);
   }, []);
 
@@ -107,6 +109,18 @@ export default function PanelConfiguracionLateral({
       }
     );
   }, [ANCHO_DRAWER, translateX, opacityBackdrop, finalizarCierre]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const suscripcion = AppState.addEventListener('change', (siguienteEstado) => {
+      if (siguienteEstado !== 'active') {
+        setMostrarClave(false);
+      }
+    });
+    return () => {
+      suscripcion.remove();
+    };
+  }, [visible]);
 
   useEffect(() => {
     if (visible) {
@@ -166,6 +180,14 @@ export default function PanelConfiguracionLateral({
   const handleProbarYGuardar = async () => {
     const claveLimpia = claveInput.trim();
     if (!claveLimpia) {
+      if (finClaveGuardada) {
+        setMensajeEstado({
+          tipo: 'info',
+          texto:
+            'Ya tienes una clave guardada. Pega una clave nueva solo si quieres reemplazarla.',
+        });
+        return;
+      }
       setMensajeEstado({
         tipo: 'error',
         texto: 'Por favor ingresa o pega tu Gemini API Key antes de guardar.',
@@ -183,16 +205,24 @@ export default function PanelConfiguracionLateral({
     if (resultado.valida) {
       const guardado = await guardarApiKeyGemini(claveLimpia);
       if (guardado) {
-        setClaveGuardada(claveLimpia);
+        setFinClaveGuardada(claveLimpia.slice(-4));
+        setClaveInput('');
+        setMostrarClave(false);
+        if (textoPegadoRef.current === claveLimpia) {
+          try {
+            await Clipboard.setStringAsync('');
+          } catch {}
+        }
+        textoPegadoRef.current = null;
         setMensajeEstado({
           tipo: 'exito',
-          texto: 'Clave validada y guardada con éxito en tu dispositivo.',
+          texto: 'Clave validada y guardada en el almacenamiento seguro de tu teléfono.',
         });
         vibrarEjercicioCompletado();
       } else {
         setMensajeEstado({
           tipo: 'error',
-          texto: 'Ocurrió un error al persistir la clave en el almacenamiento local.',
+          texto: 'No se pudo guardar la clave en el almacenamiento seguro del dispositivo.',
         });
       }
     } else {
@@ -214,9 +244,19 @@ export default function PanelConfiguracionLateral({
           text: 'Eliminar',
           style: 'destructive',
           onPress: async () => {
-            await eliminarApiKeyGemini();
-            setClaveGuardada(null);
+            const eliminado = await eliminarApiKeyGemini();
+            if (!eliminado) {
+              await cargarEstadoClave();
+              setMensajeEstado({
+                tipo: 'error',
+                texto: 'No se pudo eliminar la clave por completo. Intenta de nuevo.',
+              });
+              return;
+            }
+            setFinClaveGuardada(null);
             setClaveInput('');
+            setMostrarClave(false);
+            textoPegadoRef.current = null;
             setMensajeEstado({
               tipo: 'info',
               texto: 'Clave eliminada del dispositivo.',
@@ -231,9 +271,11 @@ export default function PanelConfiguracionLateral({
   const handlePegarPortapapeles = async () => {
     try {
       const textoPegado = await Clipboard.getStringAsync();
+      const limpio = typeof textoPegado === 'string' ? textoPegado.trim() : '';
 
-      if (textoPegado && typeof textoPegado === 'string' && textoPegado.trim()) {
-        setClaveInput(textoPegado.trim());
+      if (limpio && esFormatoApiKeyValido(limpio)) {
+        setClaveInput(limpio);
+        textoPegadoRef.current = limpio;
         setMensajeEstado({
           tipo: 'info',
           texto: 'Texto pegado desde el portapapeles.',
@@ -242,7 +284,7 @@ export default function PanelConfiguracionLateral({
       } else {
         Alert.alert(
           'Portapapeles',
-          'El portapapeles está vacío o no contiene texto válido.'
+          'El portapapeles no contiene una clave con formato válido.'
         );
       }
     } catch {
@@ -277,9 +319,9 @@ export default function PanelConfiguracionLateral({
     return null;
   }
 
-  const tieneClaveConfigurada = Boolean(claveGuardada && claveGuardada.length > 0);
+  const tieneClaveConfigurada = Boolean(finClaveGuardada);
   const mascaraClave = tieneClaveConfigurada
-    ? `${claveGuardada.slice(0, 6)}••••••••${claveGuardada.slice(-4)}`
+    ? `••••••••${finClaveGuardada}`
     : '';
 
   const perfilActivo = perfilUsuario || PERFIL_USUARIO_BASE;
@@ -454,17 +496,26 @@ export default function PanelConfiguracionLateral({
                     </TouchableOpacity>
                   </View>
 
-                  {/* Tarjeta de Estado de Conexión */}
+                  {/* Tarjeta de Estado de Conexión (Halo LED concéntrico + BYOK) */}
                   <View style={styles.tarjetaEstado}>
                     <View style={styles.filaEstadoEncabezado}>
                       <View
                         style={[
-                          styles.puntoConexion,
+                          styles.haloLed,
                           tieneClaveConfigurada
-                            ? styles.puntoConectado
-                            : styles.puntoDesconectado,
+                            ? styles.haloLedConectado
+                            : styles.haloLedDesconectado,
                         ]}
-                      />
+                      >
+                        <View
+                          style={[
+                            styles.puntoConexion,
+                            tieneClaveConfigurada
+                              ? styles.puntoConectado
+                              : styles.puntoDesconectado,
+                          ]}
+                        />
+                      </View>
                       <Text style={styles.textoTituloEstado}>
                         {tieneClaveConfigurada ? 'CLAVE CONECTADA' : 'NO CONFIGURADA'}
                       </Text>
@@ -473,18 +524,50 @@ export default function PanelConfiguracionLateral({
                       </View>
                     </View>
 
+                    {/* Cápsula de Seguridad Keystore */}
+                    {tieneClaveConfigurada ? (
+                      <View style={styles.capsulaMascaraClave}>
+                        <Feather
+                          name="lock"
+                          size={13}
+                          color="#00E676"
+                          style={{ marginRight: 6 }}
+                        />
+                        <Text style={styles.textoMascaraClave}>{mascaraClave}</Text>
+                        <View style={styles.microBadgeKeystore}>
+                          <Text style={styles.textoMicroBadgeKeystore}>KEYSTORE</Text>
+                        </View>
+                      </View>
+                    ) : null}
+
                     <Text style={styles.descripcionEstado}>
                       {tieneClaveConfigurada
-                        ? `Tu clave (${mascaraClave}) está activa en el dispositivo. Las funciones de nutrición e IA fotográfica consumen tu cuota privada.`
+                        ? 'Tu clave está activa en el almacenamiento seguro del dispositivo. Las funciones de nutrición e IA fotográfica consumen tu cuota privada.'
                         : 'Configura tu Gemini API Key personal para activar el análisis bromatológico por foto y la evaluación de cambio físico.'}
                     </Text>
                   </View>
 
-                  {/* Formulario de Configuración de Clave */}
+                  {/* Formulario de Configuración de Clave (Security Input Suite) */}
                   <View style={styles.seccionFormulario}>
                     <Text style={styles.etiquetaCampo}>GEMINI API KEY</Text>
 
-                    <View style={styles.cajaInputClave}>
+                    <View
+                      style={[
+                        styles.cajaInputClave,
+                        inputEnfocado && styles.cajaInputClaveEnfocada,
+                      ]}
+                    >
+                      <Feather
+                        name="key"
+                        size={15}
+                        color={
+                          inputEnfocado
+                            ? TOKENS.colors.textPrimary
+                            : TOKENS.colors.textMuted
+                        }
+                        style={styles.iconoPrefijoInput}
+                      />
+
                       <TextInput
                         style={styles.inputTexto}
                         value={claveInput}
@@ -492,42 +575,63 @@ export default function PanelConfiguracionLateral({
                           setClaveInput(texto);
                           setMensajeEstado(null);
                         }}
-                        placeholder="Pega aquí tu clave (AIzaSy...)"
+                        onFocus={() => setInputEnfocado(true)}
+                        onBlur={() => setInputEnfocado(false)}
+                        placeholder={
+                          finClaveGuardada
+                            ? 'Pega una clave nueva para reemplazarla'
+                            : 'Pega aquí tu clave de Google AI Studio'
+                        }
                         placeholderTextColor={TOKENS.colors.textMuted}
                         secureTextEntry={!mostrarClave}
                         autoCapitalize="none"
                         autoCorrect={false}
+                        autoComplete="off"
+                        importantForAutofill="no"
+                        textContentType="none"
+                        spellCheck={false}
+                        keyboardType={
+                          Platform.OS === 'android' && mostrarClave
+                            ? 'visible-password'
+                            : 'default'
+                        }
                         selectTextOnFocus
                       />
 
-                      <TouchableOpacity
-                        style={styles.botonIconoInput}
-                        activeOpacity={0.7}
-                        onPress={() => setMostrarClave((prev) => !prev)}
-                        hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                      >
-                        <Feather
-                          name={mostrarClave ? 'eye-off' : 'eye'}
-                          size={16}
-                          color={TOKENS.colors.textSecondary}
-                        />
-                      </TouchableOpacity>
+                      <View style={styles.grupoBotonesInput}>
+                        <TouchableOpacity
+                          style={styles.botonIconoInput}
+                          activeOpacity={0.7}
+                          onPress={() => setMostrarClave((prev) => !prev)}
+                          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                          accessibilityLabel={
+                            mostrarClave ? 'Ocultar clave' : 'Mostrar clave'
+                          }
+                        >
+                          <Feather
+                            name={mostrarClave ? 'eye-off' : 'eye'}
+                            size={16}
+                            color={TOKENS.colors.textSecondary}
+                          />
+                        </TouchableOpacity>
 
-                      <TouchableOpacity
-                        style={styles.botonIconoInput}
-                        activeOpacity={0.7}
-                        onPress={handlePegarPortapapeles}
-                        hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                      >
-                        <Feather
-                          name="clipboard"
-                          size={16}
-                          color={TOKENS.colors.textSecondary}
-                        />
-                      </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.botonIconoInput}
+                          activeOpacity={0.7}
+                          onPress={handlePegarPortapapeles}
+                          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                          accessibilityLabel="Pegar clave desde portapapeles"
+                        >
+                          <Feather
+                            name="clipboard"
+                            size={16}
+                            color={TOKENS.colors.textSecondary}
+                          />
+                        </TouchableOpacity>
+                      </View>
                     </View>
 
-                    {/* Mensajes de Estado en Vivo */}
+                    {/* Mensajes de Estado en Vivo con Micro-insignia */}
                     {mensajeEstado ? (
                       <View
                         style={[
@@ -539,24 +643,34 @@ export default function PanelConfiguracionLateral({
                             : styles.mensajeInfo,
                         ]}
                       >
-                        <Feather
-                          name={
+                        <View
+                          style={[
+                            styles.iconoMensajeCirculo,
                             mensajeEstado.tipo === 'exito'
-                              ? 'check-circle'
+                              ? styles.iconoMensajeCirculoExito
                               : mensajeEstado.tipo === 'error'
-                              ? 'alert-circle'
-                              : 'info'
-                          }
-                          size={14}
-                          color={
-                            mensajeEstado.tipo === 'exito'
-                              ? '#00E676'
-                              : mensajeEstado.tipo === 'error'
-                              ? '#FF5252'
-                              : '#8E8E93'
-                          }
-                          style={{ marginRight: 8, marginTop: 1 }}
-                        />
+                              ? styles.iconoMensajeCirculoError
+                              : styles.iconoMensajeCirculoInfo,
+                          ]}
+                        >
+                          <Feather
+                            name={
+                              mensajeEstado.tipo === 'exito'
+                                ? 'check'
+                                : mensajeEstado.tipo === 'error'
+                                ? 'alert-triangle'
+                                : 'info'
+                            }
+                            size={12}
+                            color={
+                              mensajeEstado.tipo === 'exito'
+                                ? '#00E676'
+                                : mensajeEstado.tipo === 'error'
+                                ? '#FF5252'
+                                : '#8E8E93'
+                            }
+                          />
+                        </View>
                         <Text
                           style={[
                             styles.textoMensaje,
@@ -572,7 +686,7 @@ export default function PanelConfiguracionLateral({
                       </View>
                     ) : null}
 
-                    {/* Botón Principal: Probar y Guardar */}
+                    {/* Botón Principal: Probar y Guardar (54pt Hero) */}
                     <TouchableOpacity
                       style={[
                         styles.botonGuardar,
@@ -588,7 +702,7 @@ export default function PanelConfiguracionLateral({
                         <>
                           <Feather
                             name="check"
-                            size={15}
+                            size={16}
                             color="#0A0A0A"
                             style={{ marginRight: 8 }}
                           />
@@ -599,7 +713,7 @@ export default function PanelConfiguracionLateral({
                       )}
                     </TouchableOpacity>
 
-                    {/* Botón Secundario: Eliminar Clave */}
+                    {/* Botón Secundario: Eliminar Clave (48pt Tinte Rojo Sutil) */}
                     {tieneClaveConfigurada ? (
                       <TouchableOpacity
                         style={styles.botonEliminar}
@@ -620,13 +734,19 @@ export default function PanelConfiguracionLateral({
                   {/* Banner Enlace a Google AI Studio */}
                   <View style={styles.tarjetaAiStudio}>
                     <View style={styles.filaAiStudioHeader}>
-                      <Feather
-                        name="key"
-                        size={16}
-                        color={TOKENS.colors.textPrimary}
-                        style={{ marginRight: 8 }}
-                      />
-                      <Text style={styles.tituloAiStudio}>¿No tienes una API Key?</Text>
+                      <View style={styles.iconoAiStudioCirculo}>
+                        <Feather
+                          name="key"
+                          size={14}
+                          color={TOKENS.colors.textPrimary}
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.tituloAiStudio}>¿No tienes una API Key?</Text>
+                        <Text style={styles.subtituloAiStudio}>
+                          Nivel Gratuito de Google
+                        </Text>
+                      </View>
                     </View>
                     <Text style={styles.descripcionAiStudio}>
                       Google AI Studio ofrece claves gratuitas para Gemini con cuotas generosas
@@ -643,25 +763,32 @@ export default function PanelConfiguracionLateral({
                       <Feather
                         name="external-link"
                         size={13}
-                        color="#FFFFFF"
+                        color={TOKENS.colors.textPrimary}
                         style={{ marginLeft: 6 }}
                       />
                     </TouchableOpacity>
                   </View>
 
-                  {/* Aviso de Privacidad y Modelo Local-First */}
-                  <View style={styles.bloquePrivacidad}>
-                    <Feather
-                      name="shield"
-                      size={14}
-                      color={TOKENS.colors.textMuted}
-                      style={{ marginRight: 8, marginTop: 2 }}
-                    />
-                    <Text style={styles.textoPrivacidad}>
-                      Tu clave se almacena de forma 100% local en tu dispositivo con
-                      AsyncStorage. Nunca se transmite a servidores de terceros ni se
-                      almacena en repositorios públicos.
-                    </Text>
+                  {/* Aviso de Privacidad y Modelo Local-First (Cápsula Blindada de Seguridad) */}
+                  <View style={styles.capsulaSeguridad}>
+                    <View style={styles.iconoEscudoSeguridad}>
+                      <Feather
+                        name="shield"
+                        size={14}
+                        color="#00E676"
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <View style={styles.filaEncabezadoSeguridad}>
+                        <Text style={styles.tituloSeguridad}>ALMACENAMIENTO SEGURO LOCAL</Text>
+                        <View style={styles.badgeHardware}>
+                          <Text style={styles.textoBadgeHardware}>HARDWARE-BACKED</Text>
+                        </View>
+                      </View>
+                      <Text style={styles.textoPrivacidad}>
+                        Tu clave se guarda cifrada en el almacenamiento seguro de tu teléfono y no se incluye en copias de seguridad. Solo se envía a Google (Gemini) en cada consulta de IA.
+                      </Text>
+                    </View>
                   </View>
 
                   {/* Créditos: ilustraciones de ejercicios (licencia RepDB free tier) */}
@@ -869,11 +996,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
+  haloLed: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  haloLedConectado: {
+    backgroundColor: 'rgba(0, 230, 118, 0.15)',
+  },
+  haloLedDesconectado: {
+    backgroundColor: 'rgba(255, 82, 82, 0.15)',
+  },
   puntoConexion: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: 8,
   },
   puntoConectado: {
     backgroundColor: '#00E676',
@@ -902,6 +1042,39 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     color: TOKENS.colors.textSecondary,
   },
+  capsulaMascaraClave: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.surface,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    borderRadius: TOKENS.radii.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    marginBottom: 10,
+  },
+  textoMascaraClave: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 12,
+    fontWeight: '700',
+    color: TOKENS.colors.textPrimary,
+    letterSpacing: 1.2,
+    flex: 1,
+  },
+  microBadgeKeystore: {
+    backgroundColor: 'rgba(0, 230, 118, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.3)',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  textoMicroBadgeKeystore: {
+    fontSize: 8,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    color: '#00E676',
+  },
   descripcionEstado: {
     fontSize: 12,
     lineHeight: 17,
@@ -925,20 +1098,32 @@ const styles = StyleSheet.create({
     borderColor: TOKENS.colors.borderDefault,
     borderRadius: TOKENS.radii.md,
     paddingHorizontal: 12,
-    minHeight: 48,
+    minHeight: 50,
+  },
+  cajaInputClaveEnfocada: {
+    borderColor: TOKENS.colors.borderFocus,
+    backgroundColor: TOKENS.colors.surfaceInteractive,
+  },
+  iconoPrefijoInput: {
+    marginRight: 8,
   },
   inputTexto: {
     flex: 1,
     color: TOKENS.colors.textPrimary,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     fontSize: 13,
-    paddingVertical: 8,
+    paddingVertical: 10,
+  },
+  grupoBotonesInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   botonIconoInput: {
-    minWidth: 40,
-    minHeight: 40,
+    minWidth: 38,
+    minHeight: 38,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 4,
+    marginLeft: 2,
   },
   cajaMensaje: {
     flexDirection: 'row',
@@ -947,6 +1132,24 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 10,
     borderWidth: 1,
+  },
+  iconoMensajeCirculo: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+    marginTop: 1,
+  },
+  iconoMensajeCirculoExito: {
+    backgroundColor: 'rgba(0, 230, 118, 0.15)',
+  },
+  iconoMensajeCirculoError: {
+    backgroundColor: 'rgba(255, 82, 82, 0.15)',
+  },
+  iconoMensajeCirculoInfo: {
+    backgroundColor: TOKENS.colors.surfaceInteractive,
   },
   mensajeExito: {
     backgroundColor: 'rgba(0, 230, 118, 0.08)',
@@ -995,13 +1198,13 @@ const styles = StyleSheet.create({
   botonEliminar: {
     flexDirection: 'row',
     height: 48,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(255, 82, 82, 0.06)',
     borderRadius: TOKENS.radii.md,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 82, 82, 0.3)',
+    borderColor: 'rgba(255, 82, 82, 0.25)',
   },
   textoBotonEliminar: {
     color: '#FF5252',
@@ -1020,12 +1223,31 @@ const styles = StyleSheet.create({
   filaAiStudioHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
+  },
+  iconoAiStudioCirculo: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: TOKENS.colors.surfaceInteractive,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
   },
   tituloAiStudio: {
     fontSize: 13,
     fontWeight: '700',
     color: TOKENS.colors.textPrimary,
+  },
+  subtituloAiStudio: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    color: TOKENS.colors.textMuted,
+    textTransform: 'uppercase',
+    marginTop: 1,
   },
   descripcionAiStudio: {
     fontSize: 11,
@@ -1037,7 +1259,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 42,
+    height: 44,
     backgroundColor: TOKENS.colors.surfaceInteractive,
     borderRadius: TOKENS.radii.sm,
     borderWidth: 1,
@@ -1048,16 +1270,58 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  bloquePrivacidad: {
+  capsulaSeguridad: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingHorizontal: 4,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    borderRadius: TOKENS.radii.md,
+    padding: 12,
+    marginBottom: 12,
+  },
+  iconoEscudoSeguridad: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 230, 118, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    marginTop: 2,
+  },
+  filaEncabezadoSeguridad: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  tituloSeguridad: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    color: TOKENS.colors.textPrimary,
+  },
+  badgeHardware: {
+    backgroundColor: 'rgba(0, 230, 118, 0.1)',
+    borderRadius: 3,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.25)',
+  },
+  textoBadgeHardware: {
+    fontSize: 7,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    color: '#00E676',
   },
   textoPrivacidad: {
-    flex: 1,
     fontSize: 10,
     lineHeight: 14,
-    color: TOKENS.colors.textMuted,
+    color: TOKENS.colors.textSecondary,
   },
   botonCreditos: {
     flexDirection: 'row',

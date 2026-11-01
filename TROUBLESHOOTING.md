@@ -4,7 +4,11 @@
 
 ### INC-001: Ausencia de Gemini API Key en APK Standalone (EAS/CI)
 - **Causa Raíz:** `.env` ignorado en git; Metro no inyecta claves en builds remotos.
-- **Solución:** Modelo BYOK con `apiKeyStorage.js` (`AsyncStorage`) y Drawer lateral de configuración en UI.
+- **Solución:** Modelo BYOK con `apiKeyStorage.js` (`expo-secure-store`) y Drawer lateral de configuración en UI.
+
+### INC-010: Exposición de Secretos en Bundles por Variables `EXPO_PUBLIC_*`
+- **Causa Raíz:** Expo incrusta en el bundle de JavaScript toda variable `EXPO_PUBLIC_*` referenciada en código.
+- **Solución:** BYOK con `expo-secure-store`, eliminación de fallbacks a variables públicas en `gemini.js` y barrera en `bundle-check.js`.
 
 ### INC-002: Bloqueo de Herramientas por Hook de Telemetría en Windows (`PreToolUse`)
 - **Causa Raíz:** Concatenación con comillas dobles en plugin de telemetría de Cloud en Windows.
@@ -23,15 +27,15 @@
 - **Solución:** Invertir jerarquía (`TouchableOpacity` estático exterior con `hitSlop: 12` + `Animated.View` interior).
 
 ### INC-006: Desbordamiento de Drawer y Colisión con Safe Areas / Teclado
-- **Causa Raíz:** `GestureHandlerRootView` con `absoluteFillObject` dentro de `Modal` rompía layout de flexión; dimensiones estáticas con `Dimensions.get('window')` y ausencia de `react-native-safe-area-context`.
-- **Solución:** `useSafeInsets` con pisos defensivos, `GestureHandlerRootView` con `flex: 1`, `useWindowDimensions()`, `KeyboardAvoidingView` y botones adaptados a Thumb-Zone.
+- **Causa Raíz:** `GestureHandlerRootView` con `absoluteFillObject` dentro de `Modal` rompía layout de flexión; dimensiones estáticas y sin insets seguros.
+- **Solución:** `useSafeInsets` con pisos defensivos, `GestureHandlerRootView` con `flex: 1`, `useWindowDimensions()` y `KeyboardAvoidingView`.
 
 ### INC-007: Inoperancia de Botones dentro de Drawer en Android (RNGH Pan Gesture)
-- **Causa Raíz:** `activeOffsetX([10, 500])` causaba que en `ACTION_DOWN` (`translationX = 0 < 10`) el handler Pan se activara de inmediato cancelando toques hijos (`ACTION_CANCEL`). Además faltaba `expo-clipboard`.
-- **Solución:** Configurar `.activeOffsetX(25)` (escalar positivo), `.cancelsTouchesInView(false)`, migrar a `TouchableOpacity` de RNGH, `elevation: 24` e instalar `expo-clipboard`.
+- **Causa Raíz:** `activeOffsetX([10, 500])` cancelaba toques en `ACTION_DOWN` (`translationX = 0 < 10`). Además faltaba `expo-clipboard`.
+- **Solución:** Configurar `.activeOffsetX(25)`, `.cancelsTouchesInView(false)`, `TouchableOpacity` de RNGH e instalar `expo-clipboard`.
 
 ### INC-008: Pruebas de assets de imagen en Jest (Spec 014)
-- **Causa Raíz:** `jest-expo` transforma cualquier `require` de imagen a `1`, comparar `require` no detecta un mapa cruzado.
+- **Causa Raíz:** `jest-expo` transforma `require` de imagen a `1`, comparar `require` no detecta un mapa cruzado.
 - **Solución:** comparar ids y leer texto del mapa y cabecera con `fs` relativo a la raíz (sin `__dirname`/`process`).
 
 ### INC-009: Regla `react-hooks/set-state-in-effect` en Candados de Módulo
