@@ -189,7 +189,11 @@ export const obtenerModelos = () => {
  * @param {Object} [contextoPerfil={}]
  * @returns {string}
  */
-const construirPromptAltaPrecision = (tipoComida, contextoPerfil = {}) => {
+export const construirPromptAltaPrecision = (
+  tipoComida,
+  contextoPerfil = {},
+  descripcionUsuario = ''
+) => {
   const {
     sexo = PERFIL_USUARIO_BASE.sexo,
     edadTexto = '15 años',
@@ -198,6 +202,12 @@ const construirPromptAltaPrecision = (tipoComida, contextoPerfil = {}) => {
     tiempoEntrenandoTexto = 'En progreso',
     objetivo = PERFIL_USUARIO_BASE.objetivo,
   } = contextoPerfil || {};
+
+  const textoUsuarioLimpio = String(descripcionUsuario || '').trim();
+  const bloqueContextoUsuario =
+    textoUsuarioLimpio.length > 0
+      ? `\nCONTEXTO Y DETALLES ESPECIFICADOS POR EL USUARIO:\n"${textoUsuarioLimpio}"\n\nDIRECTIVA CRÍTICA DE PRIORIDAD CUANTITATIVA:\n1. Si el usuario especificó cantidades, pesos (ej. gramos, mililitros, piezas) o ingredientes concretos en la descripción, toma esos datos como la VERDAD BASE INMUTABLE y no los contradigas por la perspectiva o ángulo de la foto.\n2. Utiliza la fotografía para identificar ingredientes secundarios no mencionados (guarniciones, aderezos, aceites visibles), evaluar el método de preparación observable y complementar el análisis.\n3. Calcula las calorías y macronutrientes asegurando coherencia termodinámica con las cantidades declaradas por el usuario.\n`
+      : '';
 
   return `
 Actúa como un nutricionista clínico y especialista en bromatología e inspección visual de alimentos.
@@ -210,7 +220,7 @@ PERFIL BIOMÉTRICO Y OBJETIVO DEL USUARIO:
 - Peso actual: ${Number(pesoKgActual || PERFIL_USUARIO_BASE.pesoKgBase).toFixed(1)} kg
 - Experiencia entrenando fuerza: ${tiempoEntrenandoTexto}
 - Objetivo físico actual: ${objetivo}
-
+${bloqueContextoUsuario}
 Prioriza la MÁXIMA PRECISIÓN Y EXACTITUD por encima de la brevedad en tu razonamiento interno:
 1. Identifica exhaustivamente todos los ingredientes visibles en el plato, vaso o envase (proteínas animales/vegetales, cereales, tubérculos, verduras, frutas, salsas, aderezos, quesos, cremas y aceites de cocción).
 2. Estima el volumen y peso en gramos (g) o mililitros (ml) de cada componente tomando como referencia las proporciones del plato, cubiertos, grosor de los cortes y densidad de cada alimento.
@@ -524,12 +534,17 @@ const solicitarAnalisis = async ({
   base64Limpio,
   tipoComida,
   contextoPerfil,
+  descripcionUsuario = '',
   timeoutMs,
 }) => {
   const resultado = await ejecutarLlamadaGemini({
     modelo,
     apiKey,
-    promptTexto: construirPromptAltaPrecision(tipoComida, contextoPerfil),
+    promptTexto: construirPromptAltaPrecision(
+      tipoComida,
+      contextoPerfil,
+      descripcionUsuario
+    ),
     imagenesBase64: [base64Limpio],
     temperature: 0.1,
     timeoutMs,
@@ -579,7 +594,11 @@ export const analizarComidaConGemini = async (
   tipoComida = 'Comida',
   opciones = {}
 ) => {
-  const { onProgreso, timeoutMs = TIMEOUT_POR_PETICION_MS } = opciones;
+  const {
+    descripcionUsuario = '',
+    onProgreso,
+    timeoutMs = TIMEOUT_POR_PETICION_MS,
+  } = opciones;
   const apiKey = await obtenerApiKeyActiva();
 
   if (!base64Image || typeof base64Image !== 'string') {
@@ -628,6 +647,7 @@ export const analizarComidaConGemini = async (
         base64Limpio,
         tipoComida,
         contextoPerfil,
+        descripcionUsuario,
         timeoutMs,
       });
     } catch (error) {
