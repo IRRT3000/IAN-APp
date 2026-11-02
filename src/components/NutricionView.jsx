@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Image,
@@ -17,7 +16,7 @@ import Animated, {
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import SelectorSemanal from './SelectorSemanal';
-import { analizarComidaConGemini } from '../services/gemini';
+import ModalAnalisisComida from './ModalAnalisisComida';
 import {
   cargarComidas,
   eliminarComida,
@@ -93,9 +92,8 @@ export default function NutricionView({
   const [fechaSeleccionada, setFechaSeleccionada] = useState(obtenerFechaLocal());
   const [tipoSeleccionado, setTipoSeleccionado] = useState('Desayuno');
   const [comidasInternas, setComidasInternas] = useState([]);
-  const [analizando, setAnalizando] = useState(false);
-  const [mensajeError, setMensajeError] = useState('');
-  const [textoProgreso, setTextoProgreso] = useState('');
+  const [modalAnalisisVisible, setModalAnalisisVisible] = useState(false);
+  const [borradorFoto, setBorradorFoto] = useState(null);
   const [avisoBorradoId, setAvisoBorradoId] = useState(null);
   const timerAvisoRef = useRef(null);
 
@@ -212,67 +210,6 @@ export default function NutricionView({
     return status === 'granted';
   };
 
-  const procesarFotoSeleccionada = async (uri, base64) => {
-    try {
-      setAnalizando(true);
-      setMensajeError('');
-      setTextoProgreso('Analizando nutrientes con Gemini Vision...');
-
-      const resultado = await analizarComidaConGemini(base64, tipoSeleccionado, {
-        perfilUsuario,
-      });
-
-      setTextoProgreso('Guardando comida...');
-      const nombreLimpio =
-        resultado?.nombre ||
-        resultado?.descripcion ||
-        `${tipoSeleccionado} escaneado`;
-      const proteinasLimpio =
-        resultado?.proteinas ?? resultado?.macros?.proteinas ?? 0;
-      const carbohidratosLimpio =
-        resultado?.carbohidratos ?? resultado?.macros?.carbohidratos ?? 0;
-      const grasasLimpio =
-        resultado?.grasas ?? resultado?.macros?.grasas ?? 0;
-
-      const nuevaComida = {
-        tipo: tipoSeleccionado,
-        nombre: nombreLimpio,
-        descripcion: nombreLimpio,
-        calorias: Number(resultado?.calorias) || 0,
-        proteinas: Number(proteinasLimpio) || 0,
-        carbohidratos: Number(carbohidratosLimpio) || 0,
-        grasas: Number(grasasLimpio) || 0,
-        macros: {
-          proteinas: Number(proteinasLimpio) || 0,
-          carbohidratos: Number(carbohidratosLimpio) || 0,
-          grasas: Number(grasasLimpio) || 0,
-        },
-        detalles: resultado?.detalles || '',
-        uriFoto: uri,
-        fotoUri: uri,
-        fecha: obtenerFechaLocal(),
-      };
-
-      const listaActualizada = await guardarComida(nuevaComida);
-
-      // Si se guardó en hoy, sincronizar selección
-      setFechaSeleccionada(obtenerFechaLocal());
-
-      if (typeof onComidaRegistrada === 'function') {
-        onComidaRegistrada(listaActualizada);
-      } else {
-        setComidasInternas(listaActualizada);
-      }
-    } catch (error) {
-      setMensajeError(
-        error.message || 'No se pudo analizar la foto. Intenta de nuevo.'
-      );
-    } finally {
-      setAnalizando(false);
-      setTextoProgreso('');
-    }
-  };
-
   const tomarFoto = async () => {
     const tienePermiso = await solicitarPermisoCamara();
     if (!tienePermiso) {
@@ -293,7 +230,8 @@ export default function NutricionView({
 
     if (!resultado.canceled && resultado.assets?.[0]) {
       const asset = resultado.assets[0];
-      await procesarFotoSeleccionada(asset.uri, asset.base64);
+      setBorradorFoto({ uri: asset.uri, base64: asset.base64 });
+      setModalAnalisisVisible(true);
     }
   };
 
@@ -308,8 +246,56 @@ export default function NutricionView({
 
     if (!resultado.canceled && resultado.assets?.[0]) {
       const asset = resultado.assets[0];
-      await procesarFotoSeleccionada(asset.uri, asset.base64);
+      setBorradorFoto({ uri: asset.uri, base64: asset.base64 });
+      setModalAnalisisVisible(true);
     }
+  };
+
+  const handleGuardarComidaDesdeModal = async (comidaNormalizada) => {
+    try {
+      const nuevaComida = {
+        tipo: tipoSeleccionado,
+        nombre: comidaNormalizada.nombre,
+        descripcion: comidaNormalizada.nombre,
+        calorias: comidaNormalizada.calorias,
+        proteinas: comidaNormalizada.proteinas,
+        carbohidratos: comidaNormalizada.carbohidratos,
+        grasas: comidaNormalizada.grasas,
+        macros: {
+          proteinas: comidaNormalizada.proteinas,
+          carbohidratos: comidaNormalizada.carbohidratos,
+          grasas: comidaNormalizada.grasas,
+        },
+        detalles: comidaNormalizada.detalles,
+        uriFoto: borradorFoto?.uri || '',
+        fotoUri: borradorFoto?.uri || '',
+        fecha: obtenerFechaLocal(),
+      };
+
+      const listaActualizada = await guardarComida(nuevaComida);
+      vibrarConfirmacionBorrado();
+      setFechaSeleccionada(obtenerFechaLocal());
+
+      if (typeof onComidaRegistrada === 'function') {
+        onComidaRegistrada(listaActualizada);
+      } else {
+        setComidasInternas(listaActualizada);
+      }
+
+      setModalAnalisisVisible(false);
+      setBorradorFoto(null);
+    } catch (error) {
+      Alert.alert(
+        'Error al guardar',
+        error?.message || 'No se pudo guardar la comida.',
+        [{ text: 'Entendido', style: 'cancel' }]
+      );
+    }
+  };
+
+  const handleCerrarModal = () => {
+    setModalAnalisisVisible(false);
+    setBorradorFoto(null);
   };
 
   return (
@@ -441,7 +427,7 @@ export default function NutricionView({
             <TouchableOpacity
               style={[styles.botonCaptura, styles.botonCamara]}
               onPress={tomarFoto}
-              disabled={analizando}
+              disabled={modalAnalisisVisible}
               activeOpacity={0.8}
             >
               <Feather
@@ -456,7 +442,7 @@ export default function NutricionView({
             <TouchableOpacity
               style={[styles.botonCaptura, styles.botonGaleria]}
               onPress={seleccionarDeGaleria}
-              disabled={analizando}
+              disabled={modalAnalisisVisible}
               activeOpacity={0.8}
             >
               <Feather
@@ -471,24 +457,7 @@ export default function NutricionView({
         </>
       ) : null}
 
-      {analizando ? (
-        <View style={styles.bloqueCarga}>
-          <ActivityIndicator size="small" color={TOKENS.colors.accentWhite} />
-          <Text style={styles.textoCarga}>{textoProgreso}</Text>
-        </View>
-      ) : null}
 
-      {mensajeError ? (
-        <View style={styles.bloqueError}>
-          <Feather
-            name="alert-circle"
-            size={14}
-            color={TOKENS.colors.danger}
-            style={{ marginRight: 6 }}
-          />
-          <Text style={styles.textoError}>{mensajeError}</Text>
-        </View>
-      ) : null}
 
       {/* Listado de Comidas del Día */}
       <View style={styles.seccionHistorial}>
@@ -616,8 +585,20 @@ export default function NutricionView({
             ) : null}
           </View>
         }
-      />
-    </View>
+      />
+
+      <ModalAnalisisComida
+        key={borradorFoto?.uri || 'modal-comida'}
+        visible={modalAnalisisVisible}
+        fotoUri={borradorFoto?.uri}
+        fotoBase64={borradorFoto?.base64}
+        tipoComida={tipoSeleccionado}
+        perfilUsuario={perfilUsuario}
+        onCambiarFoto={tomarFoto}
+        onCerrar={handleCerrarModal}
+        onGuardar={handleGuardarComidaDesdeModal}
+      />
+    </View>
   );
 }
 
