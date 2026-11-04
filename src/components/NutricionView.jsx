@@ -3,6 +3,7 @@ import {
   Alert,
   FlatList,
   Image,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -17,6 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import SelectorSemanal from './SelectorSemanal';
 import ModalAnalisisComida from './ModalAnalisisComida';
+import { mostrarAlerta } from '../utils/alertUtils';
 import {
   cargarComidas,
   eliminarComida,
@@ -191,7 +193,7 @@ export default function NutricionView({
     if (!esHoy) return;
     setAvisoBorradoId(null);
     const nombreMostrar = item.nombre || item.descripcion || item.tipo;
-    Alert.alert(
+    mostrarAlerta(
       'Eliminar registro de comida',
       `¿Deseas eliminar "${nombreMostrar}"?\n\nEsta acción borrará el registro de calorías y macros de tu historial.`,
       [
@@ -206,6 +208,9 @@ export default function NutricionView({
   };
 
   const solicitarPermisoCamara = async () => {
+    if (Platform.OS === 'web') {
+      return true;
+    }
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     return status === 'granted';
   };
@@ -585,8 +590,8 @@ export default function NutricionView({
             ) : null}
           </View>
         }
-      />
-
+      />
+
       <ModalAnalisisComida
         key={borradorFoto?.uri || 'modal-comida'}
         visible={modalAnalisisVisible}
@@ -597,8 +602,8 @@ export default function NutricionView({
         onCambiarFoto={tomarFoto}
         onCerrar={handleCerrarModal}
         onGuardar={handleGuardarComidaDesdeModal}
-      />
-    </View>
+      />
+    </View>
   );
 }
 

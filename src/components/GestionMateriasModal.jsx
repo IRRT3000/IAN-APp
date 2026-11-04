@@ -13,6 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { TOKENS } from '../theme/tokens';
 import { vibrarSeleccionBascula } from '../services/haptics';
 import { useSafeInsets } from '../utils/useSafeInsets';
+import { mostrarAlerta } from '../utils/alertUtils';
 
 export default function GestionMateriasModal({
   visible = false,
@@ -94,7 +95,7 @@ export default function GestionMateriasModal({
       return;
     }
 
-    Alert.alert(
+    mostrarAlerta(
       'Eliminar materia',
       `¿Deseas eliminar "${materia.nombre}"? Esta acción no se puede deshacer.`,
       [
@@ -107,7 +108,7 @@ export default function GestionMateriasModal({
               await onBorrarMateria(materia.id);
               vibrarSeleccionBascula();
             } catch (err) {
-              Alert.alert('Error', err.message || 'No se pudo eliminar la materia.');
+              mostrarAlerta('Error', err.message || 'No se pudo eliminar la materia.');
             }
           },
         },

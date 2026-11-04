@@ -45,3 +45,7 @@
 ### INC-011: Error 404 en Assets de Metro por Junction Cruzada (C: y D:)
 - **Causa Raíz:** Junction NTFS (`C:` a `D:`) genera URLs con `unstable_path=.%2FD%3A%2F...`; Metro rechaza rutas relativas con unidad Windows.
 - **Solución:** `metro.config.js` con `enhanceMiddleware` que normaliza `unstable_path` y sirve el asset mediante `fs.createReadStream`.
+
+### INC-012: Incompatibilidad de SecureStore y Alert.alert en Expo Web
+- **Causa Raíz:** `expo-secure-store` no existe en Web; `Alert.alert` ignora callbacks de botones en `react-native-web`.
+- **Solución:** Fallback web a `AsyncStorage` en `apiKeyStorage.js` y puente `mostrarAlerta` (`alertUtils.js`) con `window.confirm`.

@@ -20,6 +20,7 @@ import CatalogoEjerciciosModal from './CatalogoEjerciciosModal';
 import LiveModeModal from './LiveModeModal';
 import CalculadoraPesoModal from './CalculadoraPesoModal';
 import MiniaturaEjercicio from './MiniaturaEjercicio';
+import { mostrarAlerta } from '../utils/alertUtils';
 import {
   cargarCatalogoPersonalizado,
   cargarSesionActivaDraft,
@@ -416,7 +417,7 @@ export default function EntrenamientosView({
   const solicitarConfirmacionBorrado = (item) => {
     if (!esHoy) return;
     setAvisoBorradoId(null);
-    Alert.alert(
+    mostrarAlerta(
       'Eliminar entrenamiento',
       `¿Estás seguro de eliminar "${item.ejercicio}"?\n\nEsta acción borrará el registro definitivamente del historial.`,
       [

@@ -142,6 +142,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     right: 16,
+    maxWidth: 500,
+    alignSelf: 'center',
     zIndex: 999,
   },
   contenedorBarra: {

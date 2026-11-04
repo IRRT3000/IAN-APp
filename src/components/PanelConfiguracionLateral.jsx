@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   AppState,
   KeyboardAvoidingView,
   Linking,
@@ -42,6 +41,7 @@ import {
   calcularTiempoEntrenando,
 } from '../services/storage';
 import { validarApiKeyGemini } from '../services/gemini';
+import { mostrarAlerta } from '../utils/alertUtils';
 import {
   vibrarConfirmacionBorrado,
   vibrarEjercicioCompletado,
@@ -235,7 +235,7 @@ export default function PanelConfiguracionLateral({
   };
 
   const handleEliminarClave = () => {
-    Alert.alert(
+    mostrarAlerta(
       'Eliminar API Key',
       '¿Deseas eliminar tu clave de Gemini de este dispositivo? Las consultas de IA fotográfica requerirán configurarla nuevamente.',
       [
@@ -282,13 +282,13 @@ export default function PanelConfiguracionLateral({
         });
         vibrarInicioPresionBorrado();
       } else {
-        Alert.alert(
+        mostrarAlerta(
           'Portapapeles',
           'El portapapeles no contiene una clave con formato válido.'
         );
       }
     } catch {
-      Alert.alert(
+      mostrarAlerta(
         'Portapapeles',
         'No se pudo acceder al portapapeles en este dispositivo.'
       );
@@ -299,7 +299,7 @@ export default function PanelConfiguracionLateral({
     try {
       await Linking.openURL('https://aistudio.google.com/app/apikey');
     } catch {
-      Alert.alert(
+      mostrarAlerta(
         'Enlace externo',
         'No se pudo abrir el navegador para acceder a Google AI Studio.'
       );
@@ -311,7 +311,7 @@ export default function PanelConfiguracionLateral({
     try {
       await Linking.openURL('https://repdb.co');
     } catch {
-      Alert.alert('Enlace externo', 'No se pudo abrir el navegador para acceder a RepDB.');
+      mostrarAlerta('Enlace externo', 'No se pudo abrir el navegador para acceder a RepDB.');
     }
   };
 

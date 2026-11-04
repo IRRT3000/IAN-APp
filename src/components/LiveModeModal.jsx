@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Alert,
   BackHandler,
   Keyboard,
   Modal,
@@ -18,6 +17,7 @@ import {
   eliminarSesionActivaDraft,
   guardarSesionActivaDraft,
 } from '../services/storage';
+import { mostrarAlerta } from '../utils/alertUtils';
 import {
   vibrarConfirmacionBorrado,
   vibrarEjercicioCompletado,
@@ -174,7 +174,7 @@ export default function LiveModeModal({
   };
 
   const confirmarDescarte = () => {
-    Alert.alert(
+    mostrarAlerta(
       'Descartar sesión activa',
       '¿Deseas descartar este ejercicio? Los datos de la sesión actual no se guardarán en tu historial.',
       [

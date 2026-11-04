@@ -1,4 +1,4 @@
-name: Build & Release Android APK
+name: Build & Release Multiplataforma (Android & iOS Web PWA)
 
 on:
   push:
@@ -54,16 +54,16 @@ jobs:
           fi
           echo "APK generado encontrado en: $APK_FILE"
 
-          VERSION_TAG="${{ github.ref_name }}"
-          if [ -z "$VERSION_TAG" ] || [ "$VERSION_TAG" = "main" ]; then
-            VERSION_TAG="preview"
+          CLEAN_TAG=$(echo "${{ github.ref_name }}" | tr '/' '-')
+          if [ -z "$CLEAN_TAG" ] || [ "$CLEAN_TAG" = "main" ]; then
+            CLEAN_TAG="preview"
           fi
 
-          OUTPUT_APK="mi-fitness-app-${VERSION_TAG}.apk"
+          OUTPUT_APK="mi-fitness-app-${CLEAN_TAG}.apk"
           cp "$APK_FILE" "$OUTPUT_APK"
           echo "APK listo para distribución: $OUTPUT_APK"
           echo "APK_PATH=$OUTPUT_APK" >> $GITHUB_ENV
-          echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
+          echo "VERSION_TAG=$CLEAN_TAG" >> $GITHUB_ENV
 
       - name: 9. Subir APK como Artefacto de GitHub Actions
         uses: actions/upload-artifact@v4
@@ -72,12 +72,83 @@ jobs:
           path: ${{ env.APK_PATH }}
           if-no-files-found: error
 
-      - name: 10. Publicar en GitHub Releases (Solo en Tags)
-        if: startsWith(github.ref, 'refs/tags/v')
+  build-web:
+    name: Compilar Web / PWA (iOS)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Clonar Repositorio
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias del Proyecto
+        run: npm ci
+
+      - name: 4. Exportar PWA para Web
+        run: npx expo export --platform web --output-dir dist
+
+      - name: 5. Preparar Paquete Web para Distribución
+        run: |
+          CLEAN_TAG=$(echo "${{ github.ref_name }}" | tr '/' '-')
+          if [ -z "$CLEAN_TAG" ] || [ "$CLEAN_TAG" = "main" ]; then
+            CLEAN_TAG="preview"
+          fi
+
+          OUTPUT_ZIP="mi-fitness-app-web-${CLEAN_TAG}.zip"
+          cd dist
+          zip -r "../$OUTPUT_ZIP" .
+          cd ..
+          echo "ZIP listo para distribución: $OUTPUT_ZIP"
+          echo "ZIP_PATH=$OUTPUT_ZIP" >> $GITHUB_ENV
+
+      - name: 6. Subir Artefacto Web ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: mi-fitness-app-web
+          path: ${{ env.ZIP_PATH }}
+          if-no-files-found: error
+
+  publish-release:
+    name: Publicar en GitHub Releases
+    needs: [build-apk, build-web]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: 1. Descargar Artefacto APK Android
+        uses: actions/download-artifact@v4
+        with:
+          name: mi-fitness-app-apk
+          path: release-assets
+
+      - name: 2. Descargar Artefacto Web PWA
+        uses: actions/download-artifact@v4
+        with:
+          name: mi-fitness-app-web
+          path: release-assets
+
+      - name: 3. Publicar Release con Artefactos Multiplataforma
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.APK_PATH }}
-          name: "Versión ${{ env.VERSION_TAG }}"
+          files: release-assets/*
+          name: "Versión ${{ github.ref_name }}"
           draft: false
           prerelease: false
           generate_release_notes: true
+          body: |
+            ## 🚀 Fitness Tracker — Novedades y Descarga Multiplataforma
+
+            ### 🤖 Para Android
+            1. Descarga el instalador adjunto `mi-fitness-app-${{ github.ref_name }}.apk`.
+            2. Abre el archivo en tu dispositivo y pulsa **Instalar**.
+
+            ### 🍏 Para iPhone / iOS (PWA Instalable)
+            1. Descomprime o aloja la versión web PWA en tu servidor o ábrela en **Safari**.
+            2. Toca el botón **Compartir** de Safari (icono de cuadro con flecha).
+            3. Selecciona **«Agregar a pantalla de inicio»** (*Add to Home Screen*).
+            4. ¡Listo! La app se ejecutará en tu iPhone a pantalla completa con almacenamiento local protegido.

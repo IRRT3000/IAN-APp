@@ -9,10 +9,17 @@
 
 ## 📱 Cómo Descargar e Instalar en tu Celular
 
+### 🤖 Android (Instalador APK)
 1. Entra desde el navegador de tu celular a la pestaña **[Releases](https://github.com/IRRT3000/IAN-APp/releases/latest)**.
 2. Toca el archivo adjunto `mi-fitness-app-vX.X.X.apk` para descargarlo.
 3. Abre el archivo descargado y presiona **Instalar**.
 4. Al abrir la app por primera vez, toca el **icono de engranaje** en la esquina superior derecha para conectar tu Gemini API Key gratuita.
+
+### 🍏 iPhone / iOS (PWA Instalable)
+1. Entra al enlace de la versión Web o PWA desde **Safari** en tu iPhone.
+2. Toca el botón **Compartir** de Safari (icono de cuadro con flecha hacia arriba).
+3. Selecciona **«Agregar a pantalla de inicio»** (*Add to Home Screen*).
+4. La app se instalará en tu pantalla de inicio con su icono propio y se abrirá a pantalla completa como una app nativa, con almacenamiento local permanente.
 
 ---
 

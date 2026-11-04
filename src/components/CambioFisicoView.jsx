@@ -5,6 +5,7 @@ import {
   FlatList,
   Image,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -19,6 +20,7 @@ import Animated, {
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import SelectorSemanal from './SelectorSemanal';
+import { mostrarAlerta } from '../utils/alertUtils';
 import {
   analizarCambioFisicoConGemini,
   compararCambioFisicoConGemini,
@@ -305,10 +307,12 @@ export default function CambioFisicoView({
 
     try {
       setMensajeError('');
-      const permiso = await ImagePicker.requestCameraPermissionsAsync();
-      if (!permiso.granted) {
-        setMensajeError('Se requiere permiso para acceder a la cámara.');
-        return;
+      if (Platform.OS !== 'web') {
+        const permiso = await ImagePicker.requestCameraPermissionsAsync();
+        if (!permiso.granted) {
+          setMensajeError('Se requiere permiso para acceder a la cámara.');
+          return;
+        }
       }
 
       const resultado = await ImagePicker.launchCameraAsync({
@@ -609,7 +613,7 @@ export default function CambioFisicoView({
   const solicitarConfirmacionBorrado = (item) => {
     if (!esHoy) return;
     setAvisoBorradoId(null);
-    Alert.alert(
+    mostrarAlerta(
       'Eliminar chequeo físico',
       `¿Deseas eliminar el análisis del ${item.fecha} (${item.pesoKg} kg · Veredicto ${item.veredicto}/10)?\n\nEsta acción borrará el registro definitivamente.`,
       [

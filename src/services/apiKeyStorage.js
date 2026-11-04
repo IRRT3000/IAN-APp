@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 export const CLAVE_SECURE_STORE_API_KEY = 'fitness_tracker_gemini_api_key';
 export const CLAVE_STORAGE_API_KEY_LEGADA = '@fitness_tracker_gemini_api_key';
+export const CLAVE_STORAGE_API_KEY_WEB = '@fitness_tracker_gemini_api_key_web';
 export const MENSAJE_FORMATO_API_KEY_INVALIDO =
   'La clave debe tener entre 20 y 256 caracteres, sin espacios, y solo letras, números, punto, guion o guion bajo.';
 
@@ -93,6 +95,16 @@ export const guardarApiKeyGemini = async (clave) => {
     return false;
   }
 
+  if (Platform.OS === 'web') {
+    try {
+      await AsyncStorage.setItem(CLAVE_STORAGE_API_KEY_WEB, claveLimpia);
+      return true;
+    } catch (error) {
+      console.error('Error al guardar la clave de API en almacenamiento web:', error);
+      return false;
+    }
+  }
+
   try {
     await SecureStore.setItemAsync(
       CLAVE_SECURE_STORE_API_KEY,
@@ -109,6 +121,19 @@ export const guardarApiKeyGemini = async (clave) => {
 };
 
 export const cargarApiKeyGemini = async () => {
+  if (Platform.OS === 'web') {
+    try {
+      const valor = await AsyncStorage.getItem(CLAVE_STORAGE_API_KEY_WEB);
+      if (typeof valor === 'string' && esFormatoApiKeyValido(valor)) {
+        return normalizarApiKey(valor);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error al leer la clave de API desde almacenamiento web:', error);
+      return null;
+    }
+  }
+
   const segura = await leerSegura();
 
   if (!segura.error && esFormatoApiKeyValido(segura.valor)) {
@@ -128,6 +153,16 @@ export const cargarApiKeyGemini = async () => {
 };
 
 export const eliminarApiKeyGemini = async () => {
+  if (Platform.OS === 'web') {
+    try {
+      await AsyncStorage.removeItem(CLAVE_STORAGE_API_KEY_WEB);
+      return true;
+    } catch (error) {
+      console.error('Error al eliminar la clave de API en almacenamiento web:', error);
+      return false;
+    }
+  }
+
   let exitoSeguro = true;
   try {
     await SecureStore.deleteItemAsync(CLAVE_SECURE_STORE_API_KEY);

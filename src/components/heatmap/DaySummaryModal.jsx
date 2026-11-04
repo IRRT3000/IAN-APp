@@ -284,6 +284,8 @@ const styles = StyleSheet.create({
   },
   tarjetaModal: {
     width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
     backgroundColor: TOKENS.colors.surface,
     borderRadius: TOKENS.radii.lg,
     borderWidth: 1,

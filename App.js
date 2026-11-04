@@ -447,6 +447,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: TOKENS.colors.canvas,
     paddingBottom: 0,
+    width: '100%',
+    maxWidth: 540,
+    alignSelf: 'center',
   },
   areaContenido: {
     flex: 1,

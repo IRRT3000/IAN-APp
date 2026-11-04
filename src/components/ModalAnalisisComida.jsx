@@ -372,6 +372,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: TOKENS.radii.lg,
     maxHeight: '92%',
+    maxWidth: 480,
+    width: '100%',
+    alignSelf: 'center',
     paddingHorizontal: TOKENS.spacing.md,
   },
   scrollArea: {

@@ -1,10 +1,12 @@
 /* eslint-disable import/namespace */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 import {
   CLAVE_SECURE_STORE_API_KEY,
   CLAVE_STORAGE_API_KEY_LEGADA,
+  CLAVE_STORAGE_API_KEY_WEB,
   normalizarApiKey,
   esFormatoApiKeyValido,
   guardarApiKeyGemini,
@@ -171,6 +173,39 @@ describe('apiKeyStorage (Spec 017)', () => {
       SecureStore.__simularFallos({ borrado: true });
       const exito = await eliminarApiKeyGemini();
       expect(exito).toBe(false);
+    });
+  });
+
+  describe('soporte Web (Platform.OS === web)', () => {
+    const osOriginal = Platform.OS;
+
+    beforeEach(() => {
+      Platform.OS = 'web';
+    });
+
+    afterEach(() => {
+      Platform.OS = osOriginal;
+    });
+
+    test('guarda y carga la clave en almacenamiento web sin tocar SecureStore', async () => {
+      const exito = await guardarApiKeyGemini(CLAVE_AIZA);
+      expect(exito).toBe(true);
+
+      expect(SecureStore.__obtenerEntrada(CLAVE_SECURE_STORE_API_KEY)).toBeUndefined();
+      const enAsync = await AsyncStorage.getItem(CLAVE_STORAGE_API_KEY_WEB);
+      expect(enAsync).toBe(CLAVE_AIZA);
+
+      const cargada = await cargarApiKeyGemini();
+      expect(cargada).toBe(CLAVE_AIZA);
+    });
+
+    test('elimina la clave de almacenamiento web', async () => {
+      await guardarApiKeyGemini(CLAVE_AIZA);
+      const exito = await eliminarApiKeyGemini();
+      expect(exito).toBe(true);
+
+      const cargada = await cargarApiKeyGemini();
+      expect(cargada).toBeNull();
     });
   });
 });
