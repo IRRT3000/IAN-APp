@@ -2,7 +2,7 @@
 Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o eliminar lo obsoleto.
 
 ## Estado Actual
-- Versión v2.1.0 (build 6) — Release de Seguridad (Spec 017), Módulo de Estudio (Spec 015) y Resumen IA Gemini (Spec 016).
+- Versión v2.2.0 (build 7) — Release Multiplataforma (Spec 019: Web PWA & iOS) y Análisis Nutricional IA (Spec 018).
 - Specs completadas: 001 a 011, 013 a 019.
 - Spec 019 COMPLETADA & EN MAIN: Soporte Multiplataforma iOS / Web PWA y Android en main y GitHub. Dependencias react-dom, react-native-web y @expo/metro-runtime. Fallback web en apiKeyStorage.js con clave en AsyncStorage, puente alertUtils.js para Web, PWA standalone en app.json, script build:web, vercel.json configurado y probado para despliegue estático, workflow GitHub Actions. Puerta de calidad en verde (18 suites, 168 tests).
 - Spec 018 COMPLETADA: Análisis Nutricional Contextual y de Alta Precisión. Modal de preparación con texto opcional y vista previa compacta (135dp), botón "Analizar con IA" sticky/fijo en footer Thumb-Zone visible sin scroll incluso con teclado abierto, directiva de verdad base cuantitativa en prompt Gemini, modal de revisión con edición manual de macros 2x2, función pura `sanearValoresComida` y guardado atómico con hápticos.
