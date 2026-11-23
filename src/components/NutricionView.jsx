@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   FlatList,
-  Image,
   Platform,
   StyleSheet,
   Text,
@@ -18,6 +16,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import SelectorSemanal from './SelectorSemanal';
 import ModalAnalisisComida from './ModalAnalisisComida';
+import FotoPersistida from './FotoPersistida';
+import { eliminarFoto, persistirFoto } from '../services/fotosStorage';
 import { mostrarAlerta } from '../utils/alertUtils';
 import {
   cargarComidas,
@@ -181,7 +181,7 @@ export default function NutricionView({
         setComidasInternas(listaActualizada);
       }
     } catch (error) {
-      Alert.alert(
+      mostrarAlerta(
         'Error al eliminar',
         error?.message || 'No se pudo eliminar la comida.',
         [{ text: 'Entendido', style: 'cancel' }]
@@ -218,7 +218,7 @@ export default function NutricionView({
   const tomarFoto = async () => {
     const tienePermiso = await solicitarPermisoCamara();
     if (!tienePermiso) {
-      Alert.alert(
+      mostrarAlerta(
         'Permiso denegado',
         'Se necesita acceso a la cámara para capturar tus platos.'
       );
@@ -257,7 +257,10 @@ export default function NutricionView({
   };
 
   const handleGuardarComidaDesdeModal = async (comidaNormalizada) => {
+    let uriFotoPersistida = '';
     try {
+      // Copia la foto a almacenamiento permanente antes de guardar (Spec 020, plan §6).
+      uriFotoPersistida = await persistirFoto(borradorFoto?.uri || '', 'comidas');
       const nuevaComida = {
         tipo: tipoSeleccionado,
         nombre: comidaNormalizada.nombre,
@@ -272,8 +275,8 @@ export default function NutricionView({
           grasas: comidaNormalizada.grasas,
         },
         detalles: comidaNormalizada.detalles,
-        uriFoto: borradorFoto?.uri || '',
-        fotoUri: borradorFoto?.uri || '',
+        uriFoto: uriFotoPersistida,
+        fotoUri: uriFotoPersistida,
         fecha: obtenerFechaLocal(),
       };
 
@@ -290,7 +293,11 @@ export default function NutricionView({
       setModalAnalisisVisible(false);
       setBorradorFoto(null);
     } catch (error) {
-      Alert.alert(
+      // La comida no se guardó: la foto recién persistida queda sin dueño y se borra.
+      if (uriFotoPersistida && uriFotoPersistida !== borradorFoto?.uri) {
+        eliminarFoto(uriFotoPersistida);
+      }
+      mostrarAlerta(
         'Error al guardar',
         error?.message || 'No se pudo guardar la comida.',
         [{ text: 'Entendido', style: 'cancel' }]
@@ -514,8 +521,8 @@ export default function NutricionView({
 
               <View style={styles.cuerpoTarjetaComida}>
                 {foto ? (
-                  <Image
-                    source={{ uri: foto }}
+                  <FotoPersistida
+                    uri={foto}
                     style={styles.miniaturaComida}
                     resizeMode="cover"
                   />

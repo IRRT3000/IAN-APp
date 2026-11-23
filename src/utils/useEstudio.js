@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { mostrarAlerta } from './alertUtils';
 import { obtenerFechaLocal } from './dateUtilsLocal';
 import {
   guardarSesionEstudio,
@@ -225,7 +225,7 @@ export function useEstudio({
 
     const fechaHoyActual = obtenerFechaLocal();
     if (fechaHoyActual !== fechaSeleccionada) {
-      Alert.alert(
+      mostrarAlerta(
         'Día no disponible',
         'Cambió el día; vuelve a abrir el día de hoy.'
       );
@@ -244,7 +244,7 @@ export function useEstudio({
             setEntradaResumen(resumenGuardado);
           }
           if (!resumenGuardado) {
-            Alert.alert(
+            mostrarAlerta(
               'Análisis de estudio',
               'Hay un resumen de hoy que no se pudo leer; no se volverá a analizar.'
             );
@@ -288,13 +288,13 @@ export function useEstudio({
             setEntradaResumen(resumenGuardado);
           }
           if (!resumenGuardado) {
-            Alert.alert(
+            mostrarAlerta(
               'Análisis de estudio',
               'Hay un resumen de hoy que no se pudo leer; no se volverá a analizar.'
             );
           }
         } else {
-          Alert.alert(
+          mostrarAlerta(
             'Análisis de estudio',
             error?.message || 'Error al analizar el día de estudio.'
           );

@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   FlatList,
   Platform,
   StyleSheet,
@@ -374,7 +373,7 @@ export default function EntrenamientosView({
       }
     } catch (err) {
       console.error('Error al terminar sesión activa:', err);
-      Alert.alert(
+      mostrarAlerta(
         'Error',
         'No se pudo guardar el entrenamiento en el almacenamiento local.'
       );
@@ -406,7 +405,7 @@ export default function EntrenamientosView({
         onEntrenamientosActualizados(listaActualizada);
       }
     } catch (error) {
-      Alert.alert(
+      mostrarAlerta(
         'Error al eliminar',
         error?.message || 'No se pudo eliminar el entrenamiento.',
         [{ text: 'Entendido', style: 'cancel' }]

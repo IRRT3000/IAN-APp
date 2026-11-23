@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Alert,
   Keyboard,
   Modal,
   ScrollView,
@@ -10,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { mostrarAlerta } from '../utils/alertUtils';
 import { Feather } from '@expo/vector-icons';
 import { TOKENS } from '../theme/tokens';
 import {
@@ -179,7 +179,7 @@ export default function SesionEstudioModal({
       vibrarSerieAgregada();
       onCerrar();
     } catch (err) {
-      Alert.alert('Error al guardar', err.message || 'No se pudo guardar la sesión de estudio.');
+      mostrarAlerta('Error al guardar', err.message || 'No se pudo guardar la sesión de estudio.');
     } finally {
       guardandoRef.current = false;
       setGuardando(false);

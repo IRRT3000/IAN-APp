@@ -29,7 +29,19 @@
   - **CA-2 en local:** `/` → 200 HTML, `/manifest.json` → 200 `application/manifest+json`, `/_expo/static/inexistente.js` → 404. Falta comprobarlo en la vista previa de Vercel.
 - [x] **T7** (Implementador): `public/index.html` con `lang="es"`, título sustituido por Expo, sin marcadores `%…%` y con `<noscript>` en español. Manifiesto PWA (`public/manifest.json`) con iconos de 192 y 512 y `apple-touch-icon`, generados desde `assets/icon.png` con `jimp-compact`. CA-5 cumplido.
 - [x] **T8** (Implementador): `LIMITE_DESCRIPCION_COMIDA = 500`, recorte por puntos de código y `maxLength` en el modal. `__tests__/limiteDescripcionComida.test.js` cubre CA-6, con 5 pruebas.
-- [ ] **T9** (Implementador): Fotos permanentes (plan §6, CA-8). Se instalaron `expo-file-system` y `expo-image-manipulator`; la §6 está en revisión.
+- [x] **T9** (Implementador): Fotos permanentes (plan §6). La revisión de la §6 no tuvo bloqueantes. Sus 6 puntos importantes se aplicaron:
+  - Prefijo `data:` en la miniatura web.
+  - Referencia relativa `foto-doc:` en nativo (el contenedor de iOS cambia).
+  - Resolución síncrona sin parpadeo.
+  - Limpieza de fotos huérfanas si el guardado falla.
+  - En web no se guarda nunca la foto completa.
+  - El registro se localiza antes de borrarlo.
+
+  Resultados:
+  - **CA-8a:** `__tests__/fotosStorage.test.js`, con 10 pruebas.
+  - **CA-8b (web, navegador integrado):** se eligió una foto real, Gemini la analizó a través de la CSP (manzana, 104 kcal) y se guardó. Después de recargar, la foto se sigue viendo. La lista `@fitness_tracker_comidas_v1` ocupa 657 bytes y solo guarda `foto-local:…`; la miniatura (32 KB) vive en su propia clave.
+  - **CA-8c (Android, «Borrar caché»):** pendiente, lo revisa el usuario.
+  - **Arreglo extra encontrado al implementar:** las 13 llamadas a `Alert.alert` en 6 archivos se reemplazaron por `mostrarAlerta`. En web, `Alert.alert` no muestra nada (INC-012), así que esos errores eran invisibles.
 - [ ] **T10** (revisor-critico): Revisión del código → `CODIGO_APROBADO`.
 - [ ] **T11** (Implementador): `npm run gate`, vista previa de Vercel revisada y `MEMORY.md`/`TROUBLESHOOTING.md` actualizados.
 

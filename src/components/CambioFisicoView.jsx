@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
   Modal,
@@ -20,6 +19,8 @@ import Animated, {
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import SelectorSemanal from './SelectorSemanal';
+import FotoPersistida from './FotoPersistida';
+import { eliminarFotos, persistirFoto } from '../services/fotosStorage';
 import { mostrarAlerta } from '../utils/alertUtils';
 import {
   analizarCambioFisicoConGemini,
@@ -420,9 +421,10 @@ export default function CambioFisicoView({
     const imagenesBase64 = fotosSeleccionadas
       .slice(0, MAX_FOTOS_POR_ANALISIS)
       .map((f) => f.base64);
-    const urisFotos = fotosSeleccionadas
+    const urisTemporales = fotosSeleccionadas
       .slice(0, MAX_FOTOS_POR_ANALISIS)
       .map((f) => f.uri);
+    let urisFotos = [];
 
     setModalVisible(false);
     setAnalizando(true);
@@ -469,6 +471,11 @@ export default function CambioFisicoView({
             );
           },
         }
+      );
+
+      // Solo tras un análisis exitoso se copian las fotos a almacenamiento permanente (Spec 020, plan §6).
+      urisFotos = await Promise.all(
+        urisTemporales.map((uri) => persistirFoto(uri, 'fisico'))
       );
 
       const idNuevoRegistro = `${Date.now()}-${Math.random()
@@ -518,11 +525,13 @@ export default function CambioFisicoView({
         onPerfilActualizado(perfilActualizado);
       }
     } catch (error) {
+      // Si el registro no se guardó, las copias permanentes quedan sin dueño y se borran.
+      eliminarFotos(urisFotos.filter((uri) => !urisTemporales.includes(uri)));
       const mensaje =
         error?.message ||
         'No se pudo completar el análisis físico con Gemini. Verifica tu conexión o API Key.';
       setMensajeError(mensaje);
-      Alert.alert('No se pudo analizar el cambio físico', mensaje, [
+      mostrarAlerta('No se pudo analizar el cambio físico', mensaje, [
         { text: 'Entendido', style: 'cancel' },
       ]);
     } finally {
@@ -573,7 +582,7 @@ export default function CambioFisicoView({
         error?.message ||
         'No se pudo comparar con el registro anterior en este momento.';
       setMensajeError(mensaje);
-      Alert.alert('Error al comparar registros', mensaje, [
+      mostrarAlerta('Error al comparar registros', mensaje, [
         { text: 'Entendido', style: 'cancel' },
       ]);
     } finally {
@@ -604,7 +613,7 @@ export default function CambioFisicoView({
     } catch (error) {
       const mensaje =
         error?.message || 'No se pudo eliminar el chequeo físico.';
-      Alert.alert('Error al eliminar', mensaje, [
+      mostrarAlerta('Error al eliminar', mensaje, [
         { text: 'Entendido', style: 'cancel' },
       ]);
     }
@@ -686,9 +695,9 @@ export default function CambioFisicoView({
           >
             {item.urisFotos.map((uri, idxFoto) =>
               uri ? (
-                <Image
+                <FotoPersistida
                   key={`${item.id}-foto-${idxFoto}`}
-                  source={{ uri }}
+                  uri={uri}
                   style={styles.miniaturaTarjeta}
                 />
               ) : null

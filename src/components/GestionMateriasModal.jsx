@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   Modal,
   ScrollView,
   StyleSheet,
@@ -88,7 +87,7 @@ export default function GestionMateriasModal({
   const handleBorrar = (materia) => {
     const totalSesiones = conteoPorMateria[materia.id] || 0;
     if (totalSesiones > 0) {
-      Alert.alert(
+      mostrarAlerta(
         'No se puede eliminar',
         `La materia "${materia.nombre}" tiene ${totalSesiones} sesión(es) registrada(s). No puedes borrar una materia con historial.`
       );
