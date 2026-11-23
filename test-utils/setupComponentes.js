@@ -3,7 +3,6 @@
  * Se importa en la primera línea de cada test de componentes; NO se registra de forma global
  * para no alterar las suites de servicios.
  */
-/* eslint-disable no-undef */
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')

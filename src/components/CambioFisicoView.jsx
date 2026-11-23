@@ -20,6 +20,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import SelectorSemanal from './SelectorSemanal';
 import FotoPersistida from './FotoPersistida';
+import { textoProgresoGemini } from '../utils/progresoGemini';
 import { eliminarFotos, persistirFoto } from '../services/fotosStorage';
 import { mostrarAlerta } from '../utils/alertUtils';
 import {
@@ -464,11 +465,12 @@ export default function CambioFisicoView({
         imagenesBase64,
         contextoUsuario,
         {
-          onProgreso: ({ modelo, indice, total, falloAnterior }) => {
+          onProgreso: (info) => {
             setTextoProgreso(
-              falloAnterior
-                ? `${falloAnterior.modelo} falló. Probando ${modelo} (${indice}/${total})...`
-                : `Evaluando ${imagenesBase64.length} foto(s) con ${modelo} (${indice}/${total})...`
+              textoProgresoGemini(
+                info,
+                `Evaluando ${imagenesBase64.length} foto(s) con ${info.modelo} (${info.indice}/${info.total})...`
+              )
             );
           },
         }

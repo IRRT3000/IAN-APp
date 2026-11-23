@@ -20,6 +20,7 @@ import {
   LIMITE_DESCRIPCION_COMIDA,
 } from '../services/gemini';
 import { sanearValoresComida } from '../utils/validacionComida';
+import { textoProgresoGemini } from '../utils/progresoGemini';
 
 export default function ModalAnalisisComida({
   visible,
@@ -56,7 +57,9 @@ export default function ModalAnalisisComida({
         descripcionUsuario,
         perfilUsuario,
         onProgreso: (info) => {
-          setTextoProgreso(`Consultando ${info.modelo} (${info.indice}/${info.total})...`);
+          setTextoProgreso(
+            textoProgresoGemini(info, `Consultando ${info.modelo} (${info.indice}/${info.total})...`)
+          );
         },
       });
 
