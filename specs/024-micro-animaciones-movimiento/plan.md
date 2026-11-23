@@ -68,6 +68,15 @@ Se recorren los 13 archivos con Reanimated, uno por commit:
 - **Interruptor en `PanelConfiguracionLateral.jsx`:** una fila «Sonidos de la interfaz» con `Switch`, `accessibilityRole="switch"` y `aria-checked`, con el estilo de las filas existentes. Se localiza con `grep`, porque el archivo tiene más de 500 líneas.
 - **Puntos de llamada:** junto a `vibrarExito`, `vibrarError`, `vibrarSerieAgregada`, `vibrarEjercicioCompletado` y `vibrarConfirmacionBorrado`. Para no duplicar llamadas, `haptics.js` **no** llama a sonidos: cada punto llama a los dos servicios de forma explícita.
 - **Tests:** `__tests__/sonidos.test.js` (con `expo-audio` simulado) y la lectura de la cabecera WAV de cada archivo (CA-8).
+- **Ajustes de la revisión (PLAN_APROBADO con importantes, 2026-11-23):**
+  1. **Fila del interruptor:** `PanelConfiguracionLateral` no tiene ningún `Switch`. Se importa `Switch`, con `trackColor`/`thumbColor`/`ios_backgroundColor` tomados de `TOKENS`, en una fila nueva con estilo propio. El rango de edición se localiza con `grep`.
+  2. **Reproducción en web:** `Promise.resolve(player.play()).catch(() => {})`, porque en web `play()` puede rechazarse por la política de autoplay. Un test cubre ese rechazo.
+  3. **Precarga:** se usa `inicializarSonidos()`, idempotente, que se llama **una vez al arrancar** desde `App.js`, junto con `setAudioModeAsync`. Crea los 5 reproductores, que viven toda la sesión como singleton. No hay creación perezosa.
+  4. **Preferencia guardada:** `@fitness_tracker_preferencias_v1` es una clave nueva. Si falta o el JSON está corrupto, se usa `{ sonidos: true }` y no se lanza error. Se comprueba con `grep` si `storage.js` tiene borrado o exportación de datos que deba incluirla.
+  5. **Orden de reproducción:** `await player.seekTo(0)` y después `play()`. `volume = 0.35` se fija una sola vez al crear el reproductor.
+  6. **Modo silencio:** `playsInSilentMode: false` silencia en iOS y también en Android con el timbre en silencio. El texto de la spec se ajusta.
+  7. **CA-8 web:** sin violaciones de CSP ni `NotAllowedError` en la consola. El test de WAV comprueba PCM (formato 1), mono, 22 050 Hz y 16 bits, y que dos ejecuciones del script generen bytes idénticos.
+  8. **Liberación:** se verifica en los tipos instalados si el método se llama `remove` o `release`.
 
 ## 5. Tests
 - **`__tests__/movimiento.test.js`:**
