@@ -7,7 +7,7 @@
  * - Nativo: se copia el archivo a `Paths.document/fotos/<carpeta>/<id>.jpg` y se guarda una
  *   referencia RELATIVA `foto-doc:fotos/<carpeta>/<id>.jpg`, porque la ruta absoluta del contenedor
  *   de iOS cambia tras actualizar o restaurar la app.
- * - Web: se guarda una miniatura JPEG (512 px de ancho) en su propia clave de AsyncStorage
+ * - Web: se guarda una miniatura JPEG (320 px de ancho, con tope y rotación) en su propia clave de AsyncStorage
  *   (`@fitness_tracker_foto_v1:<id>`) y se devuelve `foto-local:<id>`. Así las listas de comidas
  *   o de cambio físico solo guardan una referencia corta.
  *
@@ -21,7 +21,14 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 export const PREFIJO_FOTO_LOCAL = 'foto-local:';
 export const PREFIJO_FOTO_DOC = 'foto-doc:';
 export const PREFIJO_CLAVE_FOTO_WEB = '@fitness_tracker_foto_v1:';
-export const ANCHO_MINIATURA_WEB = 512;
+export const ANCHO_MINIATURA_WEB = 320;
+export const COMPRESION_MINIATURA_WEB = 0.6;
+/**
+ * Tope de miniaturas en web. localStorage tiene ~5 MB por origen y lo comparte con todos los registros:
+ * 80 miniaturas de ~12 KB ≈ 1 MB. Al superarlo se borran las más antiguas (su registro muestra el
+ * marcador de foto ausente), para que los datos de la app nunca se queden sin espacio.
+ */
+export const MAX_MINIATURAS_WEB = 80;
 
 const esWeb = () => Platform.OS === 'web';
 
@@ -55,6 +62,27 @@ const persistirNativo = async (uriTemporal, carpeta) => {
   return `${PREFIJO_FOTO_DOC}fotos/${carpeta}/${nombre}`;
 };
 
+/**
+ * Borra las miniaturas web más antiguas hasta dejar como máximo `maximo`.
+ * Los ids empiezan por Date.now(), así que el orden lexicográfico de la marca de tiempo es cronológico.
+ * @param {number} maximo
+ */
+export const rotarMiniaturasWeb = async (maximo = MAX_MINIATURAS_WEB) => {
+  try {
+    const claves = (await AsyncStorage.getAllKeys()).filter((k) =>
+      k.startsWith(PREFIJO_CLAVE_FOTO_WEB)
+    );
+    if (claves.length <= maximo) return;
+    const marca = (clave) => Number(clave.slice(PREFIJO_CLAVE_FOTO_WEB.length).split('-')[0]) || 0;
+    const antiguas = [...claves]
+      .sort((a, b) => marca(a) - marca(b))
+      .slice(0, claves.length - maximo);
+    await AsyncStorage.multiRemove(antiguas);
+  } catch (error) {
+    console.error('fotosStorage: no se pudieron rotar las miniaturas:', error?.message);
+  }
+};
+
 const persistirWeb = async (uriTemporal) => {
   let contexto = null;
   let imagen = null;
@@ -64,15 +92,21 @@ const persistirWeb = async (uriTemporal) => {
     imagen = await contexto.renderAsync();
     const resultado = await imagen.saveAsync({
       base64: true,
-      compress: 0.7,
+      compress: COMPRESION_MINIATURA_WEB,
       format: SaveFormat.JPEG,
     });
     if (!resultado?.base64) throw new Error('miniatura vacía');
     const id = generarIdFoto();
-    await AsyncStorage.setItem(
-      `${PREFIJO_CLAVE_FOTO_WEB}${id}`,
-      `data:image/jpeg;base64,${resultado.base64}`
-    );
+    const clave = `${PREFIJO_CLAVE_FOTO_WEB}${id}`;
+    const valor = `data:image/jpeg;base64,${resultado.base64}`;
+    try {
+      await AsyncStorage.setItem(clave, valor);
+    } catch {
+      // Sin espacio: libera miniaturas antiguas y reintenta una sola vez.
+      await rotarMiniaturasWeb(Math.floor(MAX_MINIATURAS_WEB / 2));
+      await AsyncStorage.setItem(clave, valor);
+    }
+    await rotarMiniaturasWeb();
     return `${PREFIJO_FOTO_LOCAL}${id}`;
   } finally {
     try {
@@ -186,7 +220,8 @@ export const eliminarFoto = async (uri) => {
       ? uriDesdeReferenciaDoc(valor)
       : valor;
     const raizDocumentos = Paths.document.uri;
-    if (!uriAbsoluta || !uriAbsoluta.startsWith(raizDocumentos)) return;
+    const tieneSaltoDeCarpeta = /(^|\/)(\.\.|%2e%2e)(\/|$)/i.test(uriAbsoluta);
+    if (!uriAbsoluta || tieneSaltoDeCarpeta || !uriAbsoluta.startsWith(raizDocumentos)) return;
     const archivo = new File(uriAbsoluta);
     if (archivo.exists) archivo.delete();
   } catch (error) {

@@ -258,6 +258,7 @@ export default function NutricionView({
 
   const handleGuardarComidaDesdeModal = async (comidaNormalizada) => {
     let uriFotoPersistida = '';
+    let comidaGuardada = false;
     try {
       // Copia la foto a almacenamiento permanente antes de guardar (Spec 020, plan §6).
       uriFotoPersistida = await persistirFoto(borradorFoto?.uri || '', 'comidas');
@@ -281,6 +282,7 @@ export default function NutricionView({
       };
 
       const listaActualizada = await guardarComida(nuevaComida);
+      comidaGuardada = true;
       vibrarConfirmacionBorrado();
       setFechaSeleccionada(obtenerFechaLocal());
 
@@ -293,8 +295,8 @@ export default function NutricionView({
       setModalAnalisisVisible(false);
       setBorradorFoto(null);
     } catch (error) {
-      // La comida no se guardó: la foto recién persistida queda sin dueño y se borra.
-      if (uriFotoPersistida && uriFotoPersistida !== borradorFoto?.uri) {
+      // Solo si la comida NO se guardó, la foto recién persistida queda sin dueño y se borra.
+      if (!comidaGuardada && uriFotoPersistida && uriFotoPersistida !== borradorFoto?.uri) {
         eliminarFoto(uriFotoPersistida);
       }
       mostrarAlerta(

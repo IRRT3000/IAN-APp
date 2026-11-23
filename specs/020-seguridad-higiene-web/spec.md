@@ -51,6 +51,10 @@ La auditoría también encontró que la puerta de calidad (`npm run gate`) puede
   - `<url>/` devuelve `200 text/html`.
 - **CA-3:** Dentro del worktree `.claude/worktrees/<nombre>`, `npm test` informa al menos 18 suites ejecutadas (comprobación manual). `npm test -- --testPathPattern no-existe-xyz` termina con código distinto de 0.
 - **CA-4:** `npm audit --omit=dev` reporta 0 vulnerabilidades altas, o cada vulnerabilidad alta restante queda documentada en `tasks.md` con su motivo. `npm ls` no muestra copias anidadas nuevas de paquetes `expo-*`/`@expo/*`, las dependencias directas de `package.json` no cambian y `npx expo-doctor` no muestra errores nuevos respecto a la línea base.
+  - **Enmienda (2026-11-23, pendiente de que el usuario la acepte):**
+    - **Por qué se tocaron dependencias directas:** el arreglo de la vulnerabilidad alta de `@expo/cli` solo existe en el parche del SDK. Por eso se subió `expo` 58.0.19 → 58.0.26 por la vía oficial (`npx expo install expo@~58.0.26` y después `--fix`), y eso alinea `react-native` 0.88.0 → 0.88.1 y otros 5 paquetes del mismo SDK.
+    - **Qué cambia en CA-4:** pasa a exigir «sin saltos de versión mayor ni menor, y solo los parches que propone `expo install --fix`».
+    - **Qué implica:** el parche de React Native, junto con los módulos nativos nuevos (`expo-file-system`, `expo-image-manipulator`), requiere un build nativo nuevo. Conviene subir `versionCode` en el siguiente release.
 - **CA-5:** El `dist/index.html` exportado contiene `<html lang="es">`, conserva el título de `app.json` y no tiene ningún marcador `%…%` sin sustituir. Si se aprueba H-8, también contiene `<link rel="manifest" href="/manifest.json">`.
 - **CA-6:** Hay tres comprobaciones:
   - Un test de Jest pasa a `construirPromptAltaPrecision` una descripción de 2000 caracteres `§`, un carácter que no aparece en la plantilla del prompt. El prompt resultante contiene exactamente 500 `§`.

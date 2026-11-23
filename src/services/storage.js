@@ -919,8 +919,11 @@ export const guardarComida = async (nuevaComida) => {
 
     return nuevaListaInmutable.map((item) => ({ ...item }));
   } catch (error) {
+    // Antes devolvía [] y la vista lo tomaba como éxito: la lista desaparecía y el registro se perdía.
     console.error('Error al guardar comida en AsyncStorage:', error);
-    return [];
+    throw new Error(
+      'No se pudo guardar la comida. Es posible que el almacenamiento del dispositivo esté lleno.'
+    );
   }
 };
 
@@ -1094,8 +1097,11 @@ export const guardarCambioFisico = async (nuevoRegistro) => {
 
     return nuevaListaInmutable.map(clonarCambioFisico);
   } catch (error) {
+    // Antes devolvía [] y la vista lo tomaba como éxito: la lista desaparecía y el registro se perdía.
     console.error('Error al guardar cambio físico en AsyncStorage:', error);
-    return [];
+    throw new Error(
+      'No se pudo guardar el registro físico. Es posible que el almacenamiento del dispositivo esté lleno.'
+    );
   }
 };
 

@@ -31,10 +31,12 @@ jest.mock('expo-file-system', () => {
     get exists() {
       return mockArchivos.has(this.uri);
     }
-    async copy(destino) {
+    // Lanza de forma SÍNCRONA a propósito: el código debe tolerar tanto un error síncrono como una promesa rechazada.
+    copy(destino) {
       if (this.uri.includes('falla')) throw new Error('copia fallida');
       mockCopias.push({ desde: this.uri, hasta: destino.uri });
       mockArchivos.add(destino.uri);
+      return Promise.resolve();
     }
     delete() {
       mockBorrados.push(this.uri);
@@ -182,5 +184,44 @@ describe('borrado de registros', () => {
     const [comida] = await cargarComidas();
     jest.spyOn(AsyncStorage, 'removeItem').mockRejectedValueOnce(new Error('cuota'));
     await expect(eliminarComida(comida.id)).resolves.toEqual([]);
+  });
+});
+
+describe('cuota del navegador (revisión de código de la Spec 020, hallazgo 1)', () => {
+  beforeEach(async () => {
+    Platform.OS = 'web';
+    await AsyncStorage.clear();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    Platform.OS = 'ios';
+    jest.restoreAllMocks();
+  });
+
+  test('nunca guarda más de MAX_MINIATURAS_WEB y borra primero las más antiguas', async () => {
+    const { persistirFoto, MAX_MINIATURAS_WEB, PREFIJO_CLAVE_FOTO_WEB } = cargarModulo();
+    const ahora = jest.spyOn(Date, 'now');
+    for (let i = 0; i < MAX_MINIATURAS_WEB + 5; i += 1) {
+      ahora.mockReturnValue(1700000000000 + i);
+      await persistirFoto('blob:http://localhost/f', 'comidas');
+    }
+    const claves = (await AsyncStorage.getAllKeys()).filter((k) => k.startsWith(PREFIJO_CLAVE_FOTO_WEB));
+    expect(claves).toHaveLength(MAX_MINIATURAS_WEB);
+    expect(claves.some((k) => k.includes('1700000000000-'))).toBe(false);
+    expect(claves.some((k) => k.includes(`${1700000000000 + MAX_MINIATURAS_WEB + 4}-`))).toBe(true);
+  });
+
+  test('si el navegador está lleno libera miniaturas antiguas y reintenta una vez', async () => {
+    const { persistirFoto } = cargarModulo();
+    AsyncStorage.setItem.mockImplementationOnce(() => Promise.reject(new Error('QuotaExceededError')));
+    await expect(persistirFoto('blob:http://localhost/f', 'comidas')).resolves.toMatch(/^foto-local:/);
+  });
+
+  test('guardarComida lanza en vez de devolver [] cuando no se puede escribir', async () => {
+    const { guardarComida } = require('../src/services/storage');
+    AsyncStorage.setItem.mockImplementationOnce(() => Promise.reject(new Error('QuotaExceededError')));
+    await expect(
+      guardarComida({ nombre: 'Pan', calorias: 75, fecha: '2026-11-23' })
+    ).rejects.toThrow('No se pudo guardar la comida');
   });
 });

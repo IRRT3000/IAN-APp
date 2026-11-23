@@ -425,6 +425,7 @@ export default function CambioFisicoView({
       .slice(0, MAX_FOTOS_POR_ANALISIS)
       .map((f) => f.uri);
     let urisFotos = [];
+    let registroGuardado = false;
 
     setModalVisible(false);
     setAnalizando(true);
@@ -511,6 +512,7 @@ export default function CambioFisicoView({
       };
 
       const listaActualizada = await guardarCambioFisico(nuevoRegistro);
+      registroGuardado = true;
       const perfilActualizado = await cargarPerfilUsuario();
 
       setRegistrosInternos(listaActualizada);
@@ -525,8 +527,10 @@ export default function CambioFisicoView({
         onPerfilActualizado(perfilActualizado);
       }
     } catch (error) {
-      // Si el registro no se guardó, las copias permanentes quedan sin dueño y se borran.
-      eliminarFotos(urisFotos.filter((uri) => !urisTemporales.includes(uri)));
+      // Solo si el registro NO se guardó, las copias permanentes quedan sin dueño y se borran.
+      if (!registroGuardado) {
+        eliminarFotos(urisFotos.filter((uri) => !urisTemporales.includes(uri)));
+      }
       const mensaje =
         error?.message ||
         'No se pudo completar el análisis físico con Gemini. Verifica tu conexión o API Key.';

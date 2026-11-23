@@ -50,6 +50,19 @@ La auditoría del 2026-11-23 encontró tres huecos.
 
   Si ya existe un háptico en ese mismo punto (por ejemplo, en el guardado atómico de la Spec 018), no se duplica.
 
+- **RF-5 (Sonidos sutiles, aprobado por el usuario el 2026-11-23, Q17):** La app reproduce sonidos muy cortos y suaves en momentos clave, para que «se sienta muy responsiva con feedback visual, táctil y auditivo, sin molestar».
+  - **Catálogo** (5 sonidos, todos de 150 ms o menos):
+    - `toque`: un clic suave al confirmar una selección importante.
+    - `exito`: dos notas ascendentes al guardar o terminar un análisis.
+    - `serie`: una nota breve al agregar una serie.
+    - `error`: una nota descendente grave.
+    - `borrado`: un golpe sordo al confirmar un borrado.
+  - **Origen:** generados por síntesis con un script del repo (`scripts/generar-sonidos.js`, ondas senoidales con envolvente). No hay archivos de terceros ni licencias. Son WAV mono de 22 050 Hz y menos de 10 KB cada uno, en `assets/sonidos/`.
+  - **Volumen y modo silencio:** volumen de reproducción de 0.35. En iOS respetan el interruptor de silencio (`playsInSilentMode: false`). No interrumpen la música del usuario: se mezclan con ella.
+  - **Interruptor:** «Sonidos de la interfaz» en el panel de Configuración, **activado por defecto** y guardado en AsyncStorage (`@fitness_tracker_preferencias_v1`).
+  - **Servicio único:** `src/services/sonidos.js`, con el mismo patrón que `haptics.js`. Se llama `reproducirSonido(nombre)`, nunca lanza errores, precarga los sonidos al iniciar y no reproduce nada si el interruptor está apagado.
+  - **Dónde suenan:** en los mismos puntos que los hápticos de resultado (RF-4) y los ya existentes de serie agregada, ejercicio completado y borrado confirmado. **Nunca** al navegar, al hacer scroll ni en cada toque.
+
 ## 3. Criterios de Aceptación (CA)
 - **CA-1:** Tests de componente, con la red de la Spec 022 y `usePreferenciaMovimiento` simulado:
   - Con `reducir = true`, `withRepeat` no se llama nunca en el onboarding.
@@ -64,6 +77,13 @@ La auditoría del 2026-11-23 encontró tres huecos.
 - **CA-5:** Los snapshots de caracterización de la Spec 022 siguen iguales con `reducir = false`. El único cambio permitido es `activeOpacity`, y si aparece en el snapshot, se actualiza **solo ese** valor, de forma documentada.
 - **CA-6 (manual):** El usuario activa «Quitar animaciones» en su Android **con la app abierta** y recorre el onboarding y Cambio Físico. El cambio se aplica sin reiniciar la app, no hay animaciones de desplazamiento ni pulsos, y la app sigue respondiendo con fundidos breves.
 - **CA-7:** `npm run gate` en verde.
+- **CA-8 (sonidos):** Hay tres comprobaciones:
+  - Tests con `expo-audio` simulado:
+    - Con el interruptor apagado no se reproduce nada.
+    - Con el interruptor encendido se reproduce el sonido correcto en cada flujo de RF-5.
+    - Un fallo de audio no lanza.
+  - Un test comprueba que cada archivo de `assets/sonidos/` dura ≤ 150 ms y pesa < 10 KB, leyendo la cabecera WAV.
+  - En web, con el navegador integrado, el guardado de una comida dispara el sonido de éxito sin errores de CSP. `media-src` cae en `default-src 'self'`.
 
 ## 4. Fuera de Alcance
 - Animaciones nuevas, transiciones de navegación nuevas o pantallas de carga con esqueleto. Se pueden proponer más adelante como funciones nuevas, si el usuario lo pide.

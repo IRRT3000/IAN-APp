@@ -21,8 +21,8 @@ describe('Límite de la descripción de comida (Spec 020, RF-6)', () => {
   });
 
   test('una descripción corta se conserva completa (CA-6)', () => {
-    const descripcion = `200g de pechuga, ${'arroz '.repeat(17)}`.trim();
-    expect(descripcion.length).toBeLessThan(500);
+    const descripcion = `200g de pechuga, ${'a'.repeat(120)}`.slice(0, 120);
+    expect(descripcion.length).toBe(120);
     const prompt = construirPromptAltaPrecision('Comida', {}, descripcion);
     expect(prompt).toContain(`"${descripcion}"`);
   });

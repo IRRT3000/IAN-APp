@@ -48,6 +48,27 @@ Se recorren los 13 archivos con Reanimated, uno por commit:
   - El aviso de límite de fotos.
 - Antes se busca con `grep` cualquier háptico ya existente en esos puntos, para no duplicarlo.
 
+## 4b. Sonidos (RF-5, aprobado en Q17)
+- `npx expo install expo-audio`.
+- **`scripts/generar-sonidos.js`** (Node puro, sin dependencias):
+  - Escribe 5 WAV PCM de 16 bits, mono, 22 050 Hz, en `assets/sonidos/`.
+  - Cada sonido es una suma de senoides con envolvente ataque/decaimiento exponencial (ataque de 4 ms) y un pico a −12 dBFS.
+  - Frecuencias:
+    - `toque`: 1800 Hz, 40 ms.
+    - `exito`: 880 Hz y luego 1320 Hz, 2×70 ms.
+    - `serie`: 1046 Hz, 60 ms.
+    - `error`: 440 Hz y luego 330 Hz, 2×70 ms.
+    - `borrado`: 180 Hz con caída, 90 ms.
+  - Es determinista: genera los mismos bytes en cada ejecución. Los archivos se commitean.
+- **`src/services/sonidos.js`:**
+  - Usa `createAudioPlayer(require('../../assets/sonidos/<n>.wav'))` de `expo-audio`, con un reproductor por sonido creado de forma perezosa y reutilizado.
+  - Al arrancar llama a `setAudioModeAsync({ playsInSilentMode: false, interruptionMode: 'mixWithOthers' })` dentro de `try/catch`.
+  - `reproducirSonido(nombre)`: si las preferencias dicen `sonidos: false`, no hace nada. Si no, `player.seekTo(0)`, `player.volume = 0.35` y `player.play()`, todo dentro de `try/catch`.
+  - `establecerSonidosActivos(bool)` y `cargarPreferenciaSonidos()` sobre `@fitness_tracker_preferencias_v1` (`{ sonidos: true }` por defecto), con una caché en memoria para no leer AsyncStorage en cada toque.
+- **Interruptor en `PanelConfiguracionLateral.jsx`:** una fila «Sonidos de la interfaz» con `Switch`, `accessibilityRole="switch"` y `aria-checked`, con el estilo de las filas existentes. Se localiza con `grep`, porque el archivo tiene más de 500 líneas.
+- **Puntos de llamada:** junto a `vibrarExito`, `vibrarError`, `vibrarSerieAgregada`, `vibrarEjercicioCompletado` y `vibrarConfirmacionBorrado`. Para no duplicar llamadas, `haptics.js` **no** llama a sonidos: cada punto llama a los dos servicios de forma explícita.
+- **Tests:** `__tests__/sonidos.test.js` (con `expo-audio` simulado) y la lectura de la cabecera WAV de cada archivo (CA-8).
+
 ## 5. Tests
 - **`__tests__/movimiento.test.js`:**
   - `animarSegun` no llama a `crearAnimacion` cuando `reducir` es `true`, y sí la llama cuando es `false`.
