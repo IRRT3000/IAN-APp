@@ -42,8 +42,13 @@
   - **CA-8b (web, navegador integrado):** se eligió una foto real, Gemini la analizó a través de la CSP (manzana, 104 kcal) y se guardó. Después de recargar, la foto se sigue viendo. La lista `@fitness_tracker_comidas_v1` ocupa 657 bytes y solo guarda `foto-local:…`; la miniatura (32 KB) vive en su propia clave.
   - **CA-8c (Android, «Borrar caché»):** pendiente, lo revisa el usuario.
   - **Arreglo extra encontrado al implementar:** las 13 llamadas a `Alert.alert` en 6 archivos se reemplazaron por `mostrarAlerta`. En web, `Alert.alert` no muestra nada (INC-012), así que esos errores eran invisibles.
-- [ ] **T10** (revisor-critico): Revisión del código → `CODIGO_APROBADO`.
-- [ ] **T11** (Implementador): `npm run gate`, vista previa de Vercel revisada y `MEMORY.md`/`TROUBLESHOOTING.md` actualizados.
+- [x] **T10** (revisor-critico): Revisión del código.
+  - Primera ronda: `CODIGO_RECHAZADO`, con 1 bloqueante: en web, las miniaturas podían llenar `localStorage`, y además `guardarComida` y `guardarCambioFisico` se tragaban el error y devolvían `[]`. También hubo 4 importantes.
+  - Se corrigió todo en el commit 34df08f, con tope y rotación de miniaturas, guardados que lanzan, banderas anti-huérfanos y MIME del manifiesto.
+  - Segunda ronda: **`CODIGO_APROBADO`**.
+- [ ] **T11** (Implementador):
+  - Hecho: `npm run gate` en verde (20 suites, 186 pruebas, bundle limpio) y `MEMORY.md`/`TROUBLESHOOTING.md` actualizados.
+  - **Pendiente:** CA-1 y CA-2 en una vista previa de Vercel (se hará con el PR); CA-8c en el Android del usuario; aceptación de la enmienda de CA-4 por parte del usuario.
 
 ## Hallazgos nuevos durante la implementación (para otras Specs)
 - **Edad por defecto de 15 años:** si el usuario no toca la fecha de nacimiento en el onboarding, queda registrado con 15 años (26/11/2010). El prompt de comida también usa `'15 años'` como valor por defecto (`gemini.js:199`). Se corrige en la Spec 021 (prompts) y la 022 (valores iniciales del onboarding).

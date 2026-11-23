@@ -2,13 +2,17 @@
 
 > **Reglas**: Máximo ~50 líneas. Retener causa raíz y solución accionable. Prohibido almacenar claves/secretos.
 
-### INC-001: Ausencia de Gemini API Key en APK Standalone (EAS/CI)
-- **Causa Raíz:** `.env` ignorado en git; Metro no inyecta claves en builds remotos.
-- **Solución:** Modelo BYOK con `apiKeyStorage.js` (`expo-secure-store`) y Drawer lateral de configuración en UI.
+### INC-001/010: API Key ausente en APK y expuesta por `EXPO_PUBLIC_*`
+- **Causa Raíz:** `.env` no viaja a builds remotos, y toda variable `EXPO_PUBLIC_*` queda incrustada en texto plano en el bundle.
+- **Solución:** BYOK con `apiKeyStorage.js` (SecureStore; en web, AsyncStorage protegido por CSP), sin fallbacks públicos en `gemini.js` y con barrera en `bundle-check.js`.
 
-### INC-010: Exposición de Secretos en Bundles por Variables `EXPO_PUBLIC_*`
-- **Causa Raíz:** Expo incrusta en el bundle de JavaScript toda variable `EXPO_PUBLIC_*` referenciada en código.
-- **Solución:** BYOK con `expo-secure-store`, eliminación de fallbacks a variables públicas en `gemini.js` y barrera en `bundle-check.js`.
+### INC-013: `npm test` en verde sin ejecutar ninguna prueba dentro de worktrees
+- **Causa Raíz:** `testPathIgnorePatterns: "/.claude/"` coincidía con la ruta `.claude/worktrees/…` de todo el worktree.
+- **Solución:** Patrones con `<rootDir>/.claude/` y `scripts/test-gate.js`, que falla si no corrió ninguna suite.
+
+### INC-014: Registros que desaparecen en web al llenarse `localStorage` (~5 MB)
+- **Causa Raíz:** `guardarComida`/`guardarCambioFisico` devolvían `[]` ante un error de escritura y la vista lo tomaba como éxito.
+- **Solución:** Los guardados lanzan el error y la vista muestra `mostrarAlerta`. Las miniaturas web tienen tope de 80 con rotación (`fotosStorage.js`); al rotar, las fotos antiguas muestran un marcador gris.
 
 ### INC-002: Bloqueo de Herramientas por Hook de Telemetría en Windows (`PreToolUse`)
 - **Causa Raíz:** Concatenación con comillas dobles en plugin de telemetría de Cloud en Windows.

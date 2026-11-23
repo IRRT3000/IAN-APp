@@ -1,28 +1,32 @@
 # MEMORY.md — Fitness Tracker & Nutritional AI
 Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o eliminar lo obsoleto.
 
-## Estado Actual
-- Versión v2.2.0 (build 7) — Release Multiplataforma (Spec 019: Web PWA & iOS) y Análisis Nutricional IA (Spec 018).
-- Specs completadas: 001 a 011, 013 a 019.
-- Spec 019 COMPLETADA & EN MAIN: Soporte Multiplataforma iOS / Web PWA y Android en main y GitHub. Dependencias react-dom, react-native-web y @expo/metro-runtime. Fallback web en apiKeyStorage.js con clave en AsyncStorage, puente alertUtils.js para Web, PWA standalone en app.json, script build:web, vercel.json configurado y probado para despliegue estático, workflow GitHub Actions. Puerta de calidad en verde (18 suites, 168 tests).
-- Spec 018 COMPLETADA: Análisis Nutricional Contextual y de Alta Precisión. Modal de preparación con texto opcional y vista previa compacta (135dp), botón "Analizar con IA" sticky/fijo en footer Thumb-Zone visible sin scroll incluso con teclado abierto, directiva de verdad base cuantitativa en prompt Gemini, modal de revisión con edición manual de macros 2x2, función pura `sanearValoresComida` y guardado atómico con hápticos.
-- Metro Config: `metro.config.js` con middleware para resolución de assets en enlaces cruzados NTFS (`unstable_path`).
-- Spec 012 (IA por Supabase + login OTP) ARCHIVADA: rama `spec/012-acceso-ia-seguro`. App opera en BYOK.
-- Spec 015 completada: Pestaña Estudio reemplaza a Heatmap en la barra (Heatmap accesible desde Inicio), materias Escuela/Personal y sesiones con campos obligatorios, partición mensual `@fitness_tracker_sesiones_estudio_v1:YYYY-MM`, cola serial de escritura y borrado sostenido de 1000ms.
-- Spec 016 completada: Resumen pedagógico del día de estudio generado por Gemini con BYOK. Análisis manual, 1 por día en «hoy» (`@fitness_tracker_resumen_estudio_v1:YYYY-MM-DD`), candado de módulo `analisisEnCurso`, verificación de medianoche, histórico 7 días, `ResumenEstudioCard.jsx` y normalizador tolerante de JSON.
-- Spec 017 COMPLETADA: Seguridad API Key Gemini con `expo-secure-store` (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`, `configureAndroidBackup`). Erradicación de `EXPO_PUBLIC_GEMINI_API_KEY`, envío por encabezado `x-goog-api-key`, migración transparente desde AsyncStorage, barrera en `bundle-check.js`, bloqueo de `RECORD_AUDIO`/`SYSTEM_ALERT_WINDOW` y refinamiento Dark Luxury OLED del Drawer.
-- Ecosistema MCP & Skills: Configurados MCPs en `.agents/mcp_config.json` (`expo`, `react-native-app`, `android-adb`, `github`) y Skills instaladas (`argent-*`, `react-native-best-practices`, `github-actions`, `eas-*`, `jest`).
-- Drawer de Configuración: Resuelto desbordamiento con `useWindowDimensions`, `flex: 1` e inoperancia táctil en Android (`activeOffsetX(25)`, `cancelsTouchesInView(false)`).
-- Live Mode & Modales Thumb-Zone: Acciones primarias (54dp) al alcance del pulgar; touch targets >= 44x44pt; modales con `onRequestClose` para botón Atrás en Android.
-- Erradicación 100% de Emojis: Cero glifos en UI, alertas y catálogo; uso exclusivo de `@expo/vector-icons` (`Feather`).
-- Sistema de Tokens (`src/theme/tokens.js`): Paleta `#0A0A0A`/`#141414`/`#262626`, `touchTarget` y `safeArea`.
-- Reparto de roles: Claude Code planifica y revisa; Antigravity implementa y diseña; cualquiera asume todos los roles si el otro agota tokens.
+## Estado Actual (2026-11-23)
+- Versión v2.2.0 (build 7) en `main` y en Vercel (`ian-app`, producción READY).
+- Specs completadas: 001 a 011, 013 a 019. La 012 (IA por Supabase) está archivada en la rama `spec/012-acceso-ia-seguro`. La app usa BYOK: cada usuario pone su clave y el dueño decidió mantenerlo así (Q16).
+- **Jornada de mejora 2026-11-23** (rama `claude/app-analysis-improvements-52feef`): Specs 020 a 024 con PLAN_APROBADO; Claude Code implementa todos los roles (Q2).
+  - **020 CODIGO_APROBADO:**
+    - CSP y cabeceras en `vercel.json`, `public/index.html` (`lang="es"`) y manifiesto PWA.
+    - `scripts/test-gate.js` (Jest ignoraba los worktrees); Expo SDK 58.0.26 y `npm audit` en 0 altas.
+    - Fotos permanentes con `src/services/fotosStorage.js`: `foto-doc:` en nativo, `foto-local:` en web con tope de 80.
+    - `Alert.alert` → `mostrarAlerta`; los guardados ya no se tragan errores.
+  - **021 a 024:** en curso (Gemini, refactor de componentes gigantes, accesibilidad, motion, hápticos y sonidos sintetizados).
+- Pendiente del usuario: aceptar la enmienda de CA-4 de la 020 (parche de SDK), probar en Android («Borrar caché» con fotos, TalkBack) y subir `versionCode` en el siguiente release (hay nuevos módulos nativos: `expo-file-system` y `expo-image-manipulator`).
 
 ## Decisiones Técnicas Clave
-- Puerta de Calidad (`npm run gate`): Valida en serie `lint` (código 0, sin errores), `test` (`jest --ci` con 17 suites, 161 tests) y `bundle:check` (`expo export --platform android` con escaneo de secretos limpiando `.bundle-check/` en `finally`).
-- Seguridad de Claves: La API key nunca se incrusta en código ni viaja en query params (`?key=`). Solo reside en SecureStore protegida contra backups.
-- Safe Areas Resilientes (`useSafeInsets.js`): Pisos mínimos obligatorios (`top >= 28` Android / `20` iOS; `bottom >= 12` Android / `20` iOS).
-- Ergonomía Thumb-Zone: Acciones primarias y guardado en la mitad inferior; cabeceras despejadas solo para cancelación/cierre e insignias.
-- Persistencia inmutable en AsyncStorage: Registros con fechas locales `YYYY-MM-DD` (`obtenerFechaLocal()`). Prohibido `toISOString()`.
-- Claves mensuales de estudio: `@fitness_tracker_sesiones_estudio_v1:YYYY-MM` para prevenir desbordes de CursorWindow (~2 MB) en Android.
-- Claves inmutables por fecha de resumen: `@fitness_tracker_resumen_estudio_v1:YYYY-MM-DD` previene duplicados y sobrecosto BYOK.
+- **Puerta de calidad** (`npm run gate`): `lint` → `node scripts/test-gate.js` (falla si no corre ninguna suite) → `bundle:check` (export Android y escaneo de secretos).
+- **Claves:** la API key nunca va en el código ni en query params. En nativo vive en SecureStore; en web, en AsyncStorage, protegida por la CSP (`connect-src` solo permite Gemini).
+- **Gemini con clave gratuita:**
+  - Las peticiones con imagen fallan a menudo por 503 (saturación) o 429 (límite por minuto).
+  - Gemini 4 necesita facturación.
+  - `gemini-3.8-flash` y `3.7-flash` siguen dando 503 y se mantienen prohibidos.
+- **Fechas:** siempre locales `YYYY-MM-DD` (`obtenerFechaLocal()`). Prohibido `toISOString()`.
+- **Persistencia:**
+  - Inmutable, con claves mensuales para estudio (CursorWindow ~2 MB) y claves por fecha para los resúmenes.
+  - Las fotos nunca se guardan dentro de las listas.
+- **Safe areas** con pisos mínimos (`useSafeInsets.js`).
+- **Thumb-Zone:** acciones primarias abajo, objetivos táctiles ≥ 44 pt.
+- **UI:** cero emojis, iconos `Feather`, tokens Dark Luxury OLED en `src/theme/tokens.js`.
+- **Alertas:** usar siempre `mostrarAlerta` (`alertUtils.js`). `Alert.alert` no muestra nada en web.
+- **Archivos de más de 500 líneas** (Onboarding, CambioFisicoView, storage.js, PanelConfiguracionLateral): localizar con `grep` y leer por rangos.
+- **Reparto de roles:** Claude Code planifica y revisa; Antigravity implementa. Cualquiera de los dos asume todos los roles si el otro no está disponible.
