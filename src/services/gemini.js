@@ -40,6 +40,8 @@ const construirEncabezados = (apiKey) => ({
 });
 
 export const TIMEOUT_POR_PETICION_MS = 60000;
+/** Máximo de caracteres de la descripción opcional de una comida que se envía a Gemini (Spec 020, RF-6). */
+export const LIMITE_DESCRIPCION_COMIDA = 500;
 export const MODELO_PRINCIPAL_DEFAULT = 'gemini-3-flash-preview';
 export const MODELOS_RESPALDO_DEFAULT = ['gemini-3.5-flash-lite'];
 
@@ -203,7 +205,10 @@ export const construirPromptAltaPrecision = (
     objetivo = PERFIL_USUARIO_BASE.objetivo,
   } = contextoPerfil || {};
 
-  const textoUsuarioLimpio = String(descripcionUsuario || '').trim();
+  // Recorte por puntos de código (Array.from) para no partir emojis ni caracteres compuestos (Spec 020, RF-6).
+  const textoUsuarioLimpio = Array.from(String(descripcionUsuario || '').trim())
+    .slice(0, LIMITE_DESCRIPCION_COMIDA)
+    .join('');
   const bloqueContextoUsuario =
     textoUsuarioLimpio.length > 0
       ? `\nCONTEXTO Y DETALLES ESPECIFICADOS POR EL USUARIO:\n"${textoUsuarioLimpio}"\n\nDIRECTIVA CRÍTICA DE PRIORIDAD CUANTITATIVA:\n1. Si el usuario especificó cantidades, pesos (ej. gramos, mililitros, piezas) o ingredientes concretos en la descripción, toma esos datos como la VERDAD BASE INMUTABLE y no los contradigas por la perspectiva o ángulo de la foto.\n2. Utiliza la fotografía para identificar ingredientes secundarios no mencionados (guarniciones, aderezos, aceites visibles), evaluar el método de preparación observable y complementar el análisis.\n3. Calcula las calorías y macronutrientes asegurando coherencia termodinámica con las cantidades declaradas por el usuario.\n`

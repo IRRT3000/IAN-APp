@@ -15,7 +15,10 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';
-import { analizarComidaConGemini } from '../services/gemini';
+import {
+  analizarComidaConGemini,
+  LIMITE_DESCRIPCION_COMIDA,
+} from '../services/gemini';
 import { sanearValoresComida } from '../utils/validacionComida';
 
 export default function ModalAnalisisComida({
@@ -183,6 +186,7 @@ export default function ModalAnalisisComida({
                     placeholderTextColor={TOKENS.colors.textMuted}
                     multiline
                     numberOfLines={3}
+                    maxLength={LIMITE_DESCRIPCION_COMIDA}
                     value={descripcionUsuario}
                     onChangeText={setDescripcionUsuario}
                   />
