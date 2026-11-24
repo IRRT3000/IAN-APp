@@ -25,7 +25,7 @@
   - **Exactitud:** 10/12 dentro del rango USDA. La pizza dio 381 kcal frente al rango 250–350: sobreestima un 9 %.
   - **Comparativa previa por modelo:** Flash-Lite acertó 6/6 en ~1.6 s. 3-flash-preview, 3.6 Flash y 3.5 Flash quedaron limitados por 429.
 - [x] T10: `CODIGO_APROBADO`, sin bloqueantes.
-- [ ] **Menores pendientes de la revisión:**
+- [x] **Menores de la revisión, corregidos (2026-11-24):**
   1. El test CA-2(e) debe afirmar que el reloj llega como máximo a 90 s.
   2. La regex de razonamiento debe cubrir `thinking_level`.
   3. Hay que enmascarar la clave en `fallos[].mensaje`.

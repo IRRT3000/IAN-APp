@@ -117,19 +117,16 @@ describe('CA-2: reintentos y tope de tiempo', () => {
 
   test('(e) con peticiones que agotan 60 s la operación termina en ≤ 90 s y no hay tercera petición', async () => {
     const { estado, entorno } = crearEntorno();
-    const timeouts = [];
-    global.fetch = jest.fn(async (url, init) => {
-      // Simula una petición que tarda todo su tiempo máximo y es abortada.
-      const limite = Number(init.signal ? 60000 : 60000);
-      timeouts.push(limite);
-      estado.t += 60000;
+    const recibidos = [];
+    global.fetch = jest.fn(async () => {
+      // Simula una petición que agota exactamente el tiempo máximo que se le concedió y es abortada.
+      estado.t += recibidos[recibidos.length - 1];
       const e = new Error('abort');
       e.name = 'AbortError';
       throw e;
     });
-    // La segunda petición debe recibir como máximo el tiempo restante (30 s).
+    // Captura el tiempo máximo de cada petición (el temporizador de aborto de ejecutarLlamadaGemini).
     const original = global.setTimeout;
-    const recibidos = [];
     global.setTimeout = (fn, ms) => {
       if (ms >= 1000) recibidos.push(ms);
       return original(fn, 0x7fffffff);
@@ -144,7 +141,7 @@ describe('CA-2: reintentos y tope de tiempo', () => {
     expect(global.fetch).toHaveBeenCalledTimes(2);
     expect(recibidos[0]).toBe(60000);
     expect(recibidos[1]).toBeLessThanOrEqual(30000);
-    expect(estado.t).toBeLessThanOrEqual(120000);
+    expect(estado.t).toBeLessThanOrEqual(90000);
   });
 
   test('(f) JSON inválido pasa al siguiente modelo sin reintentar el mismo', async () => {
@@ -254,7 +251,7 @@ describe('CA-5: mensajes claros y cortes de cadena', () => {
   test('401 corta la cadena con una sola llamada', async () => {
     const { entorno } = crearEntorno();
     global.fetch = jest.fn().mockResolvedValue(error(401));
-    await expect(analizarComidaConGemini(FOTO, 'Snack', { entorno })).rejects.toThrow(GeminiError);
+    await expect(analizarComidaConGemini(FOTO, 'Snack', { entorno })).rejects.toThrow('Tu clave de Gemini no es válida');
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
@@ -292,7 +289,11 @@ describe('CA-5: mensajes claros y cortes de cadena', () => {
     global.fetch = jest.fn().mockResolvedValue(error(500, { message: `fallo con ${CLAVE}` }));
     const promesa = analizarComidaConGemini(FOTO, 'Snack', { entorno });
     await expect(promesa).rejects.toThrow('Gemini está saturado');
-    await promesa.catch((e) => expect(e.message).not.toContain(CLAVE));
+    await promesa.catch((e) => {
+      expect(e.message).not.toContain(CLAVE);
+      expect(JSON.stringify(e.fallos)).not.toContain(CLAVE);
+      expect(e.fallos[0].mensaje).toContain('***');
+    });
   });
 
   test('clasificarFallo cubre los estados principales', () => {
@@ -301,5 +302,26 @@ describe('CA-5: mensajes claros y cortes de cadena', () => {
     expect(clasificarFallo({ status: 'VACIO' })).toBe('INCOMPLETA');
     expect(clasificarFallo({ status: 'CORTADO' })).toBe('INCOMPLETA');
     expect(clasificarFallo({ status: 404 })).toBe('OTRO');
+  });
+});
+
+describe('Ajustes de la revisión de código (Spec 021)', () => {
+  test('sin conexión en todos los intentos el mensaje habla de la red, no de Gemini', async () => {
+    const { entorno } = crearEntorno();
+    global.fetch = jest.fn().mockRejectedValue(new TypeError('Network request failed'));
+    await expect(analizarComidaConGemini(FOTO, 'Snack', { entorno })).rejects.toThrow(
+      'No hay conexión a internet'
+    );
+  });
+
+  test('un 400 que menciona thinking_level se trata como razonamiento no soportado', () => {
+    expect(clasificarFallo({ status: 400, detalle: 'thinking_level is not supported for this model' })).toBe(
+      'RAZONAMIENTO_NO_SOPORTADO'
+    );
+  });
+
+  test('el prompt de cambio físico ya no usa una fecha de nacimiento ficticia', () => {
+    const fuente = fs.readFileSync('src/services/gemini.js', 'utf8');
+    expect(fuente).not.toContain("fechaNacimiento = '26/11/2010'");
   });
 });

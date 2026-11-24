@@ -260,7 +260,7 @@ Donde "calorias", "proteinas", "carbohidratos" y "grasas" sean números (enteros
 const construirPromptCambioFisico = (contexto, cantidadFotos) => {
   const {
     edadTexto = 'edad no especificada',
-    fechaNacimiento = '26/11/2010',
+    fechaNacimiento = 'no especificada',
     tiempoEntrenandoTexto = 'En progreso',
     fechaInicioEntreno = '01/11/2025',
     alturaCm = PERFIL_USUARIO_BASE.alturaCm,
@@ -619,7 +619,7 @@ export const clasificarFallo = (error) => {
   if (status === 401) return 'CLAVE';
   if (status === 400) {
     if (error?.reason === 'API_KEY_INVALID' || /api key/i.test(detalle)) return 'CLAVE';
-    if (/thinking_?config|thinkingLevel/i.test(detalle)) return 'RAZONAMIENTO_NO_SOPORTADO';
+    if (/thinking[_ ]?(config|level)|thinkingLevel/i.test(detalle)) return 'RAZONAMIENTO_NO_SOPORTADO';
     return 'OTRO';
   }
   if (status === 403) return 'PERMISO';
@@ -652,6 +652,10 @@ export const mensajeParaUsuario = (fallos = [], contexto = 'comida') => {
   const prioritaria = ['CLAVE', 'PERMISO', 'SEGURIDAD'].find((clase) =>
     fallos.some((f) => f.clase === clase)
   );
+  // Si TODOS los intentos fallaron por red, el problema es la conexión del usuario, no Gemini.
+  if (!prioritaria && fallos.length > 0 && fallos.every((f) => f.status === 'RED')) {
+    return 'No hay conexión a internet. Revisa tu red e inténtalo de nuevo.';
+  }
   const clase = prioritaria || fallos[fallos.length - 1]?.clase || 'SATURACION';
   if (clase === 'SEGURIDAD') {
     return contexto === 'estudio'
@@ -741,7 +745,10 @@ const ejecutarConFailover = async ({
           modelo,
           status: error?.status ?? 'DESCONOCIDO',
           clase,
-          mensaje: error?.message || 'error desconocido',
+          // Nunca se guarda la clave aunque el servidor la repita (Spec 021, RF-6).
+          mensaje: apiKey
+            ? String(error?.message || 'error desconocido').split(apiKey).join('***')
+            : String(error?.message || 'error desconocido'),
         });
 
         if (clase === 'CLAVE' || clase === 'SEGURIDAD') terminar();
