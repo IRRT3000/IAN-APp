@@ -7,7 +7,8 @@ import { Keyboard } from 'react-native';
 import { OBJETIVOS_PERFIL_VALIDOS, PERFIL_USUARIO_BASE, SEXOS_PERFIL_VALIDOS, parsearFechaLocalYYYYMMDD } from '../../services/storage';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSafeInsets } from '../../utils/useSafeInsets';
-import { useSharedValue, withDelay, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { cancelAnimation, useSharedValue, withDelay, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { usePreferenciaMovimiento } from '../../utils/movimiento';
 
 export function useEstadoOnboarding({ modoEdicion, perfilInicial, visible }) {
   const insets = useSafeInsets();
@@ -236,19 +237,33 @@ export function useEstadoOnboarding({ modoEdicion, perfilInicial, visible }) {
     bloque3SV.value = withDelay(180, withSpring(1, SPRING_SCENE));
   }, [bloque1SV, bloque2SV, bloque3SV]);
 
+  // Spec 024 (RF-1): el pulso infinito del anillo no se inicia con «reducir movimiento» y se cancela si se activa.
+  const { reducir } = usePreferenciaMovimiento();
+  const reducirRef = useRef(reducir);
+  useEffect(() => {
+    reducirRef.current = reducir;
+    if (reducir) {
+      cancelAnimation(heroRingPulse);
+      heroRingPulse.value = 1;
+    }
+  }, [reducir, heroRingPulse]);
+
   useEffect(() => {
     if (!visible) return;
 
     if (escena === 0) {
+      // eslint-disable-next-line react-hooks/immutability -- valor animado de Reanimated (se modifica por diseño)
       heroRingPulse.value = 1;
-      heroRingPulse.value = withRepeat(
-        withSequence(
-          withTiming(1.06, { duration: 1600, easing: EASE_OUT_STRONG }),
-          withTiming(1, { duration: 1600, easing: EASE_OUT_STRONG })
-        ),
-        -1,
-        true
-      );
+      if (!reducirRef.current) {
+        heroRingPulse.value = withRepeat(
+          withSequence(
+            withTiming(1.06, { duration: 1600, easing: EASE_OUT_STRONG }),
+            withTiming(1, { duration: 1600, easing: EASE_OUT_STRONG })
+          ),
+          -1,
+          true
+        );
+      }
 
       heroBadgeSV.value = 0;
       heroTitleSV.value = 0;
