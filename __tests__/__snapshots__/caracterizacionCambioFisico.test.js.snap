@@ -2985,7 +2985,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
               </View>
             </View>
             <View
-              accessibilityHint="Mantén pulsado un segundo para borrar"
+              accessibilityActions={
+                [
+                  {
+                    "label": "Borrar",
+                    "name": "borrar",
+                  },
+                ]
+              }
+              accessibilityHint="Mantén pulsado un segundo para borrar, o usa la acción Borrar del lector de pantalla"
               accessibilityLabel="Borrar registro"
               accessibilityRole="button"
               accessibilityState={
@@ -3016,6 +3024,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                   "top": 8,
                 }
               }
+              onAccessibilityAction={[Function]}
               onClick={[Function]}
               onResponderGrant={[Function]}
               onResponderMove={[Function]}
@@ -3405,7 +3414,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
               </Text>
             </View>
             <View
-              accessibilityHint="Mantén pulsado un segundo para borrar"
+              accessibilityActions={
+                [
+                  {
+                    "label": "Borrar",
+                    "name": "borrar",
+                  },
+                ]
+              }
+              accessibilityHint="Mantén pulsado un segundo para borrar, o usa la acción Borrar del lector de pantalla"
               accessibilityLabel="Borrar registro"
               accessibilityRole="button"
               accessibilityState={
@@ -3436,6 +3453,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                   "top": 8,
                 }
               }
+              onAccessibilityAction={[Function]}
               onClick={[Function]}
               onResponderGrant={[Function]}
               onResponderMove={[Function]}

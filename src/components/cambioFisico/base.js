@@ -84,7 +84,11 @@ export function CapsulaBorradoSeguroFisico({ onBorrar, onAvisoCorto }) {
 
   return (
     <TouchableOpacity
-      accessibilityRole="button" accessibilityLabel="Borrar registro" accessibilityHint="Mantén pulsado un segundo para borrar"
+      accessibilityRole="button" accessibilityLabel="Borrar registro" accessibilityHint="Mantén pulsado un segundo para borrar, o usa la acción Borrar del lector de pantalla"
+      accessibilityActions={[{ name: 'borrar', label: 'Borrar' }]}
+      onAccessibilityAction={(evento) => {
+        if (evento.nativeEvent.actionName === 'borrar') onBorrar();
+      }}
       activeOpacity={0.9}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}

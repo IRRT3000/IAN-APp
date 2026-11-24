@@ -107,7 +107,12 @@ function CapsulaBorradoSeguroSesion({ onBorrar }) {
       onPressOut={handlePressOut}
       style={styles.botonBorradoContenedor}
       accessibilityRole="button"
-      accessibilityLabel="Mantén presionado un segundo para eliminar la sesión"
+      accessibilityLabel="Eliminar sesión"
+      accessibilityHint="Mantén pulsado un segundo para eliminar, o usa la acción Eliminar del lector de pantalla"
+      accessibilityActions={[{ name: 'borrar', label: 'Eliminar' }]}
+      onAccessibilityAction={(evento) => {
+        if (evento.nativeEvent.actionName === 'borrar' && typeof onBorrar === 'function') onBorrar();
+      }}
     >
       <Animated.View style={[styles.barraProgresoFill, estiloProgreso]} />
       <View style={styles.contenidoBorrado}>

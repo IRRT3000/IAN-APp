@@ -72,3 +72,18 @@ describe('RegionAnuncios (web)', () => {
     unmount();
   });
 });
+
+describe('Acción accesible de borrado (Spec 023, RF-1)', () => {
+  test('la acción "borrar" del lector de pantalla abre el borrado sin pulsación sostenida', async () => {
+    const { fireEvent } = require('@testing-library/react-native');
+    const { CapsulaBorradoSeguroFisico } = require('../src/components/cambioFisico/base');
+    const onBorrar = jest.fn();
+    const { unmount } = await render(<CapsulaBorradoSeguroFisico onBorrar={onBorrar} onAvisoCorto={jest.fn()} />);
+    const boton = screen.getByLabelText('Borrar registro');
+    await fireEvent(boton, 'accessibilityAction', { nativeEvent: { actionName: 'borrar' } });
+    expect(onBorrar).toHaveBeenCalledTimes(1);
+    await fireEvent(boton, 'accessibilityAction', { nativeEvent: { actionName: 'activate' } });
+    expect(onBorrar).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+});
