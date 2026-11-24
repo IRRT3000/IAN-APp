@@ -62,7 +62,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
         }
       >
         <Icon
-          color="#666666"
+          color="#898989"
           name="camera"
           size={32}
           style={
@@ -179,7 +179,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -231,7 +231,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -284,7 +284,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -334,7 +334,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
             <Text
               style={
                 {
-                  "color": "#666666",
+                  "color": "#898989",
                   "fontSize": 10,
                   "fontWeight": "700",
                   "letterSpacing": 0.4,
@@ -882,7 +882,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -1009,7 +1009,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -1136,7 +1136,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -1263,7 +1263,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -1390,7 +1390,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -1517,7 +1517,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -1780,7 +1780,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9,
                       "fontWeight": "700",
                       "letterSpacing": 0.4,
@@ -1832,7 +1832,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9,
                       "fontWeight": "700",
                       "letterSpacing": 0.4,
@@ -1885,7 +1885,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9,
                       "fontWeight": "700",
                       "letterSpacing": 0.4,
@@ -1935,7 +1935,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 10,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -2647,7 +2647,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.5,
@@ -2725,7 +2725,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
             <Text
               style={
                 {
-                  "color": "#666666",
+                  "color": "#898989",
                   "fontSize": 9,
                   "fontWeight": "700",
                   "letterSpacing": 0.5,
@@ -3255,7 +3255,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.5,
@@ -3303,7 +3303,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
             <Text
               style={
                 {
-                  "color": "#666666",
+                  "color": "#898989",
                   "fontSize": 9,
                   "fontWeight": "700",
                   "letterSpacing": 0.5,
@@ -3348,7 +3348,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 10,
                     "fontWeight": "600",
                   }
@@ -3539,7 +3539,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
         }
       >
         <Icon
-          color="#666666"
+          color="#898989"
           name="camera"
           size={32}
           style={
@@ -3697,7 +3697,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -3749,7 +3749,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -3802,7 +3802,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -3852,7 +3852,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
             <Text
               style={
                 {
-                  "color": "#666666",
+                  "color": "#898989",
                   "fontSize": 10,
                   "fontWeight": "700",
                   "letterSpacing": 0.4,
@@ -4202,7 +4202,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -4329,7 +4329,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -4456,7 +4456,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -4713,7 +4713,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -4840,7 +4840,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -4967,7 +4967,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -5152,7 +5152,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9,
                       "fontWeight": "700",
                       "letterSpacing": 0.4,
@@ -5204,7 +5204,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9,
                       "fontWeight": "700",
                       "letterSpacing": 0.4,
@@ -5257,7 +5257,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9,
                       "fontWeight": "700",
                       "letterSpacing": 0.4,
@@ -5307,7 +5307,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 10,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -5618,7 +5618,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
           style={
             [
               {
-                "color": "#666666",
+                "color": "#898989",
                 "fontSize": 32,
               },
               {
@@ -5715,7 +5715,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
         }
       >
         <Icon
-          color="#666666"
+          color="#898989"
           name="camera"
           size={32}
           style={
@@ -5828,7 +5828,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -5880,7 +5880,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -5933,7 +5933,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -5983,7 +5983,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
             <Text
               style={
                 {
-                  "color": "#666666",
+                  "color": "#898989",
                   "fontSize": 10,
                   "fontWeight": "700",
                   "letterSpacing": 0.4,
@@ -6668,7 +6668,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -6795,7 +6795,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -6922,7 +6922,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -7049,7 +7049,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -7176,7 +7176,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -7303,7 +7303,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -7568,7 +7568,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9,
                       "fontWeight": "700",
                       "letterSpacing": 0.4,
@@ -7620,7 +7620,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9,
                       "fontWeight": "700",
                       "letterSpacing": 0.4,
@@ -7673,7 +7673,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9,
                       "fontWeight": "700",
                       "letterSpacing": 0.4,
@@ -7723,7 +7723,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 10,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -8541,7 +8541,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
           style={
             [
               {
-                "color": "#666666",
+                "color": "#898989",
                 "fontSize": 32,
               },
               {
@@ -8677,7 +8677,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                   <Text
                     style={
                       {
-                        "color": "#666666",
+                        "color": "#898989",
                         "fontSize": 8,
                         "fontWeight": "800",
                         "letterSpacing": 0.8,
@@ -9138,7 +9138,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "800",
                     "letterSpacing": 0.6,
@@ -10020,7 +10020,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
         }
       >
         <Icon
-          color="#666666"
+          color="#898989"
           name="camera"
           size={32}
           style={
@@ -10133,7 +10133,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -10185,7 +10185,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -10238,7 +10238,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 9,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -10288,7 +10288,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
             <Text
               style={
                 {
-                  "color": "#666666",
+                  "color": "#898989",
                   "fontSize": 10,
                   "fontWeight": "700",
                   "letterSpacing": 0.4,
@@ -10795,7 +10795,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -10922,7 +10922,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -11049,7 +11049,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -11176,7 +11176,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -11303,7 +11303,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -11430,7 +11430,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                           "marginTop": 2,
                         },
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                         },
                       ]
                     }
@@ -11695,7 +11695,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9,
                       "fontWeight": "700",
                       "letterSpacing": 0.4,
@@ -11747,7 +11747,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9,
                       "fontWeight": "700",
                       "letterSpacing": 0.4,
@@ -11800,7 +11800,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9,
                       "fontWeight": "700",
                       "letterSpacing": 0.4,
@@ -11850,7 +11850,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
               <Text
                 style={
                   {
-                    "color": "#666666",
+                    "color": "#898989",
                     "fontSize": 10,
                     "fontWeight": "700",
                     "letterSpacing": 0.4,
@@ -12384,7 +12384,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
           style={
             [
               {
-                "color": "#666666",
+                "color": "#898989",
                 "fontSize": 32,
               },
               {

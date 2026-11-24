@@ -111,7 +111,7 @@ export default function BarraNavegacionInferior({
                 <Feather
                   name={tab.icono}
                   size={18}
-                  color={esActivo ? '#FFFFFF' : '#666666'}
+                  color={esActivo ? '#FFFFFF' : '#898989'}
                 />
                 {tieneContador ? (
                   <View style={styles.badgeContador}>
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   etiquetaInactiva: {
-    color: '#666666',
+    color: '#898989',
   },
   badgeContador: {
     position: 'absolute',

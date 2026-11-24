@@ -27,7 +27,7 @@ export const TOKENS = {
     // Tipografía Monocroma
     textPrimary: '#FFFFFF',
     textSecondary: '#8E8E93',
-    textMuted: '#666666',
+    textMuted: '#898989', // Spec 023: antes #666666 (contraste 2.77–3.45); #898989 cumple WCAG AA (≥ 4.5) en todas las superficies
     textInverse: '#0A0A0A',
 
     // Acciones y Estados
@@ -42,7 +42,7 @@ export const TOKENS = {
 
     // Escala de 5 Niveles para el Mapa de Calor (Inversión tipográfica en niveles 3 y 4)
     heatmap: {
-      level0: { bg: '#141414', border: '#222222', text: '#666666' },
+      level0: { bg: '#141414', border: '#222222', text: '#898989' },
       level1: { bg: '#2C2C2C', border: '#3D3D3D', text: '#D4D4D4' },
       level2: { bg: '#525252', border: '#666666', text: '#FFFFFF' },
       level3: { bg: '#9E9E9E', border: '#B8B8B8', text: '#0A0A0A' },

@@ -774,7 +774,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             <Text
               style={
                 {
-                  "color": "#666666",
+                  "color": "#898989",
                   "fontSize": 10,
                   "fontWeight": "700",
                   "letterSpacing": 1.2,
@@ -1020,7 +1020,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     <Text
                       style={
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                           "fontSize": 11,
                           "fontVariant": [
                             "tabular-nums",
@@ -1078,7 +1078,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       onFocus={[Function]}
                       onSubmitEditing={[Function]}
                       placeholder="Ej. Alex, Ian, Atleta..."
-                      placeholderTextColor="#666666"
+                      placeholderTextColor="#898989"
                       returnKeyType="done"
                       style={
                         {
@@ -1940,7 +1940,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       <Text
                         style={
                           {
-                            "color": "#666666",
+                            "color": "#898989",
                             "fontSize": 10,
                             "fontVariant": [
                               "tabular-nums",
@@ -2590,7 +2590,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             <Text
               style={
                 {
-                  "color": "#666666",
+                  "color": "#898989",
                   "fontSize": 10,
                   "fontWeight": "700",
                   "letterSpacing": 1.2,
@@ -2837,7 +2837,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       <Text
                         style={
                           {
-                            "color": "#666666",
+                            "color": "#898989",
                             "fontSize": 11.5,
                             "marginTop": 2,
                           }
@@ -3266,7 +3266,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       <Text
                         style={
                           {
-                            "color": "#666666",
+                            "color": "#898989",
                             "fontSize": 11.5,
                             "marginTop": 2,
                           }
@@ -4021,7 +4021,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     <Text
                       style={
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                           "fontSize": 10,
                           "fontWeight": "700",
                           "letterSpacing": 1,
@@ -4298,7 +4298,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             <Text
               style={
                 {
-                  "color": "#666666",
+                  "color": "#898989",
                   "fontSize": 10,
                   "fontWeight": "700",
                   "letterSpacing": 1.2,
@@ -5009,7 +5009,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       <Text
                         style={
                           {
-                            "color": "#666666",
+                            "color": "#898989",
                             "fontSize": 10,
                             "fontVariant": [
                               "tabular-nums",
@@ -5737,7 +5737,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             <Text
               style={
                 {
-                  "color": "#666666",
+                  "color": "#898989",
                   "fontSize": 10,
                   "fontWeight": "700",
                   "letterSpacing": 1.2,
@@ -6090,7 +6090,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                               style={
                                 [
                                   {
-                                    "color": "#666666",
+                                    "color": "#898989",
                                     "fontSize": 9.5,
                                     "fontWeight": "800",
                                     "letterSpacing": 1,
@@ -6269,7 +6269,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                               style={
                                 [
                                   {
-                                    "color": "#666666",
+                                    "color": "#898989",
                                     "fontSize": 9.5,
                                     "fontWeight": "800",
                                     "letterSpacing": 1,
@@ -6454,7 +6454,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                               style={
                                 [
                                   {
-                                    "color": "#666666",
+                                    "color": "#898989",
                                     "fontSize": 9.5,
                                     "fontWeight": "800",
                                     "letterSpacing": 1,
@@ -6665,7 +6665,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                               style={
                                 [
                                   {
-                                    "color": "#666666",
+                                    "color": "#898989",
                                     "fontSize": 9.5,
                                     "fontWeight": "800",
                                     "letterSpacing": 1,
@@ -7160,7 +7160,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 9.5,
                       "fontWeight": "800",
                       "letterSpacing": 1.2,
@@ -7345,7 +7345,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 11,
                       "fontVariant": [
                         "tabular-nums",
@@ -7511,7 +7511,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 <Text
                   style={
                     {
-                      "color": "#666666",
+                      "color": "#898989",
                       "fontSize": 11,
                       "fontVariant": [
                         "tabular-nums",
@@ -7834,7 +7834,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
             <Text
               style={
                 {
-                  "color": "#666666",
+                  "color": "#898989",
                   "fontSize": 10,
                   "fontWeight": "700",
                   "letterSpacing": 1.2,
@@ -8080,7 +8080,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                     <Text
                       style={
                         {
-                          "color": "#666666",
+                          "color": "#898989",
                           "fontSize": 11,
                           "fontVariant": [
                             "tabular-nums",
@@ -8138,7 +8138,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       onFocus={[Function]}
                       onSubmitEditing={[Function]}
                       placeholder="Ej. Alex, Ian, Atleta..."
-                      placeholderTextColor="#666666"
+                      placeholderTextColor="#898989"
                       returnKeyType="done"
                       style={
                         {
@@ -9061,7 +9061,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       <Text
                         style={
                           {
-                            "color": "#666666",
+                            "color": "#898989",
                             "fontSize": 10,
                             "fontVariant": [
                               "tabular-nums",
