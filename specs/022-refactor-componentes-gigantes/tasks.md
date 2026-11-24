@@ -1,6 +1,6 @@
 # Tareas de Implementación — Spec 022: Partir los Componentes Gigantes sin Cambios Visibles
 
-> **Estado: BORRADOR.** Depende de Q5 y Q1. Se implementa después de la Spec 021.
+> **Estado: IMPLEMENTADA** (2026-11-24). Depende de Q5 y Q1. Se implementa después de la Spec 021.
 
 - [x] **T1** (Claude / planificación): Mapa estructural con grep y borrador de `spec.md`, `plan.md` y `tasks.md`.
 - [ ] **T2** (Usuario): Confirmar Q5 (100 % invisible) y Q1 (orden).
@@ -29,6 +29,22 @@
     - Cada escena pasó a una **función de render** en su propio archivo, que se sigue invocando como función: no se convirtió en componente, para que el árbol que se pinta sea idéntico.
     - El script aborta si una variable se reasigna fuera de su bloque o si un bloque usa algo declarado después.
   - **CA-1:** los 12 snapshots pasan **sin regenerarse**. **CA-2:** orquestadores de 133 y 76 líneas; ningún archivo nuevo supera 450 (los estilos se partieron en 3 objetos combinados en el mismo orden). **CA-3:** `App.js` importa igual. **CA-6:** `npm run gate` en verde, con 25 suites, 297 pruebas y el bundle de Android compilando.
-- [ ] **CA-4 (parcial):** el objeto que se envía a `guardarPerfilCompletoUsuario` está fijado en un snapshot. Faltan los tests unitarios por paso de los hooks extraídos.
-- [ ] **CA-5:** capturas web antes y después y lista para Android (pendiente de la verificación final).
+- [x] **CA-4 (enmendado con los nombres reales de los hooks):** `__tests__/hooksExtraidos.test.js` (16 pruebas).
+  - `useDerivadosOnboarding`: IMC y clasificación en 3 casos, edad exacta en 3 casos y acotado del 31 de febrero.
+  - `useAccionesOnboarding`: validación por paso en 7 casos.
+  - `useAccionesCambioFisico`: borrado y comparación llaman a los mismos servicios con los mismos argumentos.
+  - El objeto que se guarda sigue fijado en el snapshot del commit 35c1ec3.
+  - Además, `__tests__/contextoRender.test.js` comprueba que `ctxRender` contiene todo lo que usa cada render (sugerencia de la revisión).
+- [x] **CA-5 (comparación objetiva del DOM en lugar de píxeles):**
+  - Se construyó la web con el código **antes** (35c1ec3) y **después** (d3366c2) del refactor y se sirvió cada una con las cabeceras de `vercel.json`.
+  - En el navegador integrado, a 375×812 y con el almacenamiento limpio, se recorrieron las escenas 0 a 4 del onboarding pulsando los mismos botones.
+  - Se calculó el hash FNV-1a del `document.body.innerHTML` completo de cada escena, excluyendo solo tres cosas: el nombre con hash del bundle, `opacity`/`transform` en línea (valores de animación a medio camino) e `id`.
+  - **Los 5 hashes son idénticos** (`3400f4bf`, `21a23813`, `4656dd5d`, `3fd449a2`, `abe32f7a`), con el mismo largo de DOM. Es una prueba más fuerte que comparar píxeles.
+  - Cambio Físico está cubierto por sus 4 snapshots, que tampoco se regeneraron.
+  - **Lista para Android (manual, del usuario):**
+    1. Editar el perfil desde Configuración y recorrer los 4 pasos.
+    2. Registrar un peso con fotos en Cambio Físico.
+    3. Comparar dos registros.
+    4. Borrar uno con pulsación sostenida.
+    5. Comprobar que las animaciones de entrada y de pulsación siguen igual.
 - **Pregunta abierta para el usuario:** `PERFIL_USUARIO_BASE.fechaNacimiento = '2010-11-26'` (15 años) es el valor por defecto del onboarding. No se cambió porque podría ser intencional.
