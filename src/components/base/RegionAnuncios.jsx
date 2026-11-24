@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
+import { Text } from './Texto';
 import { suscribirAnuncios } from '../../utils/accesibilidad';
 
 const DURACION_MS = 5000;

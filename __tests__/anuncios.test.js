@@ -7,6 +7,7 @@ import { AccessibilityInfo, Platform } from 'react-native';
 import { act, render, screen } from '@testing-library/react-native';
 import { anunciar } from '../src/utils/accesibilidad';
 import RegionAnuncios from '../src/components/base/RegionAnuncios';
+import { CapsulaBorradoSeguroFisico } from '../src/components/cambioFisico/base';
 
 const plataformaOriginal = Platform.OS;
 afterEach(() => {
@@ -76,7 +77,6 @@ describe('RegionAnuncios (web)', () => {
 describe('Acción accesible de borrado (Spec 023, RF-1)', () => {
   test('la acción "borrar" del lector de pantalla abre el borrado sin pulsación sostenida', async () => {
     const { fireEvent } = require('@testing-library/react-native');
-    const { CapsulaBorradoSeguroFisico } = require('../src/components/cambioFisico/base');
     const onBorrar = jest.fn();
     const { unmount } = await render(<CapsulaBorradoSeguroFisico onBorrar={onBorrar} onAvisoCorto={jest.fn()} />);
     const boton = screen.getByLabelText('Borrar registro');
@@ -84,6 +84,54 @@ describe('Acción accesible de borrado (Spec 023, RF-1)', () => {
     expect(onBorrar).toHaveBeenCalledTimes(1);
     await fireEvent(boton, 'accessibilityAction', { nativeEvent: { actionName: 'activate' } });
     expect(onBorrar).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+});
+
+describe('ModalAnalisisComida: éxito y error se comunican una sola vez (CA-3)', () => {
+  const React2 = require('react');
+  const { fireEvent } = require('@testing-library/react-native');
+  const accesibilidad = require('../src/utils/accesibilidad');
+  const gemini = require('../src/services/gemini');
+  const ModalAnalisisComida = require('../src/components/ModalAnalisisComida').default;
+
+  const renderModal = () =>
+    render(
+      React2.createElement(ModalAnalisisComida, {
+        visible: true,
+        fotoUri: 'file:///cache/a.jpg',
+        fotoBase64: 'QUJD',
+        tipoComida: 'Snack',
+        perfilUsuario: {},
+        onCerrar: jest.fn(),
+        onGuardar: jest.fn(),
+        onCambiarFoto: jest.fn(),
+      })
+    );
+
+  test('éxito: anuncia una vez el resultado', async () => {
+    Platform.OS = 'android';
+    jest.spyOn(gemini, 'analizarComidaConGemini').mockResolvedValue({ nombre: 'Manzana', calorias: 95, proteinas: 0.5, carbohidratos: 25, grasas: 0.3, detalles: '' });
+    const anuncio = jest.spyOn(accesibilidad, 'anunciar');
+    const { unmount } = await renderModal();
+    await fireEvent.press(screen.getByLabelText('Analizar con IA'));
+    await act(async () => {});
+    expect(anuncio).toHaveBeenCalledTimes(1);
+    expect(anuncio.mock.calls[0][0]).toContain('Análisis listo: Manzana, 95 kilocalorías');
+    unmount();
+  });
+
+  test('error: muestra el bloque alert y lo anuncia en nativo, sin anunciar éxito', async () => {
+    Platform.OS = 'android';
+    jest.spyOn(gemini, 'analizarComidaConGemini').mockRejectedValue(new Error('Gemini está saturado en este momento.'));
+    const lector = jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => {});
+    const { unmount } = await renderModal();
+    await fireEvent.press(screen.getByLabelText('Analizar con IA'));
+    await act(async () => {});
+    expect(screen.getByRole('alert')).toBeTruthy();
+    expect(screen.getByText('Gemini está saturado en este momento.')).toBeTruthy();
+    expect(lector).toHaveBeenCalledWith('Gemini está saturado en este momento.');
+    expect(lector.mock.calls.some(([m]) => String(m).startsWith('Análisis listo'))).toBe(false);
     unmount();
   });
 });

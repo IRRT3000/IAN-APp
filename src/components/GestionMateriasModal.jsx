@@ -188,7 +188,7 @@ export default function GestionMateriasModal({
 
               <View style={styles.filaSelectorCategoria}>
                 <TouchableOpacity
-                  accessibilityRole="radio" accessibilityLabel="Categoría Escuela" aria-selected={categoriaNueva === 'Escuela'}
+                  accessibilityRole="radio" accessibilityLabel="Categoría Escuela" aria-checked={categoriaNueva === 'Escuela'}
                   style={[
                     styles.pastillaCategoria,
                     categoriaNueva === 'Escuela' && styles.pastillaCategoriaActiva,
@@ -209,7 +209,7 @@ export default function GestionMateriasModal({
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  accessibilityRole="radio" accessibilityLabel="Categoría Personal" aria-selected={categoriaNueva === 'Personal'}
+                  accessibilityRole="radio" accessibilityLabel="Categoría Personal" aria-checked={categoriaNueva === 'Personal'}
                   style={[
                     styles.pastillaCategoria,
                     categoriaNueva === 'Personal' && styles.pastillaCategoriaActiva,
@@ -277,7 +277,7 @@ export default function GestionMateriasModal({
 
                       <View style={styles.filaSelectorCategoria}>
                         <TouchableOpacity
-                          accessibilityRole="radio" accessibilityLabel="Categoría Escuela" aria-selected={categoriaEditando === 'Escuela'}
+                          accessibilityRole="radio" accessibilityLabel="Categoría Escuela" aria-checked={categoriaEditando === 'Escuela'}
                           style={[
                             styles.pastillaCategoria,
                             categoriaEditando === 'Escuela' && styles.pastillaCategoriaActiva,
@@ -298,7 +298,7 @@ export default function GestionMateriasModal({
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                          accessibilityRole="radio" accessibilityLabel="Categoría Personal" aria-selected={categoriaEditando === 'Personal'}
+                          accessibilityRole="radio" accessibilityLabel="Categoría Personal" aria-checked={categoriaEditando === 'Personal'}
                           style={[
                             styles.pastillaCategoria,
                             categoriaEditando === 'Personal' && styles.pastillaCategoriaActiva,

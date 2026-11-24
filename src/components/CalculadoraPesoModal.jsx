@@ -81,6 +81,7 @@ export default function CalculadoraPesoModal({
       onRequestClose={onCerrar}
     >
       <TouchableWithoutFeedback
+        accessible={false}
         accessibilityRole="button" accessibilityLabel="Cerrar la calculadora de peso"
         onPress={onCerrar}>
         <View
@@ -115,7 +116,7 @@ export default function CalculadoraPesoModal({
               {/* Selector Pastilla Unificada [ Lbs ➔ Kg | Kg ➔ Lbs ] */}
               <View style={styles.contenedorPastilla}>
                 <TouchableOpacity
-                  accessibilityRole="radio" accessibilityLabel="Convertir de libras a kilogramos" aria-selected={esLbsAKg}
+                  accessibilityRole="radio" accessibilityLabel="Convertir de libras a kilogramos" aria-checked={esLbsAKg}
                   style={[
                     styles.opcionPastilla,
                     esLbsAKg && styles.opcionPastillaActiva,
@@ -134,7 +135,7 @@ export default function CalculadoraPesoModal({
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  accessibilityRole="radio" accessibilityLabel="Convertir de kilogramos a libras" aria-selected={!esLbsAKg}
+                  accessibilityRole="radio" accessibilityLabel="Convertir de kilogramos a libras" aria-checked={!esLbsAKg}
                   style={[
                     styles.opcionPastilla,
                     !esLbsAKg && styles.opcionPastillaActiva,
@@ -210,7 +211,7 @@ export default function CalculadoraPesoModal({
 
               {/* Botón CTA Listo / Aplicar */}
               <TouchableOpacity
-                accessibilityRole="button" accessibilityLabel="Usar el peso convertido"
+                accessibilityRole="button" accessibilityLabel={typeof onAplicar === 'function' ? 'Aplicar valor convertido' : 'Listo, cerrar calculadora'}
                 style={styles.botonAccionPrincipal}
                 onPress={manejarAccionPrincipal}
                 activeOpacity={0.85}

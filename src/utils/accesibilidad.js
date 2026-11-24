@@ -37,3 +37,15 @@ export const anunciar = (mensaje) => {
     // un anuncio fallido nunca debe interrumpir la app
   }
 };
+
+/**
+ * Anuncia un ERROR que solo se muestra en un bloque visible (Spec 023, revisión de código B2).
+ * En nativo, accessibilityRole="alert" no se lee solo: se anuncia con la API del sistema.
+ * En web no hace nada, porque el bloque con role="alert" ya lo lee el lector (evita duplicados).
+ * No usar cuando el error ya se muestra con mostrarAlerta (un diálogo que el lector lee solo).
+ * @param {string} mensaje
+ */
+export const anunciarError = (mensaje) => {
+  if (Platform.OS === 'web') return;
+  anunciar(mensaje);
+};

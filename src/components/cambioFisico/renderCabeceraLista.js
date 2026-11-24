@@ -113,7 +113,7 @@ export const crearRenderCabeceraLista = (ctx) => (...args) => {
                           PERFIL_USUARIO_BASE.objetivo) === obj;
                       return (
                         <TouchableOpacity
-                          accessibilityRole="radio" accessibilityLabel={`Objetivo ${obj}`} aria-selected={activo}
+                          accessibilityRole="radio" accessibilityLabel={`Objetivo ${obj}`} aria-checked={activo}
                           key={obj}
                           style={[
                             styles.chipObjetivo,

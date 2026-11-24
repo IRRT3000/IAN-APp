@@ -13,9 +13,9 @@ import { Text as TextNativo, TextInput as TextInputNativo } from 'react-native';
 import { TOKENS } from '../../theme/tokens';
 
 export function Text(props) {
-  return <TextNativo maxFontSizeMultiplier={TOKENS.escalaTexto.max} {...props} />;
+  return <TextNativo {...props} maxFontSizeMultiplier={props.maxFontSizeMultiplier ?? TOKENS.escalaTexto.max} />;
 }
 
 export function TextInput(props) {
-  return <TextInputNativo maxFontSizeMultiplier={TOKENS.escalaTexto.max} {...props} />;
+  return <TextInputNativo {...props} maxFontSizeMultiplier={props.maxFontSizeMultiplier ?? TOKENS.escalaTexto.max} />;
 }

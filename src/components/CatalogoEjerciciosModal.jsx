@@ -308,7 +308,7 @@ export default function CatalogoEjerciciosModal({
               const activo = grupoFiltro === grupo;
               return (
                 <TouchableOpacity
-                  accessibilityRole="radio" accessibilityLabel={`Filtrar por ${grupo}`} aria-selected={activo}
+                  accessibilityRole="radio" accessibilityLabel={`Filtrar por ${grupo}`} aria-checked={activo}
                   key={`filtro-${grupo}`}
                   style={[
                     styles.chipFiltro,
@@ -461,7 +461,7 @@ export default function CatalogoEjerciciosModal({
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
                   {GRUPOS_MUSCULARES_REGISTRO.map((g) => (
                     <TouchableOpacity
-                      accessibilityRole="radio" accessibilityLabel={`Grupo muscular ${g}`} aria-selected={nuevoGrupo === g}
+                      accessibilityRole="radio" accessibilityLabel={`Grupo muscular ${g}`} aria-checked={nuevoGrupo === g}
                       key={`nuevo-g-${g}`}
                       style={[styles.chipOpcion, nuevoGrupo === g && styles.chipOpcionActivo]}
                       onPress={() => setNuevoGrupo(g)}
@@ -477,7 +477,7 @@ export default function CatalogoEjerciciosModal({
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 18 }}>
                   {IMPLEMENTOS.map((imp) => (
                     <TouchableOpacity
-                      accessibilityRole="radio" accessibilityLabel={`Implemento ${imp}`} aria-selected={nuevoImplemento === imp}
+                      accessibilityRole="radio" accessibilityLabel={`Implemento ${imp}`} aria-checked={nuevoImplemento === imp}
                       key={`nuevo-imp-${imp}`}
                       style={[styles.chipOpcion, nuevoImplemento === imp && styles.chipOpcionActivo]}
                       onPress={() => setNuevoImplemento(imp)}

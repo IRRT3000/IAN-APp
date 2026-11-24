@@ -91,8 +91,13 @@ const analizarArchivo = (ruta) => {
     // CA-2: un selector (radio, tab o checkbox) debe exponer su estado.
     const rolAtributo = n.attributes.find((a) => a.type === 'JSXAttribute' && a.name.name === 'accessibilityRole');
     const rol = rolAtributo?.value?.type === 'StringLiteral' ? rolAtributo.value.value : null;
-    if (['radio', 'tab', 'checkbox'].includes(rol) && !props.has('aria-selected') && !props.has('aria-checked')) {
-      infracciones.push({ linea: n.loc.start.line, nombre: nombre + ' (selector sin aria-selected/aria-checked)' });
+    // En ARIA, radio y checkbox exponen aria-checked; tab expone aria-selected (revisión de código de la Spec 023).
+    const estadoPorEnvoltorio = ENVOLTORIOS_CON_ROL.includes(nombre) && props.has('seleccionado');
+    if (['radio', 'checkbox'].includes(rol) && !props.has('aria-checked') && !estadoPorEnvoltorio) {
+      infracciones.push({ linea: n.loc.start.line, nombre: nombre + ' (radio/checkbox sin aria-checked)' });
+    }
+    if (rol === 'tab' && !props.has('aria-selected')) {
+      infracciones.push({ linea: n.loc.start.line, nombre: nombre + ' (tab sin aria-selected)' });
     }
   });
   return infracciones;

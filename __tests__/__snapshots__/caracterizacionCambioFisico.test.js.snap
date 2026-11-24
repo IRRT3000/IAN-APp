@@ -358,7 +358,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 accessibilityLabel="Objetivo Mantenimiento"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={false}
+                aria-checked={false}
                 onPress={[Function]}
                 style={
                   [
@@ -397,7 +397,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 accessibilityLabel="Objetivo Volumen"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={false}
+                aria-checked={false}
                 onPress={[Function]}
                 style={
                   [
@@ -436,7 +436,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 accessibilityLabel="Objetivo Definición"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={false}
+                aria-checked={false}
                 onPress={[Function]}
                 style={
                   [
@@ -475,7 +475,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 accessibilityLabel="Objetivo Recomposición"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={true}
+                aria-checked={true}
                 onPress={[Function]}
                 style={
                   [
@@ -819,15 +819,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 }
               >
                 <View
-                  accessibilityLabel="M 17"
+                  accessibilityLabel="17/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -951,15 +951,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 }
               >
                 <View
-                  accessibilityLabel="M 18"
+                  accessibilityLabel="18/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -1083,15 +1083,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 }
               >
                 <View
-                  accessibilityLabel="J 19"
+                  accessibilityLabel="19/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -1215,15 +1215,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 }
               >
                 <View
-                  accessibilityLabel="V 20"
+                  accessibilityLabel="20/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -1347,15 +1347,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 }
               >
                 <View
-                  accessibilityLabel="S 21"
+                  accessibilityLabel="21/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -1479,15 +1479,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 }
               >
                 <View
-                  accessibilityLabel="D 22"
+                  accessibilityLabel="22/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -1611,15 +1611,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                 }
               >
                 <View
-                  accessibilityLabel="Hoy, L 23"
+                  accessibilityLabel="Hoy, 23/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": true,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": true,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -2023,10 +2023,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -2084,10 +2084,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -2145,10 +2145,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -2206,10 +2206,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": true,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": true,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -4013,7 +4013,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 accessibilityLabel="Objetivo Mantenimiento"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={false}
+                aria-checked={false}
                 onPress={[Function]}
                 style={
                   [
@@ -4052,7 +4052,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 accessibilityLabel="Objetivo Volumen"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={false}
+                aria-checked={false}
                 onPress={[Function]}
                 style={
                   [
@@ -4091,7 +4091,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 accessibilityLabel="Objetivo Definición"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={false}
+                aria-checked={false}
                 onPress={[Function]}
                 style={
                   [
@@ -4130,7 +4130,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 accessibilityLabel="Objetivo Recomposición"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={true}
+                aria-checked={true}
                 onPress={[Function]}
                 style={
                   [
@@ -4272,15 +4272,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 }
               >
                 <View
-                  accessibilityLabel="M 17"
+                  accessibilityLabel="17/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -4404,15 +4404,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 }
               >
                 <View
-                  accessibilityLabel="M 18"
+                  accessibilityLabel="18/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -4536,15 +4536,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 }
               >
                 <View
-                  accessibilityLabel="J 19"
+                  accessibilityLabel="19/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -4668,15 +4668,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 }
               >
                 <View
-                  accessibilityLabel="V 20"
+                  accessibilityLabel="20/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": true,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": true,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -4803,15 +4803,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 }
               >
                 <View
-                  accessibilityLabel="S 21"
+                  accessibilityLabel="21/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -4935,15 +4935,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 }
               >
                 <View
-                  accessibilityLabel="D 22"
+                  accessibilityLabel="22/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -5067,15 +5067,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                 }
               >
                 <View
-                  accessibilityLabel="Hoy, L 23"
+                  accessibilityLabel="Hoy, 23/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -5529,10 +5529,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -5590,10 +5590,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -5651,10 +5651,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -5712,10 +5712,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": true,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": true,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -6220,7 +6220,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 accessibilityLabel="Objetivo Mantenimiento"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={false}
+                aria-checked={false}
                 onPress={[Function]}
                 style={
                   [
@@ -6259,7 +6259,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 accessibilityLabel="Objetivo Volumen"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={false}
+                aria-checked={false}
                 onPress={[Function]}
                 style={
                   [
@@ -6298,7 +6298,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 accessibilityLabel="Objetivo Definición"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={false}
+                aria-checked={false}
                 onPress={[Function]}
                 style={
                   [
@@ -6337,7 +6337,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 accessibilityLabel="Objetivo Recomposición"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={true}
+                aria-checked={true}
                 onPress={[Function]}
                 style={
                   [
@@ -6824,15 +6824,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 }
               >
                 <View
-                  accessibilityLabel="M 17"
+                  accessibilityLabel="17/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -6956,15 +6956,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 }
               >
                 <View
-                  accessibilityLabel="M 18"
+                  accessibilityLabel="18/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -7088,15 +7088,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 }
               >
                 <View
-                  accessibilityLabel="J 19"
+                  accessibilityLabel="19/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -7220,15 +7220,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 }
               >
                 <View
-                  accessibilityLabel="V 20"
+                  accessibilityLabel="20/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -7352,15 +7352,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 }
               >
                 <View
-                  accessibilityLabel="S 21"
+                  accessibilityLabel="21/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -7484,15 +7484,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 }
               >
                 <View
-                  accessibilityLabel="D 22"
+                  accessibilityLabel="22/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -7616,15 +7616,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                 }
               >
                 <View
-                  accessibilityLabel="Hoy, L 23"
+                  accessibilityLabel="Hoy, 23/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": true,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": true,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -8031,10 +8031,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -8092,10 +8092,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -8153,10 +8153,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -8214,10 +8214,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": true,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": true,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -9690,7 +9690,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                   }
                 >
                   <View
-                    accessibilityLabel="Aumentar minutos 5"
+                    accessibilityLabel="Sumar 5 minutos"
                     accessibilityRole="button"
                     accessibilityState={
                       {
@@ -9765,7 +9765,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                     00
                   </Text>
                   <View
-                    accessibilityLabel="Disminuir minutos 5"
+                    accessibilityLabel="Restar 5 minutos"
                     accessibilityRole="button"
                     accessibilityState={
                       {
@@ -9841,10 +9841,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                     accessibilityState={
                       {
                         "busy": undefined,
-                        "checked": undefined,
+                        "checked": true,
                         "disabled": undefined,
                         "expanded": undefined,
-                        "selected": true,
+                        "selected": undefined,
                       }
                     }
                     accessibilityValue={
@@ -9900,10 +9900,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                     accessibilityState={
                       {
                         "busy": undefined,
-                        "checked": undefined,
+                        "checked": false,
                         "disabled": undefined,
                         "expanded": undefined,
-                        "selected": false,
+                        "selected": undefined,
                       }
                     }
                     accessibilityValue={
@@ -9970,10 +9970,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": true,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": true,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -10030,10 +10030,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -10090,10 +10090,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -10150,10 +10150,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -10690,7 +10690,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 accessibilityLabel="Objetivo Mantenimiento"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={false}
+                aria-checked={false}
                 onPress={[Function]}
                 style={
                   [
@@ -10729,7 +10729,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 accessibilityLabel="Objetivo Volumen"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={false}
+                aria-checked={false}
                 onPress={[Function]}
                 style={
                   [
@@ -10768,7 +10768,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 accessibilityLabel="Objetivo Definición"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={false}
+                aria-checked={false}
                 onPress={[Function]}
                 style={
                   [
@@ -10807,7 +10807,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 accessibilityLabel="Objetivo Recomposición"
                 accessibilityRole="radio"
                 activeOpacity={0.85}
-                aria-selected={true}
+                aria-checked={true}
                 onPress={[Function]}
                 style={
                   [
@@ -11110,15 +11110,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 }
               >
                 <View
-                  accessibilityLabel="M 17"
+                  accessibilityLabel="17/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -11242,15 +11242,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 }
               >
                 <View
-                  accessibilityLabel="M 18"
+                  accessibilityLabel="18/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -11374,15 +11374,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 }
               >
                 <View
-                  accessibilityLabel="J 19"
+                  accessibilityLabel="19/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -11506,15 +11506,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 }
               >
                 <View
-                  accessibilityLabel="V 20"
+                  accessibilityLabel="20/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -11638,15 +11638,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 }
               >
                 <View
-                  accessibilityLabel="S 21"
+                  accessibilityLabel="21/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -11770,15 +11770,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 }
               >
                 <View
-                  accessibilityLabel="D 22"
+                  accessibilityLabel="22/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -11902,15 +11902,15 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                 }
               >
                 <View
-                  accessibilityLabel="Hoy, L 23"
+                  accessibilityLabel="Hoy, 23/11"
                   accessibilityRole="radio"
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": true,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": true,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -12317,10 +12317,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -12378,10 +12378,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -12439,10 +12439,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": false,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": false,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={
@@ -12500,10 +12500,10 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                   accessibilityState={
                     {
                       "busy": undefined,
-                      "checked": undefined,
+                      "checked": true,
                       "disabled": undefined,
                       "expanded": undefined,
-                      "selected": true,
+                      "selected": undefined,
                     }
                   }
                   accessibilityValue={

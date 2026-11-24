@@ -88,6 +88,7 @@ export const crearRenderPaso1Identidad = (ctx) => (...args) => {
                 <View key={opcionSexo} style={styles.sexCardFlex}>
                   <BotonInteractivo
                     seleccionado={activo}
+                    accessibilityRole="radio"
                     accessibilityLabel={`Seleccionar ${opcionSexo}`}
                     onPress={() => seleccionarSexo(opcionSexo)}
                     style={[styles.sexCard, activo && styles.sexCardActive]}

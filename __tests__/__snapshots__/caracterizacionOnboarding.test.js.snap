@@ -1160,14 +1160,14 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   >
                     <View
                       accessibilityLabel="Seleccionar Hombre"
-                      accessibilityRole="button"
+                      accessibilityRole="radio"
                       accessibilityState={
                         {
                           "busy": undefined,
-                          "checked": undefined,
+                          "checked": true,
                           "disabled": false,
                           "expanded": undefined,
-                          "selected": true,
+                          "selected": undefined,
                         }
                       }
                       accessibilityValue={
@@ -1341,14 +1341,14 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   >
                     <View
                       accessibilityLabel="Seleccionar Mujer"
-                      accessibilityRole="button"
+                      accessibilityRole="radio"
                       accessibilityState={
                         {
                           "busy": undefined,
-                          "checked": undefined,
+                          "checked": false,
                           "disabled": false,
                           "expanded": undefined,
-                          "selected": false,
+                          "selected": undefined,
                         }
                       }
                       accessibilityValue={
@@ -6069,14 +6069,14 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 >
                   <View
                     accessibilityLabel="Objetivo Volumen"
-                    accessibilityRole="button"
+                    accessibilityRole="radio"
                     accessibilityState={
                       {
                         "busy": undefined,
-                        "checked": undefined,
+                        "checked": false,
                         "disabled": false,
                         "expanded": undefined,
-                        "selected": false,
+                        "selected": undefined,
                       }
                     }
                     accessibilityValue={
@@ -6251,14 +6251,14 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   </View>
                   <View
                     accessibilityLabel="Objetivo Definición"
-                    accessibilityRole="button"
+                    accessibilityRole="radio"
                     accessibilityState={
                       {
                         "busy": undefined,
-                        "checked": undefined,
+                        "checked": false,
                         "disabled": false,
                         "expanded": undefined,
-                        "selected": false,
+                        "selected": undefined,
                       }
                     }
                     accessibilityValue={
@@ -6433,14 +6433,14 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   </View>
                   <View
                     accessibilityLabel="Objetivo Mantenimiento"
-                    accessibilityRole="button"
+                    accessibilityRole="radio"
                     accessibilityState={
                       {
                         "busy": undefined,
-                        "checked": undefined,
+                        "checked": true,
                         "disabled": false,
                         "expanded": undefined,
-                        "selected": true,
+                        "selected": undefined,
                       }
                     }
                     accessibilityValue={
@@ -6653,14 +6653,14 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   </View>
                   <View
                     accessibilityLabel="Objetivo Recomposición"
-                    accessibilityRole="button"
+                    accessibilityRole="radio"
                     accessibilityState={
                       {
                         "busy": undefined,
-                        "checked": undefined,
+                        "checked": false,
                         "disabled": false,
                         "expanded": undefined,
-                        "selected": false,
+                        "selected": undefined,
                       }
                     }
                     accessibilityValue={
@@ -8404,14 +8404,14 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                   >
                     <View
                       accessibilityLabel="Seleccionar Hombre"
-                      accessibilityRole="button"
+                      accessibilityRole="radio"
                       accessibilityState={
                         {
                           "busy": undefined,
-                          "checked": undefined,
+                          "checked": false,
                           "disabled": false,
                           "expanded": undefined,
-                          "selected": false,
+                          "selected": undefined,
                         }
                       }
                       accessibilityValue={
@@ -8553,14 +8553,14 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                   >
                     <View
                       accessibilityLabel="Seleccionar Mujer"
-                      accessibilityRole="button"
+                      accessibilityRole="radio"
                       accessibilityState={
                         {
                           "busy": undefined,
-                          "checked": undefined,
+                          "checked": true,
                           "disabled": false,
                           "expanded": undefined,
-                          "selected": true,
+                          "selected": undefined,
                         }
                       }
                       accessibilityValue={

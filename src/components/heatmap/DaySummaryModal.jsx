@@ -59,6 +59,7 @@ export default function DaySummaryModal({
       onRequestClose={onClose}
     >
       <TouchableWithoutFeedback
+        accessible={false}
         accessibilityRole="button" accessibilityLabel="Cerrar resumen del día"
         onPress={onClose}>
         <View style={styles.fondoOverlay}>

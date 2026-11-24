@@ -56,7 +56,7 @@ function HeatmapDayCell({
 
   return (
     <TouchableOpacity
-      accessibilityRole="button" accessibilityLabel="Ver resumen del día" aria-disabled={isFuture || undefined}
+      accessibilityRole="button" accessibilityLabel={`${isToday ? 'Hoy, ' : ''}${fechaStr}, nivel de actividad ${nivelSeguro} de 4${isFuture ? ', día futuro' : ''}`} aria-disabled={isFuture || undefined}
       activeOpacity={isFuture ? 1 : 0.7}
       disabled={isFuture}
       onPress={handlePress}

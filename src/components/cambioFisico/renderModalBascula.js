@@ -100,7 +100,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
   
                   <View style={styles.columnaControlTiempo}>
                     <TouchableOpacity
-                      accessibilityRole="button" accessibilityLabel="Aumentar minutos 5"
+                      accessibilityRole="button" accessibilityLabel="Sumar 5 minutos"
                       style={styles.botonFlechaTiempo} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       onPress={() => ajustarMinutos12(5)}
                     >
@@ -110,7 +110,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
                       {String(minutos12).padStart(2, '0')}
                     </Text>
                     <TouchableOpacity
-                      accessibilityRole="button" accessibilityLabel="Disminuir minutos 5"
+                      accessibilityRole="button" accessibilityLabel="Restar 5 minutos"
                       style={styles.botonFlechaTiempo} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       onPress={() => ajustarMinutos12(-5)}
                     >
@@ -123,7 +123,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
                       const activo = periodo12 === p;
                       return (
                         <TouchableOpacity
-                          accessibilityRole="radio" accessibilityLabel={p} aria-selected={activo}
+                          accessibilityRole="radio" accessibilityLabel={p} aria-checked={activo}
                           key={p}
                           style={[
                             styles.botonAmPm,
@@ -154,7 +154,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
                     const activo = momentoDia === m;
                     return (
                       <TouchableOpacity
-                        accessibilityRole="radio" accessibilityLabel={`Momento del día: ${m}`} aria-selected={activo}
+                        accessibilityRole="radio" accessibilityLabel={`Momento del día: ${m}`} aria-checked={activo}
                         key={m}
                         style={[
                           styles.chipMomentoModal,

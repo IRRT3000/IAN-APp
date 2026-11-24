@@ -75,7 +75,7 @@ const CeldaDiaSemanal = React.memo(function CeldaDiaSemanal({
   return (
     <Animated.View style={[styles.envoltorioCelda, estiloAnimado]}>
       <TouchableOpacity
-        accessibilityRole="radio" accessibilityLabel={`${item.esHoy ? 'Hoy, ' : ''}${item.inicial} ${item.diaMes}`} aria-selected={estaSeleccionado}
+        accessibilityRole="radio" accessibilityLabel={`${item.esHoy ? 'Hoy, ' : ''}${item.fechaCorta}`} aria-checked={estaSeleccionado}
         style={[
           styles.celda,
           estaSeleccionado && styles.celdaSeleccionada,

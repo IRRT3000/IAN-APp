@@ -425,7 +425,7 @@ export default function NutricionView({
                 const activo = tipoSeleccionado === tipo;
                 return (
                   <TouchableOpacity
-                    accessibilityRole="radio" accessibilityLabel={`Tipo de comida: ${tipo}`} aria-selected={activo}
+                    accessibilityRole="radio" accessibilityLabel={`Tipo de comida: ${tipo}`} aria-checked={activo}
                     key={tipo}
                     style={[
                       styles.botonTipoComida,

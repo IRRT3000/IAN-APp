@@ -20,7 +20,8 @@ import {
 } from '../services/gemini';
 import { sanearValoresComida } from '../utils/validacionComida';
 import { textoProgresoGemini } from '../utils/progresoGemini';
-import { anunciar } from '../utils/accesibilidad';
+import { anunciar, anunciarError } from '../utils/accesibilidad';
+import RegionAnuncios from './base/RegionAnuncios';
 import { vibrarExito, vibrarError } from '../services/haptics';
 import { reproducirSonido } from '../services/sonidos';
 
@@ -87,9 +88,10 @@ export default function ModalAnalisisComida({
     } catch (error) {
       vibrarError();
       reproducirSonido('error');
-      setErrorAnalisis(
-        error?.message || 'No se pudo analizar la foto. Conservamos tus datos para reintentar.'
-      );
+      const mensajeError =
+        error?.message || 'No se pudo analizar la foto. Conservamos tus datos para reintentar.';
+      setErrorAnalisis(mensajeError);
+      anunciarError(mensajeError);
       setEstadoModal('preparacion'); // Preserva foto y descripción (Defensa 1)
     }
   };
@@ -121,6 +123,8 @@ export default function ModalAnalisisComida({
       animationType="fade"
       onRequestClose={onCerrar}
     >
+      {/* Spec 023: en web, aria-modal deja inerte lo de fuera; la región de anuncios va dentro del modal. */}
+      <RegionAnuncios />
       <View style={styles.backdrop}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -204,7 +208,12 @@ export default function ModalAnalisisComida({
                   />
 
                   {errorAnalisis ? (
-                    <View style={styles.bloqueError}>
+                    <View
+                      style={styles.bloqueError}
+                      accessible
+                      accessibilityRole="alert"
+                      accessibilityLiveRegion="assertive"
+                    >
                       <Feather
                         name="alert-circle"
                         size={14}

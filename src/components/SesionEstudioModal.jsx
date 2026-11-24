@@ -244,7 +244,7 @@ export default function SesionEstudioModal({
                 const seleccionada = materiaId === mat.id;
                 return (
                   <TouchableOpacity
-                    accessibilityRole="radio" accessibilityLabel={`Materia ${mat.nombre}`} aria-selected={seleccionada}
+                    accessibilityRole="radio" accessibilityLabel={`Materia ${mat.nombre}`} aria-checked={seleccionada}
                     key={mat.id}
                     style={[
                       styles.chipMateria,
@@ -299,7 +299,7 @@ export default function SesionEstudioModal({
 
                 <View style={styles.filaCategoriaNuevaMateria}>
                   <TouchableOpacity
-                    accessibilityRole="radio" accessibilityLabel="Categoría Escuela" aria-selected={categoriaNuevaMateria === 'Escuela'}
+                    accessibilityRole="radio" accessibilityLabel="Categoría Escuela" aria-checked={categoriaNuevaMateria === 'Escuela'}
                     style={[
                       styles.pastillaCategoria,
                       categoriaNuevaMateria === 'Escuela' &&
@@ -322,7 +322,7 @@ export default function SesionEstudioModal({
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    accessibilityRole="radio" accessibilityLabel="Categoría Personal" aria-selected={categoriaNuevaMateria === 'Personal'}
+                    accessibilityRole="radio" accessibilityLabel="Categoría Personal" aria-checked={categoriaNuevaMateria === 'Personal'}
                     style={[
                       styles.pastillaCategoria,
                       categoriaNuevaMateria === 'Personal' &&
@@ -402,7 +402,7 @@ export default function SesionEstudioModal({
                 const activo = comprension === niv;
                 return (
                   <TouchableOpacity
-                    accessibilityRole="radio" accessibilityLabel={`Comprensión: ${niv}`} aria-selected={activo}
+                    accessibilityRole="radio" accessibilityLabel={`Comprensión: ${niv}`} aria-checked={activo}
                     key={niv}
                     style={[
                       styles.opcionComprension,
@@ -439,7 +439,7 @@ export default function SesionEstudioModal({
                 const activo = Number(minutos) === val && !minutosManual;
                 return (
                   <TouchableOpacity
-                    accessibilityRole="radio" accessibilityLabel={`${val} minutos`} aria-selected={activo}
+                    accessibilityRole="radio" accessibilityLabel={`${val} minutos`} aria-checked={activo}
                     key={val}
                     style={[
                       styles.chipMinutos,

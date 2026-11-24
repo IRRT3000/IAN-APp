@@ -167,7 +167,8 @@ export function BotonInteractivo({
       accessibilityRole={accessibilityRole}
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={accessibilityHint}
-      aria-selected={seleccionado}
+      aria-selected={accessibilityRole === 'radio' ? undefined : seleccionado}
+      aria-checked={accessibilityRole === 'radio' ? seleccionado : undefined}
       aria-disabled={disabled || undefined}
       disabled={disabled}
       onPressIn={handlePressIn}
