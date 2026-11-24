@@ -10,8 +10,14 @@ import { analizarCambioFisicoConGemini, compararCambioFisicoConGemini } from '..
 import { eliminarFotos, persistirFoto } from '../../services/fotosStorage';
 import { mostrarAlerta } from '../../utils/alertUtils';
 import { textoProgresoGemini } from '../../utils/progresoGemini';
-import { vibrarSeleccionBascula, vibrarToqueComparacion } from '../../services/haptics';
+import {
+  vibrarSeleccionBascula,
+  vibrarToqueComparacion,
+  vibrarExito,
+  vibrarError,
+} from '../../services/haptics';
 import { anunciar } from '../../utils/accesibilidad';
+import { reproducirSonido } from '../../services/sonidos';
 
 export function useAccionesCambioFisico({ alturaCmPerfil, alturaMetrosPerfil, analizando, comidasHoy, comparandoId, entrenamientosHoy, esHoy, fotosBase64PorRegistroRef, fotosSeleccionadas, hora12, listaRegistros, minutos12, momentoDia, onCambioFisicoActualizado, onPerfilActualizado, perfilActivo, periodo12, pesoBasePerfil, pesoSeleccionadoKg, setAnalizando, setAvisoBorradoId, setAvisoLimiteFotos, setComparandoId, setFotosSeleccionadas, setHora12, setMensajeError, setMinutos12, setModalVisible, setMomentoDia, setPerfilInterno, setPeriodo12, setPesoSeleccionadoKg, setRegistrosInternos, setTextoProgreso, sexoPerfil, timerAvisoRef, ultimoPesoConocido }) {
   const cambiarObjetivo = async (nuevoObjetivo) => {
@@ -269,6 +275,8 @@ export function useAccionesCambioFisico({ alturaCmPerfil, alturaMetrosPerfil, an
       const listaActualizada = await guardarCambioFisico(nuevoRegistro);
       registroGuardado = true;
       anunciar('Análisis de cambio físico guardado');
+      vibrarExito();
+      reproducirSonido('exito');
       const perfilActualizado = await cargarPerfilUsuario();
 
       setRegistrosInternos(listaActualizada);
@@ -291,6 +299,8 @@ export function useAccionesCambioFisico({ alturaCmPerfil, alturaMetrosPerfil, an
         error?.message ||
         'No se pudo completar el análisis físico con Gemini. Verifica tu conexión o API Key.';
       setMensajeError(mensaje);
+      vibrarError();
+      reproducirSonido('error');
       mostrarAlerta('No se pudo analizar el cambio físico', mensaje, [
         { text: 'Entendido', style: 'cancel' },
       ]);
@@ -334,6 +344,8 @@ export function useAccionesCambioFisico({ alturaCmPerfil, alturaMetrosPerfil, an
       );
       setRegistrosInternos(listaActualizada);
       anunciar('Comparación con el registro anterior lista');
+      vibrarExito();
+      reproducirSonido('exito');
 
       if (typeof onCambioFisicoActualizado === 'function') {
         await onCambioFisicoActualizado(listaActualizada);

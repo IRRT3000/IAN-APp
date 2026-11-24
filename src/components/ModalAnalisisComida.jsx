@@ -21,6 +21,8 @@ import {
 import { sanearValoresComida } from '../utils/validacionComida';
 import { textoProgresoGemini } from '../utils/progresoGemini';
 import { anunciar } from '../utils/accesibilidad';
+import { vibrarExito, vibrarError } from '../services/haptics';
+import { reproducirSonido } from '../services/sonidos';
 
 export default function ModalAnalisisComida({
   visible,
@@ -80,7 +82,11 @@ export default function ModalAnalisisComida({
       setDetallesIA(saneado.detalles);
       setEstadoModal('revision');
       anunciar(`Análisis listo: ${saneado.nombre}, ${saneado.calorias} kilocalorías`);
+      vibrarExito();
+      reproducirSonido('exito');
     } catch (error) {
+      vibrarError();
+      reproducirSonido('error');
       setErrorAnalisis(
         error?.message || 'No se pudo analizar la foto. Conservamos tus datos para reintentar.'
       );

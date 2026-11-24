@@ -10,6 +10,7 @@ import { Text } from '../base/Texto';
 import { styles } from './estilos';
 import { useRef } from 'react';
 import { vibrarConfirmacionBorrado, vibrarInicioPresionBorrado } from '../../services/haptics';
+import { reproducirSonido } from '../../services/sonidos';
 
 export const MAX_FOTOS_POR_ANALISIS = 10;
 
@@ -62,6 +63,7 @@ export function CapsulaBorradoSeguroFisico({ onBorrar, onAvisoCorto }) {
     timerRef.current = setTimeout(() => {
       presionadoLargoRef.current = true;
       vibrarConfirmacionBorrado();
+      reproducirSonido('borrado');
       onBorrar();
       progreso.value = withTiming(0, { duration: 150 });
     }, DURACION_PULSACION_BORRADO_MS);

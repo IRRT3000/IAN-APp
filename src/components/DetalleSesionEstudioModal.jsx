@@ -22,6 +22,7 @@ import {
 } from '../services/haptics';
 import { formatearFechaLegible } from '../utils/dateUtilsLocal';
 import { useSafeInsets } from '../utils/useSafeInsets';
+import { reproducirSonido } from '../services/sonidos';
 
 const DURACION_PULSACION_BORRADO_MS = 1000;
 
@@ -79,6 +80,7 @@ function CapsulaBorradoSeguroSesion({ onBorrar }) {
     timerRef.current = setTimeout(() => {
       completadoRef.current = true;
       vibrarConfirmacionBorrado();
+      reproducirSonido('borrado');
       progreso.value = withTiming(0, { duration: 150 });
       if (typeof onBorrar === 'function') {
         onBorrar();

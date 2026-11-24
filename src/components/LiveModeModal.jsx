@@ -26,6 +26,7 @@ import {
 import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';
 import { anunciar } from '../utils/accesibilidad';
+import { reproducirSonido } from '../services/sonidos';
 
 export default function LiveModeModal({
   visible,
@@ -124,6 +125,7 @@ export default function LiveModeModal({
 
   const agregarSerie = () => {
     vibrarSerieAgregada();
+    reproducirSonido('serie');
     setSeries((prev) => {
       const ultimaSerie = prev.length > 0 ? prev[prev.length - 1] : null;
       const nuevaSerie = {
@@ -259,6 +261,7 @@ export default function LiveModeModal({
 
     vibrarEjercicioCompletado();
     anunciar('Ejercicio guardado');
+    reproducirSonido('exito');
     if (typeof onTerminarEjercicio === 'function') {
       onTerminarEjercicio({
         ejercicio: ejercicioActivo.nombre,

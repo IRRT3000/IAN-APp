@@ -30,3 +30,12 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 require('react-native-gesture-handler/jestSetup');
+jest.mock('expo-audio', () => ({
+  setAudioModeAsync: jest.fn(() => Promise.resolve()),
+  createAudioPlayer: jest.fn(() => ({
+    volume: 1,
+    seekTo: jest.fn(() => Promise.resolve()),
+    play: jest.fn(),
+    remove: jest.fn(),
+  })),
+}));

@@ -9,6 +9,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -49,6 +50,11 @@ import {
 import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';
 import { anunciar } from '../utils/accesibilidad';
+import {
+  establecerSonidosActivos,
+  obtenerSonidosActivos,
+  reproducirSonido,
+} from '../services/sonidos';
 
 export default function PanelConfiguracionLateral({
   visible,
@@ -63,6 +69,13 @@ export default function PanelConfiguracionLateral({
   const ANCHO_DRAWER = Math.min(Math.round(windowWidth * 0.85), 380);
 
   const [montado, setMontado] = useState(visible);
+  // Spec 024 (RF-5): interruptor de sonidos de la interfaz.
+  const [sonidosActivos, setSonidosActivosUI] = useState(() => obtenerSonidosActivos());
+  const alternarSonidos = async (valor) => {
+    setSonidosActivosUI(valor);
+    await establecerSonidosActivos(valor);
+    if (valor) reproducirSonido('toque');
+  };
   const [claveInput, setClaveInput] = useState('');
   const [finClaveGuardada, setFinClaveGuardada] = useState(null);
   const textoPegadoRef = useRef(null);
@@ -220,6 +233,7 @@ export default function PanelConfiguracionLateral({
         });
         vibrarEjercicioCompletado();
         anunciar('Clave de Gemini guardada');
+        reproducirSonido('exito');
       } else {
         setMensajeEstado({
           tipo: 'error',
@@ -498,6 +512,29 @@ export default function PanelConfiguracionLateral({
                         Re-calibrar Pasaporte Biométrico
                       </Text>
                     </TouchableOpacity>
+                  </View>
+
+                  {/* Spec 024: sonidos sutiles de la interfaz (activados por defecto) */}
+                  <View style={styles.tarjetaSonidos}>
+                    <View style={styles.filaSonidos}>
+                      <Feather name="volume-2" size={16} color={TOKENS.colors.textSecondary} />
+                      <View style={styles.textosSonidos}>
+                        <Text style={styles.tituloSonidos}>Sonidos de la interfaz</Text>
+                        <Text style={styles.descripcionSonidos}>
+                          Sonidos breves al guardar, terminar un análisis o borrar. Respetan el modo silencio.
+                        </Text>
+                      </View>
+                      <Switch
+                        accessibilityRole="switch"
+                        accessibilityLabel="Sonidos de la interfaz"
+                        aria-checked={sonidosActivos}
+                        value={sonidosActivos}
+                        onValueChange={alternarSonidos}
+                        trackColor={{ false: TOKENS.colors.borderStrong, true: TOKENS.colors.textPrimary }}
+                        thumbColor={sonidosActivos ? TOKENS.colors.canvas : TOKENS.colors.textSecondary}
+                        ios_backgroundColor={TOKENS.colors.borderStrong}
+                      />
+                    </View>
                   </View>
 
                   {/* Tarjeta de Estado de Conexión (Halo LED concéntrico + BYOK) */}
@@ -829,6 +866,33 @@ export default function PanelConfiguracionLateral({
 }
 
 const styles = StyleSheet.create({
+  tarjetaSonidos: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    borderRadius: TOKENS.radii.md,
+    padding: 14,
+    marginBottom: 20,
+  },
+  filaSonidos: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 44,
+  },
+  textosSonidos: {
+    flex: 1,
+  },
+  tituloSonidos: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  descripcionSonidos: {
+    color: TOKENS.colors.textMuted,
+    fontSize: 12,
+    marginTop: 2,
+  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#000000',

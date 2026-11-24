@@ -29,9 +29,11 @@ import {
   vibrarConfirmacionBorrado,
   vibrarInicioPresionBorrado,
   vibrarSeleccionBascula,
+  vibrarExito,
 } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
 import { anunciar } from '../utils/accesibilidad';
+import { reproducirSonido } from '../services/sonidos';
 
 const TIPOS_COMIDA = ['Desayuno', 'Comida', 'Cena', 'Snack'];
 const DURACION_PULSACION_BORRADO_MS = 1000;
@@ -48,6 +50,7 @@ function CapsulaBorradoSeguroNutricion({ onBorrar, onAvisoCorto }) {
     timerRef.current = setTimeout(() => {
       presionadoLargoRef.current = true;
       vibrarConfirmacionBorrado();
+      reproducirSonido('borrado');
       onBorrar();
       progreso.value = withTiming(0, { duration: 150 });
     }, DURACION_PULSACION_BORRADO_MS);
@@ -290,7 +293,8 @@ export default function NutricionView({
       const listaActualizada = await guardarComida(nuevaComida);
       comidaGuardada = true;
       anunciar('Comida guardada en tu día');
-      vibrarConfirmacionBorrado();
+      vibrarExito();
+      reproducirSonido('exito');
       setFechaSeleccionada(obtenerFechaLocal());
 
       if (typeof onComidaRegistrada === 'function') {

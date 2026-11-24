@@ -38,6 +38,7 @@ import {
   vibrarSeleccionBascula,
 } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
+import { reproducirSonido } from '../services/sonidos';
 
 const DURACION_PULSACION_BORRADO_MS = 1000;
 
@@ -73,6 +74,7 @@ function CapsulaBorradoSeguro({ onBorrar, onAvisoCorto }) {
     timerRef.current = setTimeout(() => {
       presionadoLargoRef.current = true;
       vibrarConfirmacionBorrado();
+      reproducirSonido('borrado');
       onBorrar();
       progreso.value = withTiming(0, { duration: 150 });
     }, DURACION_PULSACION_BORRADO_MS);

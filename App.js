@@ -15,6 +15,7 @@ import NutricionView from './src/components/NutricionView';
 import OnboardingBienvenidaModal from './src/components/OnboardingBienvenidaModal';
 import PanelConfiguracionLateral from './src/components/PanelConfiguracionLateral';
 import RegionAnuncios from './src/components/base/RegionAnuncios';
+import { inicializarSonidos } from './src/services/sonidos';
 import {
   PERFIL_USUARIO_BASE,
   alternarDiaDescanso,
@@ -430,6 +431,11 @@ function AppPrincipal() {
 }
 
 export default function App() {
+  // Spec 024: precarga los sonidos de la interfaz una sola vez al arrancar.
+  useEffect(() => {
+    inicializarSonidos();
+  }, []);
+
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={styles.contenedorRoot}>

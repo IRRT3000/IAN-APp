@@ -43,7 +43,7 @@ export const vibrarConfirmacionBorrado = async () => {
 
 /**
  * Emite un pulso háptico inmediato al pulsar en un solo toque el botón
- * "🔄 Comparar con registro anterior" (RF-15).
+ * "Comparar con registro anterior" (RF-15).
  */
 export const vibrarToqueComparacion = async () => {
   if (Platform.OS === 'web') {
@@ -121,3 +121,24 @@ export const vibrarEjercicioCompletado = async () => {
   }
 };
 
+
+/**
+ * Hápticos de RESULTADO de una operación asíncrona (Spec 024, RF-4): éxito, error y aviso.
+ * Se sienten aunque el usuario no esté mirando la pantalla (p. ej. un análisis de IA de varios segundos).
+ * @param {'Success'|'Error'|'Warning'} tipo
+ */
+const vibrarNotificacion = async (tipo) => {
+  if (Platform.OS === 'web') {
+    return;
+  }
+
+  try {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType[tipo]);
+  } catch {
+    // Dispositivo sin motor háptico: el resultado ya se muestra y se anuncia
+  }
+};
+
+export const vibrarExito = () => vibrarNotificacion('Success');
+export const vibrarError = () => vibrarNotificacion('Error');
+export const vibrarAviso = () => vibrarNotificacion('Warning');
