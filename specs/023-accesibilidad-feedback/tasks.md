@@ -34,5 +34,5 @@
   - Un test impide volver a importar directamente de `react-native`.
   - El tope local de 1.2 en botones y cifras grandes queda disponible en `TOKENS.escalaTexto.compacta`, pero **todavía no se aplicó** en componentes concretos.
 - [x] T9 (Q13): `textMuted` `#666666` → `#898989` y test de contraste WCAG (commit 8d9337e).
-- [ ] T10: revisión de código (en curso).
+- [x] T10: revisión de código: `CODIGO_RECHAZADO` (2 bloqueantes, 5 importantes) → corregidos en 9e81704 → **`CODIGO_APROBADO`**.
 - [ ] T11: revisión en web con zoom de texto al 140 % y lista de TalkBack para el usuario.
