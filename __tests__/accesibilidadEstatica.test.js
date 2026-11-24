@@ -18,7 +18,6 @@ const ENVOLTORIOS_TACTILES = ['BotonInteractivo'];
 // Infracciones toleradas por archivo (deuda medida el 2026-11-23). Debe llegar a {}.
 const PENDIENTES = {
   'src/components/CalculadoraPesoModal.jsx': 6,
-  'src/components/CambioFisicoView.jsx': 18,
   'src/components/CatalogoEjerciciosModal.jsx': 10,
   'src/components/EntrenamientosView.jsx': 3,
   'src/components/EstudioView.jsx': 1,
@@ -27,13 +26,24 @@ const PENDIENTES = {
   'src/components/MenuBienvenida.jsx': 7,
   'src/components/ModalAnalisisComida.jsx': 5,
   'src/components/NutricionView.jsx': 5,
-  'src/components/OnboardingBienvenidaModal.jsx': 22,
+  'src/components/OnboardingBienvenidaModal.jsx': 1,
   'src/components/PanelConfiguracionLateral.jsx': 8,
   'src/components/SelectorSemanal.jsx': 1,
   'src/components/SesionEstudioModal.jsx': 8,
+  'src/components/cambioFisico/base.js': 1,
+  'src/components/cambioFisico/renderCabeceraLista.js': 7,
+  'src/components/cambioFisico/renderModalBascula.js': 9,
+  'src/components/cambioFisico/renderizarTarjetaCambio.js': 1,
   'src/components/heatmap/DaySummaryModal.jsx': 7,
   'src/components/heatmap/HeatmapDayCell.jsx': 1,
   'src/components/heatmap/MapaCalorAnual.jsx': 2,
+  'src/components/onboarding/renderCabeceraWizard.js': 2,
+  'src/components/onboarding/renderEscenaCelebracion.js': 1,
+  'src/components/onboarding/renderEscenaHero.js': 1,
+  'src/components/onboarding/renderPaso1Identidad.js': 7,
+  'src/components/onboarding/renderPaso2Antropometria.js': 2,
+  'src/components/onboarding/renderPaso3Antiguedad.js': 7,
+  'src/components/onboarding/renderPaso4Objetivo.js': 1,
 };
 
 // Excepciones justificadas: { archivo, linea, motivo }.
@@ -43,7 +53,7 @@ const listarJsx = (dir) =>
   fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const ruta = path.join(dir, e.name);
     if (e.isDirectory()) return listarJsx(ruta);
-    return e.name.endsWith('.jsx') ? [ruta] : [];
+    return /.jsx?$/.test(e.name) ? [ruta] : [];
   });
 
 const nombreElemento = (nodo) => {
