@@ -245,6 +245,7 @@ export default function SesionEstudioModal({
                 const seleccionada = materiaId === mat.id;
                 return (
                   <TouchableOpacity
+                    accessibilityRole="radio" accessibilityLabel={`Materia ${mat.nombre}`} aria-selected={seleccionada}
                     key={mat.id}
                     style={[
                       styles.chipMateria,
@@ -266,6 +267,7 @@ export default function SesionEstudioModal({
               })}
 
               <TouchableOpacity
+                accessibilityRole="button" accessibilityLabel="Nueva materia"
                 style={styles.botonAgregarMateriaChip}
                 onPress={() => {
                   vibrarSeleccionBascula();
@@ -298,6 +300,7 @@ export default function SesionEstudioModal({
 
                 <View style={styles.filaCategoriaNuevaMateria}>
                   <TouchableOpacity
+                    accessibilityRole="radio" accessibilityLabel="Categoría Escuela" aria-selected={categoriaNuevaMateria === 'Escuela'}
                     style={[
                       styles.pastillaCategoria,
                       categoriaNuevaMateria === 'Escuela' &&
@@ -320,6 +323,7 @@ export default function SesionEstudioModal({
                   </TouchableOpacity>
 
                   <TouchableOpacity
+                    accessibilityRole="radio" accessibilityLabel="Categoría Personal" aria-selected={categoriaNuevaMateria === 'Personal'}
                     style={[
                       styles.pastillaCategoria,
                       categoriaNuevaMateria === 'Personal' &&
@@ -342,6 +346,7 @@ export default function SesionEstudioModal({
                   </TouchableOpacity>
 
                   <TouchableOpacity
+                    accessibilityRole="button" accessibilityLabel="Guardar nueva materia"
                     style={styles.botonConfirmarNuevaMateria}
                     onPress={handleGuardarNuevaMateriaRapida}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -398,6 +403,7 @@ export default function SesionEstudioModal({
                 const activo = comprension === niv;
                 return (
                   <TouchableOpacity
+                    accessibilityRole="radio" accessibilityLabel={`Comprensión: ${niv}`} aria-selected={activo}
                     key={niv}
                     style={[
                       styles.opcionComprension,
@@ -434,6 +440,7 @@ export default function SesionEstudioModal({
                 const activo = Number(minutos) === val && !minutosManual;
                 return (
                   <TouchableOpacity
+                    accessibilityRole="radio" accessibilityLabel={`${val} minutos`} aria-selected={activo}
                     key={val}
                     style={[
                       styles.chipMinutos,
@@ -508,6 +515,7 @@ export default function SesionEstudioModal({
         {tecladoVisible ? (
           <View style={styles.barraAccesoriaTeclado}>
             <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Ocultar teclado"
               style={styles.botonDescartarTeclado}
               onPress={() => Keyboard.dismiss()}
               activeOpacity={0.8}

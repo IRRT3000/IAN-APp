@@ -143,6 +143,7 @@ export const crearRenderizarTarjetaCambio = (ctx) => (...args) => {
           <View style={styles.filaAccionesTarjeta}>
             {registroAnterior ? (
               <TouchableOpacity
+                accessibilityRole="button" accessibilityLabel="Comparar con el registro anterior"
                 style={[
                   styles.botonComparar,
                   Boolean(comparandoId) && styles.botonDeshabilitado,

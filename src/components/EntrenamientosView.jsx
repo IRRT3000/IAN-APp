@@ -96,6 +96,7 @@ function CapsulaBorradoSeguro({ onBorrar, onAvisoCorto }) {
 
   return (
     <TouchableOpacity
+      accessibilityRole="button" accessibilityLabel="Borrar ejercicio" accessibilityHint="Mantén pulsado un segundo para borrar"
       activeOpacity={0.9}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -216,6 +217,7 @@ function TarjetaEntrenamientoItem({
       {tieneSeriesDetalle ? (
         <View style={styles.seccionDesglose}>
           <TouchableOpacity
+            accessibilityRole="button" accessibilityLabel={expandido ? 'Ocultar series' : 'Ver series'} aria-expanded={expandido}
             style={styles.botonAlternarDesglose}
             activeOpacity={0.7}
             onPress={alternarExpandido}
@@ -504,6 +506,7 @@ export default function EntrenamientosView({
         </View>
 
         <TouchableOpacity
+          accessibilityRole="button"
           style={styles.botonCalculadoraPastilla}
           activeOpacity={0.7}
           onPress={() => {

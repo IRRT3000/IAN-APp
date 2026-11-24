@@ -145,6 +145,7 @@ export default function ModalAnalisisComida({
 
               {estadoModal !== 'analizando' ? (
                 <TouchableOpacity
+                  accessibilityRole="button" accessibilityLabel="Cerrar análisis de comida"
                   style={styles.botonCerrar}
                   onPress={onCerrar}
                   hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -169,6 +170,7 @@ export default function ModalAnalisisComida({
                       <Image source={{ uri: fotoUri }} style={styles.fotoPrevia} />
                       {typeof onCambiarFoto === 'function' ? (
                         <TouchableOpacity
+                          accessibilityRole="button" accessibilityLabel="Cambiar foto"
                           style={styles.botonCambiarFoto}
                           onPress={onCambiarFoto}
                           activeOpacity={0.8}
@@ -305,6 +307,7 @@ export default function ModalAnalisisComida({
             {estadoModal === 'preparacion' ? (
               <View style={styles.footerAcciones}>
                 <TouchableOpacity
+                  accessibilityRole="button" accessibilityLabel="Analizar con IA"
                   style={styles.botonPrimarioLleno}
                   onPress={ejecutarAnalisis}
                   activeOpacity={0.85}
@@ -324,6 +327,7 @@ export default function ModalAnalisisComida({
               <View style={styles.footerAcciones}>
                 <View style={styles.thumbZoneAccionesRevision}>
                   <TouchableOpacity
+                    accessibilityRole="button" accessibilityLabel="Descartar análisis" aria-disabled={guardando || undefined}
                     style={styles.botonSecundario}
                     onPress={onCerrar}
                     disabled={guardando}
@@ -339,6 +343,7 @@ export default function ModalAnalisisComida({
                   </TouchableOpacity>
 
                   <TouchableOpacity
+                    accessibilityRole="button" accessibilityLabel="Guardar en mi día" aria-busy={guardando || undefined}
                     style={styles.botonPrimario}
                     onPress={handleConfirmarGuardado}
                     disabled={guardando}

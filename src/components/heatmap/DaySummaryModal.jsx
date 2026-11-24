@@ -58,9 +58,13 @@ export default function DaySummaryModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <TouchableWithoutFeedback onPress={onClose}>
+      <TouchableWithoutFeedback
+        accessibilityRole="button" accessibilityLabel="Cerrar resumen del día"
+        onPress={onClose}>
         <View style={styles.fondoOverlay}>
-          <TouchableWithoutFeedback>
+          <TouchableWithoutFeedback
+            accessible={false} accessibilityRole="none" accessibilityLabel="Contenido del resumen"
+            >
             <View style={styles.tarjetaModal}>
               {/* Encabezado con fecha y botón cerrar */}
               <View style={styles.encabezado}>
@@ -78,6 +82,7 @@ export default function DaySummaryModal({
                 </View>
 
                 <TouchableOpacity
+                  accessibilityRole="button"
                   style={styles.botonCerrarCruz}
                   onPress={onClose}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -198,6 +203,7 @@ export default function DaySummaryModal({
               {esHoy ? (
                 <View style={styles.contenedorAcciones}>
                   <TouchableOpacity
+                    accessibilityRole="checkbox" accessibilityLabel="Marcar como día de descanso" aria-checked={Boolean(isRestDay)}
                     style={[
                       styles.botonAccionModal,
                       isRestDay ? styles.botonDescansoActivo : styles.botonDescansoInactivo,
@@ -227,6 +233,7 @@ export default function DaySummaryModal({
 
                   <View style={styles.filaBotonesAccesos}>
                     <TouchableOpacity
+                      accessibilityRole="button" accessibilityLabel="Ir a entrenar"
                       style={[styles.botonAccesoPequeno, styles.botonPrimario]}
                       activeOpacity={0.85}
                       onPress={() => {
@@ -239,6 +246,7 @@ export default function DaySummaryModal({
                     </TouchableOpacity>
 
                     <TouchableOpacity
+                      accessibilityRole="button" accessibilityLabel="Ir a registrar comida"
                       style={styles.botonAccesoPequeno}
                       activeOpacity={0.85}
                       onPress={() => {
@@ -260,6 +268,7 @@ export default function DaySummaryModal({
               )}
 
               <TouchableOpacity
+                accessibilityRole="button" accessibilityLabel="Cerrar"
                 style={styles.botonCerrar}
                 activeOpacity={0.8}
                 onPress={onClose}

@@ -105,6 +105,7 @@ export default function BarraNavegacionInferior({
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               accessibilityRole="tab"
               accessibilityState={{ selected: esActivo }}
+              aria-selected={esActivo}
               accessibilityLabel={`${tab.etiqueta}${tieneContador ? `, ${tab.contador} registros hoy` : ''}`}
             >
               <View style={styles.filaIcono}>

@@ -54,6 +54,7 @@ export const crearRenderCabeceraLista = (ctx) => (...args) => {
   
                   {typeof onAbrirEdicionPerfil === 'function' ? (
                     <TouchableOpacity
+                      accessibilityRole="button" accessibilityLabel="Editar perfil biométrico"
                       style={styles.botonEditarPerfilBio}
                       activeOpacity={0.8}
                       onPress={onAbrirEdicionPerfil}
@@ -111,6 +112,7 @@ export const crearRenderCabeceraLista = (ctx) => (...args) => {
                           PERFIL_USUARIO_BASE.objetivo) === obj;
                       return (
                         <TouchableOpacity
+                          accessibilityRole="radio" accessibilityLabel={`Objetivo ${obj}`} aria-selected={activo}
                           key={obj}
                           style={[
                             styles.chipObjetivo,
@@ -153,6 +155,7 @@ export const crearRenderCabeceraLista = (ctx) => (...args) => {
   
                 <View style={styles.filaBotonesCaptura}>
                   <TouchableOpacity
+                    accessibilityRole="button" accessibilityLabel="Tomar foto con la cámara"
                     style={[
                       styles.botonCaptura,
                       styles.botonCamara,
@@ -177,6 +180,7 @@ export const crearRenderCabeceraLista = (ctx) => (...args) => {
                   </TouchableOpacity>
   
                   <TouchableOpacity
+                    accessibilityRole="button" accessibilityLabel="Elegir fotos de la galería, hasta 10"
                     style={[
                       styles.botonCaptura,
                       styles.botonGaleria,
@@ -227,6 +231,7 @@ export const crearRenderCabeceraLista = (ctx) => (...args) => {
                             </Text>
                           </View>
                           <TouchableOpacity
+                            accessibilityRole="button" accessibilityLabel="Quitar esta foto"
                             style={styles.botonQuitarFoto}
                             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                             onPress={() => quitarFotoSeleccionada(foto.idTemp)}
@@ -239,6 +244,7 @@ export const crearRenderCabeceraLista = (ctx) => (...args) => {
   
                     <View style={styles.filaAccionesPreAnalisis}>
                       <TouchableOpacity
+                        accessibilityRole="button" accessibilityLabel="Continuar a báscula y hora" aria-busy={analizando || undefined}
                         style={[
                           styles.botonContinuarBascula,
                           analizando && styles.botonDeshabilitado,
@@ -259,6 +265,7 @@ export const crearRenderCabeceraLista = (ctx) => (...args) => {
                       </TouchableOpacity>
   
                       <TouchableOpacity
+                        accessibilityRole="button" accessibilityLabel="Quitar todas las fotos seleccionadas"
                         style={styles.botonLimpiarSeleccion}
                         disabled={analizando}
                         onPress={limpiarFotosSeleccionadas}

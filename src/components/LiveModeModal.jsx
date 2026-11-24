@@ -284,6 +284,7 @@ export default function LiveModeModal({
         {/* Cabecera Ergonómica Despejada */}
         <View style={styles.cabeceraLive}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.botonDescartar}
             onPress={confirmarDescarte}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -299,6 +300,7 @@ export default function LiveModeModal({
 
           {/* Elemento de balance visual para centrar perfectamente el badge */}
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.botonCalculadoraCabecera}
             onPress={() => {
               vibrarSeleccionBascula();
@@ -418,6 +420,7 @@ export default function LiveModeModal({
                   <View style={styles.colAccion}>
                     {series.length > 1 ? (
                       <TouchableOpacity
+                        accessibilityRole="button"
                         style={styles.botonEliminarFila}
                         onPress={() => eliminarSerie(idx)}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -439,6 +442,7 @@ export default function LiveModeModal({
         {tecladoVisible ? (
           <View style={styles.barraAccesoriaTeclado}>
             <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Ocultar teclado"
               style={styles.botonOcultarTeclado}
               onPress={() => Keyboard.dismiss()}
               activeOpacity={0.7}
@@ -462,6 +466,7 @@ export default function LiveModeModal({
             ]}
           >
             <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Agregar serie"
               style={styles.botonSecundarioAgregar}
               activeOpacity={0.8}
               onPress={agregarSerie}
@@ -476,6 +481,7 @@ export default function LiveModeModal({
             </TouchableOpacity>
 
             <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Terminar y guardar ejercicio"
               style={styles.botonPrimarioTerminar}
               activeOpacity={0.85}
               onPress={terminarSesion}

@@ -70,6 +70,7 @@ function CapsulaBorradoSeguroNutricion({ onBorrar, onAvisoCorto }) {
 
   return (
     <TouchableOpacity
+      accessibilityRole="button" accessibilityLabel="Borrar comida" accessibilityHint="Mantén pulsado un segundo para borrar"
       activeOpacity={0.9}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -322,6 +323,7 @@ export default function NutricionView({
 
         {/* Insignia de Calibración Biométrica IA (Spec 010) */}
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel="Editar perfil biométrico"
           style={styles.insigniaCalibracionIA}
           activeOpacity={typeof onAbrirEdicionPerfil === 'function' ? 0.8 : 1}
           disabled={typeof onAbrirEdicionPerfil !== 'function'}
@@ -413,6 +415,7 @@ export default function NutricionView({
                 const activo = tipoSeleccionado === tipo;
                 return (
                   <TouchableOpacity
+                    accessibilityRole="radio" accessibilityLabel={`Tipo de comida: ${tipo}`} aria-selected={activo}
                     key={tipo}
                     style={[
                       styles.botonTipoComida,
@@ -439,6 +442,7 @@ export default function NutricionView({
 
           <View style={styles.seccionAcciones}>
             <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Escanear comida con la cámara"
               style={[styles.botonCaptura, styles.botonCamara]}
               onPress={tomarFoto}
               disabled={modalAnalisisVisible}
@@ -454,6 +458,7 @@ export default function NutricionView({
             </TouchableOpacity>
 
             <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Elegir foto de comida de la galería"
               style={[styles.botonCaptura, styles.botonGaleria]}
               onPress={seleccionarDeGaleria}
               disabled={modalAnalisisVisible}

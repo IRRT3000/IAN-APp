@@ -14,37 +14,11 @@ import { parse } from '@babel/parser';
 const RAIZ = '.';
 const TACTILES_RN = ['TouchableOpacity', 'Pressable', 'TouchableHighlight', 'TouchableWithoutFeedback'];
 const ENVOLTORIOS_TACTILES = ['BotonInteractivo'];
+// Envoltorios que ya fijan accessibilityRole por dentro: en sus usos basta el nombre accesible.
+const ENVOLTORIOS_CON_ROL = ['BotonInteractivo'];
 
 // Infracciones toleradas por archivo (deuda medida el 2026-11-23). Debe llegar a {}.
-const PENDIENTES = {
-  'src/components/CalculadoraPesoModal.jsx': 6,
-  'src/components/CatalogoEjerciciosModal.jsx': 10,
-  'src/components/EntrenamientosView.jsx': 3,
-  'src/components/EstudioView.jsx': 1,
-  'src/components/GestionMateriasModal.jsx': 11,
-  'src/components/LiveModeModal.jsx': 6,
-  'src/components/MenuBienvenida.jsx': 7,
-  'src/components/ModalAnalisisComida.jsx': 5,
-  'src/components/NutricionView.jsx': 5,
-  'src/components/OnboardingBienvenidaModal.jsx': 1,
-  'src/components/PanelConfiguracionLateral.jsx': 8,
-  'src/components/SelectorSemanal.jsx': 1,
-  'src/components/SesionEstudioModal.jsx': 8,
-  'src/components/cambioFisico/base.js': 1,
-  'src/components/cambioFisico/renderCabeceraLista.js': 7,
-  'src/components/cambioFisico/renderModalBascula.js': 9,
-  'src/components/cambioFisico/renderizarTarjetaCambio.js': 1,
-  'src/components/heatmap/DaySummaryModal.jsx': 7,
-  'src/components/heatmap/HeatmapDayCell.jsx': 1,
-  'src/components/heatmap/MapaCalorAnual.jsx': 2,
-  'src/components/onboarding/renderCabeceraWizard.js': 2,
-  'src/components/onboarding/renderEscenaCelebracion.js': 1,
-  'src/components/onboarding/renderEscenaHero.js': 1,
-  'src/components/onboarding/renderPaso1Identidad.js': 7,
-  'src/components/onboarding/renderPaso2Antropometria.js': 2,
-  'src/components/onboarding/renderPaso3Antiguedad.js': 7,
-  'src/components/onboarding/renderPaso4Objetivo.js': 1,
-};
+const PENDIENTES = {};
 
 // Excepciones justificadas: { archivo, linea, motivo }.
 const EXCEPCIONES = [];
@@ -110,9 +84,15 @@ const analizarArchivo = (ruta) => {
     );
     const esparce = n.attributes.some((a) => a.type === 'JSXSpreadAttribute');
     const tieneNombre = props.has('accessibilityLabel') || props.has('aria-label');
-    const tieneRol = props.has('accessibilityRole') || props.has('role');
+    const tieneRol = props.has('accessibilityRole') || props.has('role') || ENVOLTORIOS_CON_ROL.includes(nombre);
     if (!(tieneNombre && tieneRol) && !esparce) {
       infracciones.push({ linea: n.loc.start.line, nombre });
+    }
+    // CA-2: un selector (radio, tab o checkbox) debe exponer su estado.
+    const rolAtributo = n.attributes.find((a) => a.type === 'JSXAttribute' && a.name.name === 'accessibilityRole');
+    const rol = rolAtributo?.value?.type === 'StringLiteral' ? rolAtributo.value.value : null;
+    if (['radio', 'tab', 'checkbox'].includes(rol) && !props.has('aria-selected') && !props.has('aria-checked')) {
+      infracciones.push({ linea: n.loc.start.line, nombre: nombre + ' (selector sin aria-selected/aria-checked)' });
     }
   });
   return infracciones;

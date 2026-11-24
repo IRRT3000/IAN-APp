@@ -111,6 +111,7 @@ export default function MenuBienvenida({
             </View>
 
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.botonConfiguracion}
               activeOpacity={0.8}
               onPressIn={handlePressInConfig}
@@ -138,6 +139,7 @@ export default function MenuBienvenida({
 
         {/* Píldora Interactiva del Pasaporte Biométrico (Spec 010) */}
         <TouchableOpacity
+          accessibilityRole="button"
           style={styles.pildoraPasaporte}
           activeOpacity={0.8}
           onPress={
@@ -226,6 +228,7 @@ export default function MenuBienvenida({
 
         <View style={styles.filaBotonesAcceso}>
           <TouchableOpacity
+            accessibilityRole="button" accessibilityLabel="Ir a Entrenos"
             style={[styles.botonAcceso, styles.botonAccesoDestacado]}
             activeOpacity={0.8}
             onPress={onIrAFitnessTracker}
@@ -235,6 +238,7 @@ export default function MenuBienvenida({
           </TouchableOpacity>
 
           <TouchableOpacity
+            accessibilityRole="button" accessibilityLabel="Ir a Nutrición"
             style={styles.botonAcceso}
             activeOpacity={0.8}
             onPress={onIrANutricion}
@@ -245,6 +249,7 @@ export default function MenuBienvenida({
 
           {typeof onIrACambioFisico === 'function' ? (
             <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Ir a Cambio Físico"
               style={styles.botonAcceso}
               activeOpacity={0.8}
               onPress={onIrACambioFisico}
@@ -268,6 +273,7 @@ export default function MenuBienvenida({
 
           {typeof onIrAHeatmap === 'function' ? (
             <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Ver el año completo"
               style={styles.botonEnlaceAnual}
               activeOpacity={0.7}
               onPress={onIrAHeatmap}
@@ -291,6 +297,7 @@ export default function MenuBienvenida({
 
         {typeof onIrAHeatmap === 'function' ? (
           <TouchableOpacity
+            accessibilityRole="button" accessibilityLabel="Ver mapa de calor anual completo"
             style={styles.botonAbrirHeatmapCompleto}
             activeOpacity={0.85}
             onPress={onIrAHeatmap}

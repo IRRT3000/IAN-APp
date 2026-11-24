@@ -55,6 +55,7 @@ function HeatmapDayCell({
 
   return (
     <TouchableOpacity
+      accessibilityRole="button" accessibilityLabel="Ver resumen del día" aria-disabled={isFuture || undefined}
       activeOpacity={isFuture ? 1 : 0.7}
       disabled={isFuture}
       onPress={handlePress}

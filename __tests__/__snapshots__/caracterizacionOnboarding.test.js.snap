@@ -1148,7 +1148,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           "checked": undefined,
                           "disabled": false,
                           "expanded": undefined,
-                          "selected": undefined,
+                          "selected": true,
                         }
                       }
                       accessibilityValue={
@@ -1327,7 +1327,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           "checked": undefined,
                           "disabled": false,
                           "expanded": undefined,
-                          "selected": undefined,
+                          "selected": false,
                         }
                       }
                       accessibilityValue={
@@ -5980,7 +5980,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         "checked": undefined,
                         "disabled": false,
                         "expanded": undefined,
-                        "selected": undefined,
+                        "selected": false,
                       }
                     }
                     accessibilityValue={
@@ -6159,7 +6159,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         "checked": undefined,
                         "disabled": false,
                         "expanded": undefined,
-                        "selected": undefined,
+                        "selected": false,
                       }
                     }
                     accessibilityValue={
@@ -6338,7 +6338,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         "checked": undefined,
                         "disabled": false,
                         "expanded": undefined,
-                        "selected": undefined,
+                        "selected": true,
                       }
                     }
                     accessibilityValue={
@@ -6555,7 +6555,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         "checked": undefined,
                         "disabled": false,
                         "expanded": undefined,
-                        "selected": undefined,
+                        "selected": false,
                       }
                     }
                     accessibilityValue={
@@ -8269,7 +8269,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                           "checked": undefined,
                           "disabled": false,
                           "expanded": undefined,
-                          "selected": undefined,
+                          "selected": false,
                         }
                       }
                       accessibilityValue={
@@ -8416,7 +8416,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                           "checked": undefined,
                           "disabled": false,
                           "expanded": undefined,
-                          "selected": undefined,
+                          "selected": true,
                         }
                       }
                       accessibilityValue={

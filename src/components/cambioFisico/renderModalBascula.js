@@ -54,6 +54,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
                     const etiqueta = paso > 0 ? `+${paso}` : `${paso}`;
                     return (
                       <TouchableOpacity
+                        accessibilityRole="button" accessibilityLabel={`Ajustar peso ${etiqueta} kilogramos`}
                         key={etiqueta}
                         style={styles.botonPasoPeso}
                         hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
@@ -76,6 +77,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
                 <View style={styles.filaReloj12h}>
                   <View style={styles.columnaControlTiempo}>
                     <TouchableOpacity
+                      accessibilityRole="button" accessibilityLabel="Aumentar hora"
                       style={styles.botonFlechaTiempo} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       onPress={() => ajustarHora12(1)}
                     >
@@ -85,6 +87,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
                       {String(hora12).padStart(2, '0')}
                     </Text>
                     <TouchableOpacity
+                      accessibilityRole="button" accessibilityLabel="Disminuir hora"
                       style={styles.botonFlechaTiempo} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       onPress={() => ajustarHora12(-1)}
                     >
@@ -96,6 +99,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
   
                   <View style={styles.columnaControlTiempo}>
                     <TouchableOpacity
+                      accessibilityRole="button" accessibilityLabel="Aumentar minutos 5"
                       style={styles.botonFlechaTiempo} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       onPress={() => ajustarMinutos12(5)}
                     >
@@ -105,6 +109,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
                       {String(minutos12).padStart(2, '0')}
                     </Text>
                     <TouchableOpacity
+                      accessibilityRole="button" accessibilityLabel="Disminuir minutos 5"
                       style={styles.botonFlechaTiempo} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       onPress={() => ajustarMinutos12(-5)}
                     >
@@ -117,6 +122,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
                       const activo = periodo12 === p;
                       return (
                         <TouchableOpacity
+                          accessibilityRole="radio" accessibilityLabel={p} aria-selected={activo}
                           key={p}
                           style={[
                             styles.botonAmPm,
@@ -147,6 +153,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
                     const activo = momentoDia === m;
                     return (
                       <TouchableOpacity
+                        accessibilityRole="radio" accessibilityLabel={`Momento del día: ${m}`} aria-selected={activo}
                         key={m}
                         style={[
                           styles.chipMomentoModal,
@@ -177,6 +184,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
   
               <View style={styles.filaBotonesModal}>
                 <TouchableOpacity
+                  accessibilityRole="button" accessibilityLabel="Cancelar"
                   style={styles.botonCancelarModal}
                   onPress={() => setModalVisible(false)}
                 >
@@ -184,6 +192,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
                 </TouchableOpacity>
   
                 <TouchableOpacity
+                  accessibilityRole="button" accessibilityLabel="Analizar con Gemini" aria-busy={analizando || undefined}
                   style={[
                     styles.botonConfirmarModal,
                     analizando && styles.botonDeshabilitado,

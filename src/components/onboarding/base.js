@@ -141,6 +141,9 @@ export function BotonInteractivo({
   children,
   scaleDown = 0.97,
   accessibilityLabel,
+  accessibilityHint,
+  accessibilityRole = 'button',
+  seleccionado,
 }) {
   const scale = useSharedValue(1);
 
@@ -161,8 +164,11 @@ export function BotonInteractivo({
 
   return (
     <Pressable
-      accessibilityRole="button"
+      accessibilityRole={accessibilityRole}
       accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      aria-selected={seleccionado}
+      aria-disabled={disabled || undefined}
       disabled={disabled}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}

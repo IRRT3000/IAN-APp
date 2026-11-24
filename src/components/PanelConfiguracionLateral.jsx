@@ -369,6 +369,7 @@ export default function PanelConfiguracionLateral({
           {/* 1. Backdrop Oscuro con Fade */}
           <Animated.View style={[styles.backdrop, estiloAnimadoBackdrop]}>
             <Pressable
+              accessibilityRole="button"
               style={StyleSheet.absoluteFillObject}
               onPress={cerrarDrawer}
               accessibilityLabel="Cerrar panel de configuración"
@@ -395,6 +396,7 @@ export default function PanelConfiguracionLateral({
                   <Text style={styles.tituloDrawer}>Configuración</Text>
                 </View>
                 <TouchableOpacity
+                  accessibilityRole="button" accessibilityLabel="Cerrar configuración"
                   style={styles.botonCerrar}
                   activeOpacity={0.7}
                   onPress={cerrarDrawer}
@@ -480,6 +482,7 @@ export default function PanelConfiguracionLateral({
                     </Text>
 
                     <TouchableOpacity
+                      accessibilityRole="button" accessibilityLabel="Recalibrar pasaporte biométrico"
                       style={styles.botonRecalibrarPasaporte}
                       activeOpacity={0.85}
                       onPress={handleRecalibrarPasaporte}
@@ -600,6 +603,7 @@ export default function PanelConfiguracionLateral({
 
                       <View style={styles.grupoBotonesInput}>
                         <TouchableOpacity
+                          accessibilityRole="button"
                           style={styles.botonIconoInput}
                           activeOpacity={0.7}
                           onPress={() => setMostrarClave((prev) => !prev)}
@@ -616,6 +620,7 @@ export default function PanelConfiguracionLateral({
                         </TouchableOpacity>
 
                         <TouchableOpacity
+                          accessibilityRole="button"
                           style={styles.botonIconoInput}
                           activeOpacity={0.7}
                           onPress={handlePegarPortapapeles}
@@ -688,6 +693,7 @@ export default function PanelConfiguracionLateral({
 
                     {/* Botón Principal: Probar y Guardar (54pt Hero) */}
                     <TouchableOpacity
+                      accessibilityRole="button" accessibilityLabel="Probar y guardar clave" aria-busy={validando || undefined}
                       style={[
                         styles.botonGuardar,
                         validando ? styles.botonGuardarDeshabilitado : null,
@@ -716,6 +722,7 @@ export default function PanelConfiguracionLateral({
                     {/* Botón Secundario: Eliminar Clave (48pt Tinte Rojo Sutil) */}
                     {tieneClaveConfigurada ? (
                       <TouchableOpacity
+                        accessibilityRole="button" accessibilityLabel="Eliminar clave"
                         style={styles.botonEliminar}
                         activeOpacity={0.8}
                         onPress={handleEliminarClave}
@@ -753,6 +760,7 @@ export default function PanelConfiguracionLateral({
                       para proyectos personales.
                     </Text>
                     <TouchableOpacity
+                      accessibilityRole="link" accessibilityLabel="Obtener clave gratis en Google AI Studio"
                       style={styles.botonAiStudio}
                       activeOpacity={0.85}
                       onPress={handleAbrirGoogleAIStudio}

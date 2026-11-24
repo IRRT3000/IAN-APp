@@ -30,6 +30,7 @@ export const crearRenderPaso4Objetivo = (ctx) => (...args) => {
               const activo = objetivo === item.id;
               return (
                 <BotonInteractivo
+                  seleccionado={activo}
                   key={item.id}
                   accessibilityLabel={`Objetivo ${item.id}`}
                   onPress={() => seleccionarObjetivo(item.id)}

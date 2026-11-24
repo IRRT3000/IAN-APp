@@ -81,7 +81,9 @@ export default function CalculadoraPesoModal({
       animationType="fade"
       onRequestClose={onCerrar}
     >
-      <TouchableWithoutFeedback onPress={onCerrar}>
+      <TouchableWithoutFeedback
+        accessibilityRole="button" accessibilityLabel="Cerrar la calculadora de peso"
+        onPress={onCerrar}>
         <View
           style={[
             styles.backdropOverlay,
@@ -89,7 +91,9 @@ export default function CalculadoraPesoModal({
           ]}
         >
           {/* Tarjeta flotante superior para evitar el teclado */}
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <TouchableWithoutFeedback
+            accessible={false} accessibilityRole="none" accessibilityLabel="Ocultar teclado"
+            onPress={Keyboard.dismiss}>
             <View style={styles.tarjetaFlotante}>
               {/* Cabecera del Panel */}
               <View style={styles.cabecera}>
@@ -99,6 +103,7 @@ export default function CalculadoraPesoModal({
                 </View>
 
                 <TouchableOpacity
+                  accessibilityRole="button"
                   style={styles.botonCerrar}
                   onPress={onCerrar}
                   hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -111,6 +116,7 @@ export default function CalculadoraPesoModal({
               {/* Selector Pastilla Unificada [ Lbs ➔ Kg | Kg ➔ Lbs ] */}
               <View style={styles.contenedorPastilla}>
                 <TouchableOpacity
+                  accessibilityRole="radio" accessibilityLabel="Convertir de libras a kilogramos" aria-selected={esLbsAKg}
                   style={[
                     styles.opcionPastilla,
                     esLbsAKg && styles.opcionPastillaActiva,
@@ -129,6 +135,7 @@ export default function CalculadoraPesoModal({
                 </TouchableOpacity>
 
                 <TouchableOpacity
+                  accessibilityRole="radio" accessibilityLabel="Convertir de kilogramos a libras" aria-selected={!esLbsAKg}
                   style={[
                     styles.opcionPastilla,
                     !esLbsAKg && styles.opcionPastillaActiva,
@@ -204,6 +211,7 @@ export default function CalculadoraPesoModal({
 
               {/* Botón CTA Listo / Aplicar */}
               <TouchableOpacity
+                accessibilityRole="button" accessibilityLabel="Usar el peso convertido"
                 style={styles.botonAccionPrincipal}
                 onPress={manejarAccionPrincipal}
                 activeOpacity={0.85}
