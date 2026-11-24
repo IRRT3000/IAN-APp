@@ -17,8 +17,8 @@ jest.mock('expo-haptics', () => ({
 jest.mock('expo-image-picker', () => ({
   launchCameraAsync: jest.fn(() => Promise.resolve({ canceled: true })),
   launchImageLibraryAsync: jest.fn(() => Promise.resolve({ canceled: true })),
-  requestCameraPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
-  requestMediaLibraryPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
+  requestCameraPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted', granted: true })),
+  requestMediaLibraryPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted', granted: true })),
 }));
 jest.mock('react-native-safe-area-context', () => {
   const insets = { top: 47, bottom: 34, left: 0, right: 0 };
