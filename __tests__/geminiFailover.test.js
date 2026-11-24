@@ -9,7 +9,6 @@ import {
   clasificarFallo,
   mensajeParaUsuario,
   __reiniciarEstadoGeminiParaTests,
-  GeminiError,
   MODELO_PRINCIPAL_DEFAULT,
 } from '../src/services/gemini';
 
