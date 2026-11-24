@@ -31,6 +31,7 @@ import {
   vibrarSeleccionBascula,
 } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
+import { anunciar } from '../utils/accesibilidad';
 
 const TIPOS_COMIDA = ['Desayuno', 'Comida', 'Cena', 'Snack'];
 const DURACION_PULSACION_BORRADO_MS = 1000;
@@ -284,6 +285,7 @@ export default function NutricionView({
 
       const listaActualizada = await guardarComida(nuevaComida);
       comidaGuardada = true;
+      anunciar('Comida guardada en tu día');
       vibrarConfirmacionBorrado();
       setFechaSeleccionada(obtenerFechaLocal());
 

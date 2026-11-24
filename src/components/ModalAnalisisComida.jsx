@@ -21,6 +21,7 @@ import {
 } from '../services/gemini';
 import { sanearValoresComida } from '../utils/validacionComida';
 import { textoProgresoGemini } from '../utils/progresoGemini';
+import { anunciar } from '../utils/accesibilidad';
 
 export default function ModalAnalisisComida({
   visible,
@@ -79,6 +80,7 @@ export default function ModalAnalisisComida({
       setGrasasEditadas(String(saneado.grasas));
       setDetallesIA(saneado.detalles);
       setEstadoModal('revision');
+      anunciar(`Análisis listo: ${saneado.nombre}, ${saneado.calorias} kilocalorías`);
     } catch (error) {
       setErrorAnalisis(
         error?.message || 'No se pudo analizar la foto. Conservamos tus datos para reintentar.'

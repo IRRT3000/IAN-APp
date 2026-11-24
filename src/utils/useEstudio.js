@@ -15,6 +15,7 @@ import {
 import { construirContextoResumenEstudio } from './resumenEstudio';
 import { analizarEstudioDelDiaConGemini } from '../services/gemini';
 import { vibrarEjercicioCompletado } from '../services/haptics';
+import { anunciar } from './accesibilidad';
 
 /**
  * Candado de módulo para evitar llamadas concurrentes a Gemini
@@ -281,6 +282,7 @@ export function useEstudio({
           setEntradaResumen(entrada);
         }
         vibrarEjercicioCompletado();
+        anunciar('Resumen del día de estudio listo');
       } catch (error) {
         if (error?.message && error.message.includes('Ya existe')) {
           const resumenGuardado = await obtenerResumenEstudio(fechaHoyActual);

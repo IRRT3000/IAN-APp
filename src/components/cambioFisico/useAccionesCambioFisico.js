@@ -11,6 +11,7 @@ import { eliminarFotos, persistirFoto } from '../../services/fotosStorage';
 import { mostrarAlerta } from '../../utils/alertUtils';
 import { textoProgresoGemini } from '../../utils/progresoGemini';
 import { vibrarSeleccionBascula, vibrarToqueComparacion } from '../../services/haptics';
+import { anunciar } from '../../utils/accesibilidad';
 
 export function useAccionesCambioFisico({ alturaCmPerfil, alturaMetrosPerfil, analizando, comidasHoy, comparandoId, entrenamientosHoy, esHoy, fotosBase64PorRegistroRef, fotosSeleccionadas, hora12, listaRegistros, minutos12, momentoDia, onCambioFisicoActualizado, onPerfilActualizado, perfilActivo, periodo12, pesoBasePerfil, pesoSeleccionadoKg, setAnalizando, setAvisoBorradoId, setAvisoLimiteFotos, setComparandoId, setFotosSeleccionadas, setHora12, setMensajeError, setMinutos12, setModalVisible, setMomentoDia, setPerfilInterno, setPeriodo12, setPesoSeleccionadoKg, setRegistrosInternos, setTextoProgreso, sexoPerfil, timerAvisoRef, ultimoPesoConocido }) {
   const cambiarObjetivo = async (nuevoObjetivo) => {
@@ -267,6 +268,7 @@ export function useAccionesCambioFisico({ alturaCmPerfil, alturaMetrosPerfil, an
 
       const listaActualizada = await guardarCambioFisico(nuevoRegistro);
       registroGuardado = true;
+      anunciar('Análisis de cambio físico guardado');
       const perfilActualizado = await cargarPerfilUsuario();
 
       setRegistrosInternos(listaActualizada);
@@ -331,6 +333,7 @@ export function useAccionesCambioFisico({ alturaCmPerfil, alturaMetrosPerfil, an
         datosComparacion
       );
       setRegistrosInternos(listaActualizada);
+      anunciar('Comparación con el registro anterior lista');
 
       if (typeof onCambioFisicoActualizado === 'function') {
         await onCambioFisicoActualizado(listaActualizada);
@@ -362,6 +365,7 @@ export function useAccionesCambioFisico({ alturaCmPerfil, alturaMetrosPerfil, an
   const ejecutarBorradoRegistro = async (idRegistro) => {
     try {
       const listaActualizada = await eliminarCambioFisico(idRegistro);
+      anunciar('Registro borrado');
       setRegistrosInternos(listaActualizada);
       setAvisoBorradoId(null);
 

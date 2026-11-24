@@ -49,6 +49,7 @@ import {
 } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';
+import { anunciar } from '../utils/accesibilidad';
 
 export default function PanelConfiguracionLateral({
   visible,
@@ -219,6 +220,7 @@ export default function PanelConfiguracionLateral({
           texto: 'Clave validada y guardada en el almacenamiento seguro de tu teléfono.',
         });
         vibrarEjercicioCompletado();
+        anunciar('Clave de Gemini guardada');
       } else {
         setMensajeEstado({
           tipo: 'error',

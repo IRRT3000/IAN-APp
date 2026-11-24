@@ -26,6 +26,7 @@ import {
 } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';
+import { anunciar } from '../utils/accesibilidad';
 
 export default function LiveModeModal({
   visible,
@@ -258,6 +259,7 @@ export default function LiveModeModal({
     }));
 
     vibrarEjercicioCompletado();
+    anunciar('Ejercicio guardado');
     if (typeof onTerminarEjercicio === 'function') {
       onTerminarEjercicio({
         ejercicio: ejercicioActivo.nombre,

@@ -14,6 +14,7 @@ import MenuBienvenida from './src/components/MenuBienvenida';
 import NutricionView from './src/components/NutricionView';
 import OnboardingBienvenidaModal from './src/components/OnboardingBienvenidaModal';
 import PanelConfiguracionLateral from './src/components/PanelConfiguracionLateral';
+import RegionAnuncios from './src/components/base/RegionAnuncios';
 import {
   PERFIL_USUARIO_BASE,
   alternarDiaDescanso,
@@ -433,6 +434,7 @@ export default function App() {
     <SafeAreaProvider>
       <GestureHandlerRootView style={styles.contenedorRoot}>
         <AppPrincipal />
+        <RegionAnuncios />
       </GestureHandlerRootView>
     </SafeAreaProvider>
   );
