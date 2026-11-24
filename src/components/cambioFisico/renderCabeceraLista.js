@@ -291,7 +291,9 @@ export const crearRenderCabeceraLista = (ctx) => (...args) => {
                 ) : null}
   
                 {mensajeError ? (
-                  <Text style={styles.textoError}>{mensajeError}</Text>
+                  <Text style={styles.textoError} accessibilityRole="alert" accessibilityLiveRegion="polite">
+                    {mensajeError}
+                  </Text>
                 ) : null}
               </View>
               ) : null}
