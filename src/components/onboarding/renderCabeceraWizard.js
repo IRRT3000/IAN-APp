@@ -5,7 +5,8 @@
 import Animated from 'react-native-reanimated';
 import { BotonInteractivo } from './base';
 import { Feather } from '@expo/vector-icons';
-import { Keyboard, Text, View } from 'react-native';
+import { Keyboard, View } from 'react-native';
+import { Text } from '../base/Texto';
 import { TOKENS } from '../../theme/tokens';
 import { styles } from './estilos';
 import { vibrarInicioPresionBorrado } from '../../services/haptics';

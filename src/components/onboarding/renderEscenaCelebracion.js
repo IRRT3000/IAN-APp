@@ -5,7 +5,8 @@
 import Animated from 'react-native-reanimated';
 import { BotonInteractivo, formatearFechaLegible } from './base';
 import { Feather } from '@expo/vector-icons';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { Text } from '../base/Texto';
 import { TOKENS } from '../../theme/tokens';
 import { calcularEdadExacta, calcularTiempoEntrenando } from '../../services/storage';
 import { styles } from './estilos';

@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../base/Texto';
 import { PALETA_NIVELES_VASO } from '../../utils/waterGlassEngine';
 
 /**

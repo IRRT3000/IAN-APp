@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Text } from './base/Texto';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { TOKENS } from '../theme/tokens';

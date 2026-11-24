@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useWindowDimensions,
 } from 'react-native';
+import { Text } from './base/Texto';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,

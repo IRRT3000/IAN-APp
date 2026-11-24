@@ -4,10 +4,10 @@ import {
   FlatList,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Text } from './base/Texto';
 import Animated, {
   FadeIn,
   useAnimatedStyle,

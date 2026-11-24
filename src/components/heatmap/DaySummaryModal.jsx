@@ -2,11 +2,11 @@ import React from 'react';
 import {
   Modal,
   StyleSheet,
-  Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { Text } from '../base/Texto';
 import { Feather } from '@expo/vector-icons';
 import { formatearFechaLegible } from '../../utils/dateUtilsLocal';
 import { PALETA_NIVELES_VASO } from '../../utils/waterGlassEngine';

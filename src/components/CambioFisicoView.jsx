@@ -1,5 +1,6 @@
 import { Feather } from '@expo/vector-icons';
-import { FlatList, Text, View } from 'react-native';
+import { FlatList, View } from 'react-native';
+import { Text } from './base/Texto';
 import { TOKENS } from '../theme/tokens';
 import { styles } from './cambioFisico/estilos';
 import { useEstadoCambioFisico } from './cambioFisico/useEstadoCambioFisico';

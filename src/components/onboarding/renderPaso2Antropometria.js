@@ -4,7 +4,8 @@
  */
 import Animated from 'react-native-reanimated';
 import { BotonInteractivo } from './base';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '../base/Texto';
 import { styles } from './estilos';
 
 export const crearRenderPaso2Antropometria = (ctx) => (...args) => {

@@ -68,6 +68,12 @@ export const TOKENS = {
     pill: 9999,
   },
 
+  // Spec 023 (RF-4): tope de escala del texto cuando el usuario elige letra grande en su teléfono.
+  escalaTexto: {
+    max: 1.4,
+    compacta: 1.2,
+  },
+
   typography: {
     hero: {
       fontSize: 26,

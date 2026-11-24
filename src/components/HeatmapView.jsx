@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import MapaCalorAnual from './heatmap/MapaCalorAnual';
 import { TOKENS } from '../theme/tokens';

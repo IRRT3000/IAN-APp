@@ -3,12 +3,11 @@ import {
   Keyboard,
   Modal,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { Text, TextInput } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import {
   MODOS_CONVERSION,

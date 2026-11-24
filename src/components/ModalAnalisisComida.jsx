@@ -7,11 +7,10 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Text, TextInput } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';

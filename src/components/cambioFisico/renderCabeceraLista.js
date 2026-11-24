@@ -2,7 +2,8 @@
  * Render de "renderCabeceraLista". ctx se rellena en el componente antes de renderizar.
  * Extraído sin cambios de CambioFisicoView.jsx (Spec 022). No editar la lógica aquí sin revisar el componente.
  */
-import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Text } from '../base/Texto';
 import { Feather } from '@expo/vector-icons';
 import { MAX_FOTOS_POR_ANALISIS } from './base';
 import { OBJETIVOS_PERFIL_VALIDOS, PERFIL_USUARIO_BASE } from '../../services/storage';

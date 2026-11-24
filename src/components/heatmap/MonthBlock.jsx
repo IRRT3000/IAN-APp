@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Text } from '../base/Texto';
 import HeatmapDayCell from './HeatmapDayCell';
 import {
   DIAS_SEMANA_CORTO,

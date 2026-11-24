@@ -163,6 +163,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               }
             >
               <Text
+                maxFontSizeMultiplier={1.4}
                 style={
                   {
                     "color": "#0A0A0A",
@@ -195,6 +196,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#FFFFFF",
@@ -209,6 +211,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               Precisión Biométrica Personalizada
             </Text>
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#8E8E93",
@@ -297,6 +300,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -309,6 +313,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   Entreno de Fuerza
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -389,6 +394,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -401,6 +407,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   Nutrición IA
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -481,6 +488,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -493,6 +501,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   Análisis Físico IA
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -589,6 +598,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#0A0A0A",
@@ -772,6 +782,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#898989",
@@ -785,6 +796,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               CALIBRACIÓN INICIAL
             </Text>
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#FFFFFF",
@@ -947,6 +959,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -960,6 +973,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   PASO 01 · IDENTIDAD Y BIOLOGÍA
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -972,6 +986,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   ¿Quién entrena hoy?
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -1005,6 +1020,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -1018,6 +1034,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       NOMBRE O ALIAS (OPCIONAL)
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#898989",
@@ -1072,6 +1089,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       
                     </Text>
                     <TextInput
+                      maxFontSizeMultiplier={1.4}
                       maxLength={40}
                       onBlur={[Function]}
                       onChangeText={[Function]}
@@ -1112,6 +1130,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -1275,6 +1294,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           </Text>
                         </View>
                         <Text
+                          maxFontSizeMultiplier={1.4}
                           style={
                             [
                               {
@@ -1292,6 +1312,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           Hombre
                         </Text>
                         <Text
+                          maxFontSizeMultiplier={1.4}
                           style={
                             [
                               {
@@ -1427,6 +1448,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           </View>
                         </View>
                         <Text
+                          maxFontSizeMultiplier={1.4}
                           style={
                             [
                               {
@@ -1442,6 +1464,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           Mujer
                         </Text>
                         <Text
+                          maxFontSizeMultiplier={1.4}
                           style={
                             [
                               {
@@ -1512,6 +1535,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#FFFFFF",
@@ -1525,6 +1549,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       BIOLOGÍA CALIBRADA · PARÁMETROS METABÓLICOS ACTIVOS
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -1565,6 +1590,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.4}
                     style={
                       {
                         "color": "#8E8E93",
@@ -1578,6 +1604,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     FECHA DE NACIMIENTO
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.4}
                     style={
                       {
                         "color": "#FFFFFF",
@@ -1615,6 +1642,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -1715,6 +1743,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -1824,6 +1853,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -1924,6 +1954,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -1938,6 +1969,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         NOV
                       </Text>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#898989",
@@ -2047,6 +2079,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -2147,6 +2180,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -2275,6 +2309,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#FFFFFF",
@@ -2288,6 +2323,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       EDAD BIOLÓGICA EN VIVO
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -2309,6 +2345,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#0A0A0A",
@@ -2405,6 +2442,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#0A0A0A",
@@ -2588,6 +2626,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#898989",
@@ -2601,6 +2640,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               CALIBRACIÓN INICIAL
             </Text>
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#FFFFFF",
@@ -2763,6 +2803,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -2776,6 +2817,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   PASO 02 · ANTROPOMETRÍA BASE
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -2788,6 +2830,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   Estatura y Peso de Partida
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -2822,6 +2865,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   >
                     <View>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#8E8E93",
@@ -2835,6 +2879,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         ESTATURA TOTAL
                       </Text>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#898989",
@@ -2856,6 +2901,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -2871,6 +2917,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         182
                       </Text>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#8E8E93",
@@ -2955,6 +3002,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           }
                         >
                           <Text
+                            maxFontSizeMultiplier={1.4}
                             style={
                               {
                                 "color": "#FFFFFF",
@@ -3034,6 +3082,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           }
                         >
                           <Text
+                            maxFontSizeMultiplier={1.4}
                             style={
                               {
                                 "color": "#FFFFFF",
@@ -3113,6 +3162,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           }
                         >
                           <Text
+                            maxFontSizeMultiplier={1.4}
                             style={
                               {
                                 "color": "#FFFFFF",
@@ -3192,6 +3242,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           }
                         >
                           <Text
+                            maxFontSizeMultiplier={1.4}
                             style={
                               {
                                 "color": "#FFFFFF",
@@ -3251,6 +3302,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   >
                     <View>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#8E8E93",
@@ -3264,6 +3316,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         PESO INICIAL BASE
                       </Text>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#898989",
@@ -3285,6 +3338,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -3300,6 +3354,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         74.0
                       </Text>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#8E8E93",
@@ -3384,6 +3439,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           }
                         >
                           <Text
+                            maxFontSizeMultiplier={1.4}
                             style={
                               {
                                 "color": "#FFFFFF",
@@ -3463,6 +3519,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           }
                         >
                           <Text
+                            maxFontSizeMultiplier={1.4}
                             style={
                               {
                                 "color": "#FFFFFF",
@@ -3542,6 +3599,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           }
                         >
                           <Text
+                            maxFontSizeMultiplier={1.4}
                             style={
                               {
                                 "color": "#FFFFFF",
@@ -3621,6 +3679,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           }
                         >
                           <Text
+                            maxFontSizeMultiplier={1.4}
                             style={
                               {
                                 "color": "#FFFFFF",
@@ -3700,6 +3759,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           }
                         >
                           <Text
+                            maxFontSizeMultiplier={1.4}
                             style={
                               {
                                 "color": "#FFFFFF",
@@ -3779,6 +3839,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           }
                         >
                           <Text
+                            maxFontSizeMultiplier={1.4}
                             style={
                               {
                                 "color": "#FFFFFF",
@@ -3852,6 +3913,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#8E8E93",
@@ -3865,6 +3927,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         ESTATURA
                       </Text>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -3897,6 +3960,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#8E8E93",
@@ -3910,6 +3974,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         PESO BASE
                       </Text>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -3942,6 +4007,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#8E8E93",
@@ -3955,6 +4021,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         IMC REF.
                       </Text>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -4007,6 +4074,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#FFFFFF",
@@ -4019,6 +4087,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       RANGO ATLÉTICO BASE · ÓPTIMO
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#898989",
@@ -4113,6 +4182,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#0A0A0A",
@@ -4296,6 +4366,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#898989",
@@ -4309,6 +4380,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               CALIBRACIÓN INICIAL
             </Text>
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#FFFFFF",
@@ -4471,6 +4543,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -4484,6 +4557,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   PASO 03 · TIEMPO ENTRENANDO
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -4496,6 +4570,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   Experiencia bajo la barra
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -4590,6 +4665,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         [
                           {
@@ -4634,6 +4710,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.4}
                     style={
                       {
                         "color": "#8E8E93",
@@ -4647,6 +4724,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     FECHA DE INICIO
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.4}
                     style={
                       {
                         "color": "#FFFFFF",
@@ -4684,6 +4762,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -4784,6 +4863,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -4893,6 +4973,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -4993,6 +5074,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -5007,6 +5089,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         NOV
                       </Text>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#898989",
@@ -5116,6 +5199,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -5216,6 +5300,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -5360,6 +5445,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -5406,6 +5492,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         
                       </Text>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#0A0A0A",
@@ -5423,6 +5510,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     </View>
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.4}
                     style={
                       {
                         "color": "#FFFFFF",
@@ -5448,6 +5536,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     }
                   />
                   <Text
+                    maxFontSizeMultiplier={1.4}
                     style={
                       {
                         "color": "#FFFFFF",
@@ -5460,6 +5549,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     INTERMEDIO · HIPERTROFIA ACTIVA
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.4}
                     style={
                       {
                         "color": "#8E8E93",
@@ -5552,6 +5642,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#0A0A0A",
@@ -5735,6 +5826,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#898989",
@@ -5748,6 +5840,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               CALIBRACIÓN INICIAL
             </Text>
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#FFFFFF",
@@ -5910,6 +6003,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -5923,6 +6017,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   PASO 04 · OBJETIVO FÍSICO PRINCIPAL
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -5935,6 +6030,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   Dirección Estratégica
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -6087,6 +6183,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           </View>
                           <View>
                             <Text
+                              maxFontSizeMultiplier={1.4}
                               style={
                                 [
                                   {
@@ -6102,6 +6199,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                               SUPERÁVIT CONTROLADO
                             </Text>
                             <Text
+                              maxFontSizeMultiplier={1.4}
                               style={
                                 [
                                   {
@@ -6135,6 +6233,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         />
                       </View>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           [
                             {
@@ -6266,6 +6365,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           </View>
                           <View>
                             <Text
+                              maxFontSizeMultiplier={1.4}
                               style={
                                 [
                                   {
@@ -6281,6 +6381,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                               DÉFICIT PRESERVANDO MASA
                             </Text>
                             <Text
+                              maxFontSizeMultiplier={1.4}
                               style={
                                 [
                                   {
@@ -6314,6 +6415,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         />
                       </View>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           [
                             {
@@ -6451,6 +6553,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           </View>
                           <View>
                             <Text
+                              maxFontSizeMultiplier={1.4}
                               style={
                                 [
                                   {
@@ -6468,6 +6571,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                               EQUILIBRIO METABÓLICO
                             </Text>
                             <Text
+                              maxFontSizeMultiplier={1.4}
                               style={
                                 [
                                   {
@@ -6528,6 +6632,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         </View>
                       </View>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           [
                             {
@@ -6662,6 +6767,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                           </View>
                           <View>
                             <Text
+                              maxFontSizeMultiplier={1.4}
                               style={
                                 [
                                   {
@@ -6677,6 +6783,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                               OPTIMIZACIÓN DUAL
                             </Text>
                             <Text
+                              maxFontSizeMultiplier={1.4}
                               style={
                                 [
                                   {
@@ -6710,6 +6817,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         />
                       </View>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           [
                             {
@@ -6795,6 +6903,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#FFFFFF",
@@ -6808,6 +6917,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     </Text>
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.4}
                     style={
                       {
                         "color": "#8E8E93",
@@ -6900,6 +7010,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#0A0A0A",
@@ -7088,6 +7199,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               }
             >
               <Text
+                maxFontSizeMultiplier={1.4}
                 style={
                   {
                     "color": "#0A0A0A",
@@ -7101,6 +7213,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               </Text>
             </View>
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#FFFFFF",
@@ -7114,6 +7227,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               PERFIL BIOMÉTRICO CALIBRADO
             </Text>
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#8E8E93",
@@ -7158,6 +7272,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             >
               <View>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#898989",
@@ -7171,6 +7286,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   FITNESS TRACKER · MATTE LUXURY ID
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -7219,6 +7335,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -7266,6 +7383,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -7278,6 +7396,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   IDENTIDAD
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -7317,6 +7436,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -7329,6 +7449,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   EDAD EXACTA
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -7343,6 +7464,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   15 años
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#898989",
@@ -7381,6 +7503,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -7393,6 +7516,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   ESTATURA
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -7432,6 +7556,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -7444,6 +7569,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   PESO INICIAL BASE
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -7483,6 +7609,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -7495,6 +7622,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   EXPERIENCIA
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -7509,6 +7637,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   1 año y 22 días
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#898989",
@@ -7547,6 +7676,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -7559,6 +7689,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   OBJETIVO IA
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -7609,6 +7740,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 
               </Text>
               <Text
+                maxFontSizeMultiplier={1.4}
                 style={
                   {
                     "color": "#8E8E93",
@@ -7705,6 +7837,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#0A0A0A",
@@ -7832,6 +7965,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#898989",
@@ -7845,6 +7979,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
               EDICIÓN BIOMÉTRICA
             </Text>
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#FFFFFF",
@@ -8007,6 +8142,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -8020,6 +8156,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                   PASO 01 · IDENTIDAD Y BIOLOGÍA
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#FFFFFF",
@@ -8032,6 +8169,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                   ¿Quién entrena hoy?
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -8065,6 +8203,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -8078,6 +8217,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       NOMBRE O ALIAS (OPCIONAL)
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#898989",
@@ -8132,6 +8272,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       
                     </Text>
                     <TextInput
+                      maxFontSizeMultiplier={1.4}
                       maxLength={40}
                       onBlur={[Function]}
                       onChangeText={[Function]}
@@ -8233,6 +8374,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.4}
                   style={
                     {
                       "color": "#8E8E93",
@@ -8369,6 +8511,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                           </View>
                         </View>
                         <Text
+                          maxFontSizeMultiplier={1.4}
                           style={
                             [
                               {
@@ -8384,6 +8527,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                           Hombre
                         </Text>
                         <Text
+                          maxFontSizeMultiplier={1.4}
                           style={
                             [
                               {
@@ -8543,6 +8687,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                           </Text>
                         </View>
                         <Text
+                          maxFontSizeMultiplier={1.4}
                           style={
                             [
                               {
@@ -8560,6 +8705,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                           Mujer
                         </Text>
                         <Text
+                          maxFontSizeMultiplier={1.4}
                           style={
                             [
                               {
@@ -8633,6 +8779,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#FFFFFF",
@@ -8646,6 +8793,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       BIOLOGÍA CALIBRADA · PARÁMETROS METABÓLICOS ACTIVOS
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -8686,6 +8834,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.4}
                     style={
                       {
                         "color": "#8E8E93",
@@ -8699,6 +8848,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                     FECHA DE NACIMIENTO
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.4}
                     style={
                       {
                         "color": "#FFFFFF",
@@ -8736,6 +8886,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -8836,6 +8987,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -8945,6 +9097,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -9045,6 +9198,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -9059,6 +9213,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                         ABR
                       </Text>
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#898989",
@@ -9168,6 +9323,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -9268,6 +9424,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       }
                     >
                       <Text
+                        maxFontSizeMultiplier={1.4}
                         style={
                           {
                             "color": "#FFFFFF",
@@ -9396,6 +9553,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#FFFFFF",
@@ -9409,6 +9567,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       EDAD BIOLÓGICA EN VIVO
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#8E8E93",
@@ -9430,6 +9589,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.4}
                       style={
                         {
                           "color": "#0A0A0A",
@@ -9526,6 +9686,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
             }
           >
             <Text
+              maxFontSizeMultiplier={1.4}
               style={
                 {
                   "color": "#0A0A0A",

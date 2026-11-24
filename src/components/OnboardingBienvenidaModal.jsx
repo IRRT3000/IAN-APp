@@ -1,7 +1,8 @@
 import Animated from 'react-native-reanimated';
 import { BotonInteractivo } from './onboarding/base';
 import { Feather } from '@expo/vector-icons';
-import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, View } from 'react-native';
+import { Text } from './base/Texto';
 import { TOKENS } from '../theme/tokens';
 import { styles } from './onboarding/estilos';
 import { useEstadoOnboarding } from './onboarding/useEstadoOnboarding';

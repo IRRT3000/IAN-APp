@@ -5,7 +5,8 @@
 import Animated from 'react-native-reanimated';
 import { BotonInteractivo, MESES_CORTOS, formatearFechaLegible } from './base';
 import { Feather } from '@expo/vector-icons';
-import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, View } from 'react-native';
+import { Text, TextInput } from '../base/Texto';
 import { SEXOS_PERFIL_VALIDOS } from '../../services/storage';
 import { TOKENS } from '../../theme/tokens';
 import { styles } from './estilos';

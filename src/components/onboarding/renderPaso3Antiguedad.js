@@ -6,7 +6,8 @@ import Animated from 'react-native-reanimated';
 import { BotonInteractivo, MESES_CORTOS, formatearFechaLegible } from './base';
 import { Feather } from '@expo/vector-icons';
 import { TOKENS } from '../../theme/tokens';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '../base/Texto';
 import { styles } from './estilos';
 
 export const crearRenderPaso3Antiguedad = (ctx) => (...args) => {

@@ -5,7 +5,8 @@
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { TOKENS } from '../../theme/tokens';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Text } from '../base/Texto';
 import { styles } from './estilos';
 import { useRef } from 'react';
 import { vibrarConfirmacionBorrado, vibrarInicioPresionBorrado } from '../../services/haptics';

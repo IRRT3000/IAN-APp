@@ -2,7 +2,8 @@
  * Render de "renderizarTarjetaCambio". ctx se rellena en el componente antes de renderizar.
  * Extraído sin cambios de CambioFisicoView.jsx (Spec 022). No editar la lógica aquí sin revisar el componente.
  */
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Text } from '../base/Texto';
 import { CapsulaBorradoSeguroFisico } from './base';
 import { Feather } from '@expo/vector-icons';
 import FotoPersistida from '../FotoPersistida';

@@ -118,3 +118,21 @@ describe('Accesibilidad estática de elementos táctiles (Spec 023)', () => {
     }
   );
 });
+
+describe('Escala de letra con tope (Spec 023, RF-4)', () => {
+  test('ningún archivo importa Text o TextInput directamente de react-native (se usa base/Texto)', () => {
+    const archivos = [path.join(RAIZ, 'App.js'), ...listarJsx(path.join(RAIZ, 'src'))].filter(
+      (a) => !a.split(path.sep).join('/').includes('src/components/base/')
+    );
+    const infractores = archivos.filter((archivo) => {
+      const ast = parse(fs.readFileSync(archivo, 'utf8'), { sourceType: 'module', plugins: ['jsx'] });
+      return ast.program.body.some(
+        (n) =>
+          n.type === 'ImportDeclaration' &&
+          n.source.value === 'react-native' &&
+          n.specifiers.some((s) => s.type === 'ImportSpecifier' && ['Text', 'TextInput'].includes(s.imported.name))
+      );
+    });
+    expect(infractores).toEqual([]);
+  });
+});

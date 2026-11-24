@@ -4,7 +4,8 @@
  */
 import { Feather } from '@expo/vector-icons';
 import { MOMENTOS_DIA, PASOS_BASCULA } from './base';
-import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Text } from '../base/Texto';
 import { TOKENS } from '../../theme/tokens';
 import { styles } from './estilos';
 import { vibrarSeleccionBascula } from '../../services/haptics';
