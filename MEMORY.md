@@ -3,15 +3,15 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 
 ## Estado Actual (2026-11-24)
 - `main` y Vercel (`ian-app`) siguen en v2.2.0 (build 7). Hay trabajo **sin fusionar** en la rama `claude/app-analysis-improvements-52feef` (Specs 020–024).
-- Specs completadas: 001–011, 013–019; 020–024 con `CODIGO_APROBADO`. La 012 está archivada: la app es BYOK por decisión del dueño (Q16).
+- Specs completadas: 001–011, 013–019; 020–025 con `CODIGO_APROBADO`. Release de prueba v2.3.0 (build 8) publicada desde la rama, sin fusionar a `main`. La 012 está archivada: la app es BYOK por decisión del dueño (Q16).
 - **020 Seguridad:** CSP y cabeceras en `vercel.json`, `public/index.html` (`lang="es"`) y manifiesto PWA. `scripts/test-gate.js` existe porque Jest ignoraba los worktrees. SDK 58.0.26 y `npm audit` en 0 altas. Fotos permanentes en `fotosStorage.js` (`foto-doc:` en nativo, `foto-local:` en web con tope de 80). Los guardados lanzan el error en vez de devolver `[]`.
 - **021 Gemini:** un único motor `ejecutarConFailover` con reintentos, tope de 90 s, `thinkingLevel: 'low'` y mensajes claros. Cadena: `3.5-flash-lite` → `3.6-flash` → `3-flash-preview`. Con clave gratuita, Flash-Lite acertó 10/12 dentro de los rangos USDA.
 - **022 Refactor:** Onboarding 3015 → 133 líneas y CambioFisico 2191 → 76, con hooks y renders en `onboarding/` y `cambioFisico/`. El DOM es idéntico, verificado por hash, y hay 12 snapshots de caracterización.
 - **023 Accesibilidad:** 0 táctiles sin nombre o rol (test AST); `textMuted` en `#898989` (AA); anuncios con `anunciar`/`RegionAnuncios`; `base/Texto` limita la escala de letra a 1.4×; acción accesible «Borrar».
 - **024 Movimiento y feedback:** `usePreferenciaMovimiento` (una suscripción compartida) y `<ConfigMovimientoReducido/>` en `App.js`, que aplica el cambio en vivo a todas las animaciones; hápticos de éxito y error; 5 sonidos sintetizados (`expo-audio` sin micrófono) con interruptor en Configuración. Q14 (opacidad de pulsación) está **pendiente** de que el usuario vea un video.
+- **025 Respaldo:** `services/respaldo.js` + `SeccionRespaldo` en Configuración. Lista cerrada de claves (nunca la API key), validación de archivos no confiables, restauración atómica con vuelta atrás y fotos opcionales con topes (8 MB por foto, 45 MB en total). Usa `expo-sharing` y `File.pickFileAsync`.
 - **Pendiente del usuario:**
   - aceptar la enmienda de CA-4 de la 020 (parche de SDK);
-  - subir `versionCode` (hay módulos nativos nuevos);
   - probar en Android (caché de fotos, TalkBack, «Quitar animaciones», sonidos);
   - rotar la API key compartida en el chat;
   - confirmar si la fecha por defecto `2010-11-26` es intencional.

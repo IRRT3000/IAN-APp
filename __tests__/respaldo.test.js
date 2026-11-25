@@ -402,3 +402,10 @@ describe('correcciones de la revisión de código', () => {
     expect(await volcado()).toEqual(antes);
   });
 });
+
+test('un valor guardado ya dañado se deja fuera sin impedir el respaldo', async () => {
+  await sembrar({ ...DATOS_BASE, [K.perfil]: 'null' });
+  const r = await respaldo.construirRespaldo();
+  expect(r.datos[K.perfil]).toBeUndefined();
+  expect(respaldo.validarRespaldo(JSON.parse(JSON.stringify(r))).ok).toBe(true);
+});

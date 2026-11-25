@@ -9,7 +9,7 @@
 - [x] **T4** (Implementador): `src/services/respaldo.js` y `__tests__/respaldo.test.js`.
 - [x] **T5** (Implementador): `src/components/SeccionRespaldo.jsx`, renderizado dentro de `PanelConfiguracionLateral.jsx`, y prop `onDatosRestaurados` en `App.js`, con su test de componente.
   - **Desviación:** la sección es un componente propio en lugar de código dentro del panel, que ya tiene más de 1000 líneas.
-- [ ] **T6** (revisor-critico): Revisión del código.
+- [x] **T6** (revisor-critico): Revisión del código.
   - Ronda 1: `CODIGO_RECHAZADO`.
     - **Bloqueante:** una foto real de cámara (1.5–4 MB) superaba el tope de 2 MB, así que «Incluir fotos» creaba un respaldo que la app no podía restaurar. Corregido:
       - el tope por foto sube a 8 MB en base64;
@@ -27,7 +27,7 @@
       - el `.json` se borra de la caché después de compartirlo;
       - si la recarga de pantalla falla, el aviso dice que los datos sí se restauraron.
     - **Menor aceptado:** si una foto con el mismo nombre ya existía, se sobrescribe con el mismo contenido. Los nombres llevan marca de tiempo, así que es improbable.
-  - Ronda 2: pendiente.
-- [ ] **T7** (Implementador): `npm run gate`, prueba manual en web y `MEMORY.md`.
+  - Ronda 2: `CODIGO_APROBADO`. Se aplicaron 3 de sus 4 menores: el respaldo por `focus` solo se activa sin `cancel`, un valor guardado dañado se deja fuera sin abortar y se quitó un JSDoc duplicado. El cuarto (probar en Android que los botones del panel responden) queda en la lista de prueba manual.
+- [x] **T7** (Implementador): `npm run gate` (420 tests), prueba manual en web y `MEMORY.md`.
   - Prueba en web ya hecha: exportar y restaurar de punta a punta con confirmación y aviso; el archivo no contiene la API key.
   - **Nota:** `expo-sharing` es un módulo nativo nuevo, así que hace falta un build nuevo y subir `versionCode`.

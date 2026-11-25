@@ -98,7 +98,6 @@ const dos = (n) => String(n).padStart(2, '0');
 const marcaCreado = (fecha = new Date()) =>
   `${obtenerFechaLocal(fecha)} ${dos(fecha.getHours())}:${dos(fecha.getMinutes())}`;
 
-/** Fotos nativas: recorre `fotos/<carpeta>/<archivo>.jpg` (Directory.list no es recursivo). */
 /**
  * Fotos nativas: recorre `fotos/<carpeta>/<archivo>.jpg` (Directory.list no es recursivo).
  * Aplica los MISMOS topes que la importación, para no crear nunca un respaldo que la app no pueda
@@ -146,7 +145,18 @@ export const construirRespaldo = async ({ incluirFotos = false } = {}) => {
   const pares = claves.length ? await AsyncStorage.multiGet(claves) : [];
   const datos = {};
   pares.forEach(([clave, valor]) => {
-    if (typeof valor === 'string') datos[clave] = valor;
+    if (typeof valor !== 'string') return;
+    // Un valor guardado que ya está dañado (p. ej. "null") se deja fuera en lugar de impedir
+    // todo el respaldo: la app tampoco puede leerlo.
+    const forma = formaDeClave(clave);
+    if (forma) {
+      try {
+        if (!forma(JSON.parse(valor))) return;
+      } catch {
+        return;
+      }
+    }
+    datos[clave] = valor;
   });
   const { fotos, omitidas } =
     incluirFotos && !esWeb() ? await leerFotosNativas() : { fotos: [], omitidas: 0 };
@@ -405,7 +415,8 @@ const elegirArchivoWeb = () =>
     }
     entrada.onchange = () => terminar(entrada.files?.[0] || null);
     entrada.oncancel = () => terminar(null);
-    window.addEventListener('focus', alVolver);
+    // Solo donde no existe `cancel`: en Chrome Android, un archivo de Drive puede tardar más de 1 s.
+    if (!('oncancel' in entrada)) window.addEventListener('focus', alVolver);
     entrada.click();
   });
 
