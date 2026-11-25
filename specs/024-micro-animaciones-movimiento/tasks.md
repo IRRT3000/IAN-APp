@@ -39,7 +39,7 @@
     - I5: la regla estática exige exactamente `!reducir` o `!reducirRef.current`, detecta `Reanimated.withRepeat` y falla si no encuentra ningún `withRepeat`.
     - Menor 9: sonido `borrado` al eliminar la API key.
   - Segunda ronda: `CODIGO_APROBADO`. Sus 4 menores también se aplicaron:
-    - la regla de `withRepeat` quitaba la letra «s» en vez de los espacios (`/s+/`);
+    - la regla de `withRepeat` quitaba la letra «s» en vez de los espacios (ahora usa `/\s+/`);
     - la lectura inicial de la preferencia ya no pisa un evento más nuevo;
     - se documentó el aviso de consola de `ReducedMotionConfig` en desarrollo;
     - una clave inválida ahora da háptico y sonido de error.
