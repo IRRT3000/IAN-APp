@@ -10,6 +10,9 @@ import {
   ScrollView,
   StyleSheet,
   Switch,
+  // De react-native y no de gesture-handler: en web, el de gesture-handler envuelve todo en un
+  // <button> y, con accessibilityRole, el hijo es otro <button> anidado (HTML inválido).
+  TouchableOpacity,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -19,7 +22,6 @@ import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
-  TouchableOpacity,
 } from 'react-native-gesture-handler';
 import * as Clipboard from 'expo-clipboard';
 import Animated, {
