@@ -59,7 +59,9 @@
           "enableBackgroundPlayback": false,
           "enableBackgroundRecording": false
         }
-      ]
+      ],
+      "expo-sharing",
+      "expo-asset"
     ],
     "extra": {
       "eas": {

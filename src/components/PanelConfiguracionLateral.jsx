@@ -53,9 +53,11 @@ import { useSafeInsets } from '../utils/useSafeInsets';
 import { anunciar } from '../utils/accesibilidad';
 import {
   establecerSonidosActivos,
+  cargarPreferenciaSonidos,
   obtenerSonidosActivos,
   reproducirSonido,
 } from '../services/sonidos';
+import SeccionRespaldo from './SeccionRespaldo';
 
 export default function PanelConfiguracionLateral({
   visible,
@@ -64,6 +66,7 @@ export default function PanelConfiguracionLateral({
   onEditarPerfil,
   onAbrirOnboardingPerfil,
   onAbrirEdicionPerfil,
+  onDatosRestaurados,
 }) {
   const insets = useSafeInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
@@ -542,6 +545,15 @@ export default function PanelConfiguracionLateral({
                       />
                     </View>
                   </View>
+
+                  {/* Spec 025: respaldo y restauración de datos */}
+                  <SeccionRespaldo
+                    onDatosRestaurados={onDatosRestaurados}
+                    onRestauradoInterno={async () => {
+                      await cargarPreferenciaSonidos();
+                      setSonidosActivosUI(null);
+                    }}
+                  />
 
                   {/* Tarjeta de Estado de Conexión (Halo LED concéntrico + BYOK) */}
                   <View style={styles.tarjetaEstado}>

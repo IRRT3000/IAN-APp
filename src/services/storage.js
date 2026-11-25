@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { eliminarFotos } from './fotosStorage';
 
-const STORAGE_KEY = '@fitness_tracker_entrenamientos_v1';
-const STORAGE_KEY_COMIDAS = '@fitness_tracker_comidas_v1';
-const STORAGE_KEY_PERFIL = '@fitness_tracker_perfil_v1';
-const STORAGE_KEY_CAMBIOS_FISICOS = '@fitness_tracker_cambios_fisicos_v1';
+export const STORAGE_KEY = '@fitness_tracker_entrenamientos_v1';
+export const STORAGE_KEY_COMIDAS = '@fitness_tracker_comidas_v1';
+export const STORAGE_KEY_PERFIL = '@fitness_tracker_perfil_v1';
+export const STORAGE_KEY_CAMBIOS_FISICOS = '@fitness_tracker_cambios_fisicos_v1';
 export const STORAGE_KEY_CATALOGO_PERSONALIZADO =
   '@fitness_tracker_catalogo_personalizado_v1';
 export const STORAGE_KEY_SESION_ACTIVA_DRAFT =

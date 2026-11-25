@@ -410,6 +410,7 @@ function AppPrincipal() {
         onEditarPerfil={abrirEdicionPerfil}
         onAbrirOnboardingPerfil={abrirEdicionPerfil}
         onAbrirEdicionPerfil={abrirEdicionPerfil}
+        onDatosRestaurados={sincronizarDatos}
       />
 
       <OnboardingBienvenidaModal
