@@ -29,7 +29,7 @@
   - `expo-audio` sin micrófono ni reproducción en segundo plano (verificado en el manifiesto) y 5 WAV deterministas.
   - Servicio con precarga, volumen 0.35, respeto del modo silencio, tolerancia al autoplay web e interruptor en Configuración.
 - [x] T8: tests de sonidos (11), movimiento (6), feedback por flujo (4) y regla de `withRepeat`.
-- [ ] T9: revisión de código.
+- [x] T9: revisión de código.
   - Primera ronda: `CODIGO_RECHAZADO`. Se corrigió todo:
     - B1: el interruptor de sonidos lee el servicio en cada render hasta que el usuario lo toca (la preferencia puede cargar después de montar el panel).
     - B2: cambio en vivo con `ConfigMovimientoReducido` y una sola suscripción compartida (almacén de módulo con `useSyncExternalStore`).
@@ -38,5 +38,9 @@
     - I4: `vibrarAviso` en los tres avisos de límite de fotos (fuera del updater de estado).
     - I5: la regla estática exige exactamente `!reducir` o `!reducirRef.current`, detecta `Reanimated.withRepeat` y falla si no encuentra ningún `withRepeat`.
     - Menor 9: sonido `borrado` al eliminar la API key.
-  - Segunda ronda: pendiente.
+  - Segunda ronda: `CODIGO_APROBADO`. Sus 4 menores también se aplicaron:
+    - la regla de `withRepeat` quitaba la letra «s» en vez de los espacios (`/s+/`);
+    - la lectura inicial de la preferencia ya no pisa un evento más nuevo;
+    - se documentó el aviso de consola de `ReducedMotionConfig` en desarrollo;
+    - una clave inválida ahora da háptico y sonido de error.
 - [ ] T10: verificación manual en Android: «Quitar animaciones» con la app abierta, sonidos con el modo silencio y el interruptor.

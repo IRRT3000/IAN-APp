@@ -45,6 +45,7 @@ import { mostrarAlerta } from '../utils/alertUtils';
 import {
   vibrarConfirmacionBorrado,
   vibrarEjercicioCompletado,
+  vibrarError,
   vibrarInicioPresionBorrado,
 } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
@@ -248,7 +249,8 @@ export default function PanelConfiguracionLateral({
         tipo: 'error',
         texto: resultado.error || 'La clave ingresada no es válida.',
       });
-      vibrarConfirmacionBorrado();
+      vibrarError();
+      reproducirSonido('error');
     }
   };
 

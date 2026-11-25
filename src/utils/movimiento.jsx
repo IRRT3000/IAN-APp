@@ -26,10 +26,15 @@ const emitir = (valor) => {
 
 const iniciarSuscripcion = () => {
   if (suscripcion) return;
-  suscripcion = AccessibilityInfo.addEventListener?.('reduceMotionChanged', emitir) || { remove: () => {} };
+  let llegoEvento = false;
+  suscripcion = AccessibilityInfo.addEventListener?.('reduceMotionChanged', (valor) => {
+    llegoEvento = true;
+    emitir(valor);
+  }) || { remove: () => {} };
   Promise.resolve(AccessibilityInfo.isReduceMotionEnabled?.())
     .then((valor) => {
-      if (typeof valor === 'boolean') emitir(valor);
+      // Si ya llegó un evento, es más nuevo que esta lectura: no se pisa.
+      if (!llegoEvento && typeof valor === 'boolean') emitir(valor);
     })
     .catch(() => {});
 };
@@ -53,6 +58,8 @@ export function usePreferenciaMovimiento() {
  * Aplica la preferencia a TODAS las animaciones de Reanimated (Spec 024, revisión B2).
  * Con «reducir» activo fuerza ReduceMotion.Always; si no, Never, para que desactivar el ajuste en
  * vivo también se respete (ReduceMotion.System seguiría con la lectura de arranque).
+ * En desarrollo Reanimated avisa en consola «Reduced motion setting is overwritten…» al montarlo:
+ * es esperado, no un fallo.
  */
 export function ConfigMovimientoReducido() {
   const { reducir } = usePreferenciaMovimiento();

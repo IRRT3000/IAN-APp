@@ -121,7 +121,7 @@ describe('regla estática: todo withRepeat está protegido por «reducir» (CA-2
         if (!n || typeof n.type !== 'string') return;
         if (n.type === 'CallExpression' && esWithRepeat(n.callee)) {
           encontrados += 1;
-          const protegido = pila.some((p) => CONDICIONES.includes(codigo.slice(p.test.start, p.test.end).replace(/s+/g, '')));
+          const protegido = pila.some((p) => CONDICIONES.includes(codigo.slice(p.test.start, p.test.end).replace(/\s+/g, '')));
           if (!protegido) sinProteger.push(`${archivo}:${n.loc.start.line}`);
         }
         const esIf = n.type === 'IfStatement';
