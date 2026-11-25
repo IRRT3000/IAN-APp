@@ -14,7 +14,7 @@ import {
 } from '../services/estudioStorage';
 import { construirContextoResumenEstudio } from './resumenEstudio';
 import { analizarEstudioDelDiaConGemini } from '../services/gemini';
-import { vibrarEjercicioCompletado } from '../services/haptics';
+import { vibrarEjercicioCompletado, vibrarError } from '../services/haptics';
 import { anunciar } from './accesibilidad';
 import { reproducirSonido } from '../services/sonidos';
 
@@ -298,6 +298,8 @@ export function useEstudio({
             );
           }
         } else {
+          vibrarError();
+          reproducirSonido('error');
           mostrarAlerta(
             'Análisis de estudio',
             error?.message || 'Error al analizar el día de estudio.'

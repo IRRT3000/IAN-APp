@@ -17,17 +17,26 @@
 
 ## Estado al 2026-11-24 (implementación)
 - [x] T2: Q15 (hápticos de resultado) y Q17 (sonidos) aprobadas. **Q14 (opacidad de pulsación uniforme) NO se aplicó**: el usuario la aprobó «con video previo» y no se le pudo mostrar. Queda pendiente de su visto bueno.
-- [x] T4: `src/utils/movimiento.js`.
+- [x] T4: `src/utils/movimiento.jsx` (renombrado desde `.js` en la ronda de revisión).
   - **Desviación:** no se agregaron tokens `movimiento.*` porque, sin Q14, no hay valores que unificar.
   - `animarSegun` queda disponible para futuros usos.
 - [x] T5 (parcial, a propósito): `usePreferenciaMovimiento` reactivo y pulso infinito del anillo protegido (commit d486d83).
   - **Desviación documentada:** no se tocaron los 13 archivos. Reanimated 4 ya aplica `ReduceMotion.System` por defecto a `withTiming`/`withSpring`/`withRepeat`, así que con la preferencia activa al arrancar esas animaciones ya saltan a su valor final.
-  - Lo que faltaba era el cambio en vivo y el pulso infinito, y eso ya está.
+  - Esa lectura de arranque NO cubre el cambio con la app abierta. La primera versión solo protegía el pulso infinito; la revisión de código lo marcó (B2) y se corrigió montando `<ConfigMovimientoReducido/>` en la raíz (`App.js`). Ese componente traduce la preferencia a `ReducedMotionConfig` (`Always`/`Never`), y Reanimated lo aplica a todas las animaciones nuevas.
   - Una regla estática obliga a proteger todo `withRepeat` futuro.
 - [x] T7 (Q15): `vibrarExito`, `vibrarError` y `vibrarAviso` en `haptics.js`, conectados a los resultados de los análisis y guardados (commit 0564d16).
 - [x] T4b / Q17: sonidos (commit 0564d16).
   - `expo-audio` sin micrófono ni reproducción en segundo plano (verificado en el manifiesto) y 5 WAV deterministas.
   - Servicio con precarga, volumen 0.35, respeto del modo silencio, tolerancia al autoplay web e interruptor en Configuración.
-- [x] T8: tests de sonidos (11), movimiento (5) y regla de `withRepeat`.
-- [ ] T9: revisión de código (en curso).
+- [x] T8: tests de sonidos (11), movimiento (6), feedback por flujo (4) y regla de `withRepeat`.
+- [ ] T9: revisión de código.
+  - Primera ronda: `CODIGO_RECHAZADO`. Se corrigió todo:
+    - B1: el interruptor de sonidos lee el servicio en cada render hasta que el usuario lo toca (la preferencia puede cargar después de montar el panel).
+    - B2: cambio en vivo con `ConfigMovimientoReducido` y una sola suscripción compartida (almacén de módulo con `useSyncExternalStore`).
+    - B3: tests nuevos en `__tests__/feedbackResultados.test.js`: hápticos en web no llaman a `expo-haptics`; éxito y error de la comida dan el háptico y el sonido correctos una sola vez.
+    - Errores sin feedback: la comparación de Cambio Físico y el análisis de estudio ahora llaman `vibrarError` + sonido `error`.
+    - I4: `vibrarAviso` en los tres avisos de límite de fotos (fuera del updater de estado).
+    - I5: la regla estática exige exactamente `!reducir` o `!reducirRef.current`, detecta `Reanimated.withRepeat` y falla si no encuentra ningún `withRepeat`.
+    - Menor 9: sonido `borrado` al eliminar la API key.
+  - Segunda ronda: pendiente.
 - [ ] T10: verificación manual en Android: «Quitar animaciones» con la app abierta, sonidos con el modo silencio y el interruptor.

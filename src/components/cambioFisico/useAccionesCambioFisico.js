@@ -15,6 +15,7 @@ import {
   vibrarToqueComparacion,
   vibrarExito,
   vibrarError,
+  vibrarAviso,
 } from '../../services/haptics';
 import { anunciar } from '../../utils/accesibilidad';
 import { reproducirSonido } from '../../services/sonidos';
@@ -44,6 +45,9 @@ export function useAccionesCambioFisico({ alturaCmPerfil, alturaMetrosPerfil, an
       return;
     }
 
+    if (fotosSeleccionadas.length + validos.length > MAX_FOTOS_POR_ANALISIS) {
+      vibrarAviso();
+    }
     setFotosSeleccionadas((prev) => {
       const combinadas = [...prev, ...validos];
       if (combinadas.length > MAX_FOTOS_POR_ANALISIS) {
@@ -60,6 +64,7 @@ export function useAccionesCambioFisico({ alturaCmPerfil, alturaMetrosPerfil, an
   const abrirCamara = async () => {
     if (analizando) return;
     if (fotosSeleccionadas.length >= MAX_FOTOS_POR_ANALISIS) {
+      vibrarAviso();
       setAvisoLimiteFotos(
         `Ya tienes ${MAX_FOTOS_POR_ANALISIS} fotos seleccionadas (máximo permitido).`
       );
@@ -95,6 +100,7 @@ export function useAccionesCambioFisico({ alturaCmPerfil, alturaMetrosPerfil, an
     if (analizando) return;
     const cupoRestante = MAX_FOTOS_POR_ANALISIS - fotosSeleccionadas.length;
     if (cupoRestante <= 0) {
+      vibrarAviso();
       setAvisoLimiteFotos(
         `Ya alcanzaste el límite máximo de ${MAX_FOTOS_POR_ANALISIS} fotos por análisis.`
       );
@@ -355,6 +361,8 @@ export function useAccionesCambioFisico({ alturaCmPerfil, alturaMetrosPerfil, an
         error?.message ||
         'No se pudo comparar con el registro anterior en este momento.';
       setMensajeError(mensaje);
+      vibrarError();
+      reproducirSonido('error');
       mostrarAlerta('Error al comparar registros', mensaje, [
         { text: 'Entendido', style: 'cancel' },
       ]);

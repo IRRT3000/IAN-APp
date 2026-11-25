@@ -9,7 +9,7 @@ import { AccessibilityInfo } from 'react-native';
 import { act, render, renderHook } from '@testing-library/react-native';
 import * as Reanimated from 'react-native-reanimated';
 import { parse } from '@babel/parser';
-import { animarSegun, usePreferenciaMovimiento, __reiniciarMovimientoParaTests } from '../src/utils/movimiento';
+import { animarSegun, ConfigMovimientoReducido, usePreferenciaMovimiento, __reiniciarMovimientoParaTests } from '../src/utils/movimiento';
 import OnboardingBienvenidaModal from '../src/components/OnboardingBienvenidaModal';
 
 afterEach(() => {
@@ -31,16 +31,48 @@ describe('usePreferenciaMovimiento', () => {
     let oyente = null;
     const remove = jest.fn();
     jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(false);
-    jest.spyOn(AccessibilityInfo, 'addEventListener').mockImplementation((evento, fn) => {
+    const alta = jest.spyOn(AccessibilityInfo, 'addEventListener').mockImplementation((evento, fn) => {
       if (evento === 'reduceMotionChanged') oyente = fn;
       return { remove };
     });
-    const { result, unmount } = await renderHook(() => usePreferenciaMovimiento());
-    expect(result.current.reducir).toBe(false);
+    const uno = await renderHook(() => usePreferenciaMovimiento());
+    const dos = await renderHook(() => usePreferenciaMovimiento());
+    expect(uno.result.current.reducir).toBe(false);
+    // Una sola suscripción compartida (react-native-web guarda los oyentes por función).
+    expect(alta).toHaveBeenCalledTimes(1);
     await act(async () => oyente(true));
-    expect(result.current.reducir).toBe(true);
+    expect(uno.result.current.reducir).toBe(true);
+    expect(dos.result.current.reducir).toBe(true);
+    await act(async () => oyente(false));
+    expect(dos.result.current.reducir).toBe(false);
+    await uno.unmount();
+    await dos.unmount();
+    __reiniciarMovimientoParaTests();
+    expect(remove).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('ConfigMovimientoReducido (cambio en vivo, revisión B2)', () => {
+  test('pasa de Never a Always y de vuelta cuando cambia la preferencia', async () => {
+    let oyente = null;
+    jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(false);
+    jest.spyOn(AccessibilityInfo, 'addEventListener').mockImplementation((evento, fn) => {
+      if (evento === 'reduceMotionChanged') oyente = fn;
+      return { remove: jest.fn() };
+    });
+    const modos = [];
+    jest.spyOn(Reanimated, 'ReducedMotionConfig').mockImplementation(({ mode }) => {
+      modos.push(mode);
+      return null;
+    });
+    const { unmount } = await render(<ConfigMovimientoReducido />);
+    await act(async () => {});
+    expect(modos.at(-1)).toBe(Reanimated.ReduceMotion.Never);
+    await act(async () => oyente(true));
+    expect(modos.at(-1)).toBe(Reanimated.ReduceMotion.Always);
+    await act(async () => oyente(false));
+    expect(modos.at(-1)).toBe(Reanimated.ReduceMotion.Never);
     await unmount();
-    expect(remove).toHaveBeenCalled();
   });
 });
 
@@ -73,17 +105,23 @@ describe('regla estática: todo withRepeat está protegido por «reducir» (CA-2
     return e.isDirectory() ? listar(r) : /\.jsx?$/.test(e.name) ? [r] : [];
   });
 
-  test('cada llamada a withRepeat está dentro de un if cuya condición menciona reducir', () => {
+  test('cada llamada a withRepeat está dentro de un if (!reducir) o (!reducirRef.current)', () => {
     const sinProteger = [];
+    let encontrados = 0;
+    const CONDICIONES = ['!reducir', '!reducirRef.current'];
+    const esWithRepeat = (callee) =>
+      (callee.type === 'Identifier' && callee.name === 'withRepeat') ||
+      (callee.type === 'MemberExpression' && !callee.computed && callee.property.name === 'withRepeat');
     for (const archivo of listar('src')) {
       const codigo = fs.readFileSync(archivo, 'utf8');
-      if (!codigo.includes('withRepeat(')) continue;
+      if (!codigo.includes('withRepeat')) continue;
       const ast = parse(codigo, { sourceType: 'module', plugins: ['jsx'] });
       const pila = [];
       const recorrer = (n) => {
         if (!n || typeof n.type !== 'string') return;
-        if (n.type === 'CallExpression' && n.callee.name === 'withRepeat') {
-          const protegido = pila.some((p) => /reducir/i.test(codigo.slice(p.test.start, p.test.end)) && /^!/.test(codigo.slice(p.test.start, p.test.end).trim()));
+        if (n.type === 'CallExpression' && esWithRepeat(n.callee)) {
+          encontrados += 1;
+          const protegido = pila.some((p) => CONDICIONES.includes(codigo.slice(p.test.start, p.test.end).replace(/s+/g, '')));
           if (!protegido) sinProteger.push(`${archivo}:${n.loc.start.line}`);
         }
         const esIf = n.type === 'IfStatement';
@@ -104,6 +142,7 @@ describe('regla estática: todo withRepeat está protegido por «reducir» (CA-2
       };
       recorrer(ast.program);
     }
+    expect(encontrados).toBeGreaterThan(0);
     expect(sinProteger).toEqual([]);
   });
 });

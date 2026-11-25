@@ -70,7 +70,10 @@ export default function PanelConfiguracionLateral({
 
   const [montado, setMontado] = useState(visible);
   // Spec 024 (RF-5): interruptor de sonidos de la interfaz.
-  const [sonidosActivos, setSonidosActivosUI] = useState(() => obtenerSonidosActivos());
+  // null = sin cambio local: se lee del servicio en cada render, porque la preferencia guardada
+  // puede cargarse después de montar el panel.
+  const [sonidosActivosUI, setSonidosActivosUI] = useState(null);
+  const sonidosActivos = sonidosActivosUI ?? obtenerSonidosActivos();
   const alternarSonidos = async (valor) => {
     setSonidosActivosUI(valor);
     await establecerSonidosActivos(valor);
@@ -277,6 +280,7 @@ export default function PanelConfiguracionLateral({
               texto: 'Clave eliminada del dispositivo.',
             });
             vibrarConfirmacionBorrado();
+            reproducirSonido('borrado');
           },
         },
       ]

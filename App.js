@@ -16,6 +16,7 @@ import OnboardingBienvenidaModal from './src/components/OnboardingBienvenidaModa
 import PanelConfiguracionLateral from './src/components/PanelConfiguracionLateral';
 import RegionAnuncios from './src/components/base/RegionAnuncios';
 import { inicializarSonidos } from './src/services/sonidos';
+import { ConfigMovimientoReducido } from './src/utils/movimiento';
 import {
   PERFIL_USUARIO_BASE,
   alternarDiaDescanso,
@@ -441,6 +442,7 @@ export default function App() {
       <GestureHandlerRootView style={styles.contenedorRoot}>
         <AppPrincipal />
         <RegionAnuncios />
+        <ConfigMovimientoReducido />
       </GestureHandlerRootView>
     </SafeAreaProvider>
   );
