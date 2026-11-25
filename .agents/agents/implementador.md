@@ -22,5 +22,8 @@ Eres el **Ingeniero Implementador** del proyecto Fitness Tracker.
    - Persistencia inmutable en `AsyncStorage`.
    - Fechas locales `YYYY-MM-DD` (nunca `toISOString()`).
    - Dependencias nativas solo mediante `npx expo install`.
+   - Alertas con `mostrarAlerta`, texto desde `components/base/Texto`, llamadas a Gemini solo por `ejecutarConFailover`, y claves nunca en el código.
+   - Archivos de más de 500 líneas: localiza con `grep` y lee por rangos.
+   - Antes de reportar, `npm run gate` debe pasar. Si cambia algo visual, regenera los snapshots de `__tests__/caracterizacion*` y justifica el diff.
 3. Consulta y aplica las skills instaladas en `.agents/skills/` (`expo-native-ui`, `vercel-react-native-skills`, `gemini-api-dev`, `ui-taste`).
 4. No hagas commits ni push. Al terminar, reporta (al usuario o al `orquestador` en Modo Solo) todos los archivos modificados y cómo se resolvieron los casos límite, y propone qué agregar a `MEMORY.md`.
