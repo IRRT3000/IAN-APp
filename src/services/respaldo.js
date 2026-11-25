@@ -35,7 +35,10 @@ import { CLAVE_PREFERENCIAS } from './sonidos';
 export const APP_RESPALDO = 'mi-fitness-app';
 export const VERSION_RESPALDO = 1;
 export const MAX_BYTES_ARCHIVO = 50 * 1024 * 1024;
-export const MAX_BYTES_FOTO = 2 * 1024 * 1024;
+/** Por foto, medido en caracteres base64. Una foto de cámara a calidad 0.7 pesa de 1.5 a 4 MB (≈ 5.5 MB en base64). */
+export const MAX_BYTES_FOTO = 8 * 1024 * 1024;
+/** Presupuesto para las fotos al exportar: deja margen bajo MAX_BYTES_ARCHIVO para los datos. */
+export const PRESUPUESTO_FOTOS = 45 * 1024 * 1024;
 export const MAX_FOTOS = 2000;
 /** localStorage tiene ~5 MB por origen: se deja margen para lo que la app escriba después. */
 export const MAX_BYTES_WEB = 4 * 1024 * 1024;
@@ -44,7 +47,7 @@ const esLista = (v) => Array.isArray(v);
 const esObjeto = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const RE_DATA_URI = /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/;
 const RE_BASE64 = /^[A-Za-z0-9+/=]+$/;
-const RE_RUTA_FOTO = /^fotos\/[a-z0-9_-]{1,40}\/[a-z0-9_-]{1,80}\.jpg$/i;
+const RE_RUTA_FOTO = /^fotos\/[a-z0-9_-]{1,40}\/[a-z0-9_-]{1,80}\.jpg$/;
 
 const CLAVES_EXACTAS = {
   [STORAGE_KEY]: esLista,
@@ -96,11 +99,19 @@ const marcaCreado = (fecha = new Date()) =>
   `${obtenerFechaLocal(fecha)} ${dos(fecha.getHours())}:${dos(fecha.getMinutes())}`;
 
 /** Fotos nativas: recorre `fotos/<carpeta>/<archivo>.jpg` (Directory.list no es recursivo). */
+/**
+ * Fotos nativas: recorre `fotos/<carpeta>/<archivo>.jpg` (Directory.list no es recursivo).
+ * Aplica los MISMOS topes que la importación, para no crear nunca un respaldo que la app no pueda
+ * restaurar: una foto demasiado grande o que ya no cabe en el presupuesto se omite y se cuenta.
+ * @returns {Promise<{ fotos: Array<{ruta:string,base64:string}>, omitidas: number }>}
+ */
 const leerFotosNativas = async () => {
   const { Directory, File, Paths } = cargarFileSystem();
   const raiz = new Directory(Paths.document, 'fotos');
-  if (!raiz.exists) return [];
+  if (!raiz.exists) return { fotos: [], omitidas: 0 };
   const fotos = [];
+  let omitidas = 0;
+  let usado = 0;
   for (const carpeta of raiz.list()) {
     if (!(carpeta instanceof Directory)) continue;
     const nombreCarpeta = carpeta.name;
@@ -108,12 +119,22 @@ const leerFotosNativas = async () => {
       if (!(archivo instanceof File)) continue;
       const ruta = `fotos/${nombreCarpeta}/${archivo.name}`;
       if (!RE_RUTA_FOTO.test(ruta)) continue;
+      const estimado = Math.ceil(((archivo.size ?? 0) * 4) / 3);
+      if (fotos.length >= MAX_FOTOS || estimado > MAX_BYTES_FOTO || usado + estimado > PRESUPUESTO_FOTOS) {
+        omitidas += 1;
+        continue;
+      }
       // En secuencia a propósito: leerlas todas a la vez dispararía la memoria.
       const base64 = await archivo.base64();
+      if (base64.length > MAX_BYTES_FOTO || usado + base64.length > PRESUPUESTO_FOTOS) {
+        omitidas += 1;
+        continue;
+      }
+      usado += base64.length;
       fotos.push({ ruta, base64 });
     }
   }
-  return fotos;
+  return { fotos, omitidas };
 };
 
 /**
@@ -127,7 +148,8 @@ export const construirRespaldo = async ({ incluirFotos = false } = {}) => {
   pares.forEach(([clave, valor]) => {
     if (typeof valor === 'string') datos[clave] = valor;
   });
-  const fotos = incluirFotos && !esWeb() ? await leerFotosNativas() : [];
+  const { fotos, omitidas } =
+    incluirFotos && !esWeb() ? await leerFotosNativas() : { fotos: [], omitidas: 0 };
   return {
     app: APP_RESPALDO,
     version: VERSION_RESPALDO,
@@ -135,6 +157,8 @@ export const construirRespaldo = async ({ incluirFotos = false } = {}) => {
     plataforma: Platform.OS,
     datos,
     fotos,
+    // No viaja en el archivo: solo informa a quien exporta (se quita antes de serializar).
+    omitidas,
   };
 };
 
@@ -191,6 +215,8 @@ export const validarRespaldo = (objeto) => {
       if (typeof valor !== 'string' || !RE_DATA_URI.test(valor) || valor.length > MAX_BYTES_FOTO) {
         return fallo(ERRORES_RESPALDO.danado);
       }
+      // Las miniaturas web no sirven en nativo y gastarían la cuota de AsyncStorage de Android.
+      if (!esWeb()) continue;
       datos[clave] = valor;
       bytes += valor.length;
       continue;
@@ -250,6 +276,11 @@ const escribirFotosNativas = async (fotos) => {
 };
 
 export const MENSAJE_RESTAURACION_FALLIDA = 'No se pudo restaurar; tus datos siguen como estaban.';
+export const MENSAJE_SIN_ESPACIO =
+  'No hay espacio suficiente en este navegador para restaurar el respaldo; tus datos siguen como estaban. Prueba con un respaldo sin fotos.';
+
+const esErrorDeCuota = (error) =>
+  /quota|QuotaExceeded|NS_ERROR_DOM_QUOTA/i.test(`${error?.name || ''} ${error?.message || ''}`);
 
 /**
  * Reemplaza los datos actuales por los del respaldo validado.
@@ -266,12 +297,15 @@ export const restaurarRespaldo = async (validado) => {
   const actuales = (await AsyncStorage.getAllKeys()).filter((k) => esClavePermitida(k, { incluirFotos: true }));
   const copia = actuales.length ? await AsyncStorage.multiGet(actuales) : [];
   const nuevas = Object.keys(validado.datos);
-  const sobrantes = actuales.filter((k) => !nuevas.includes(k));
+  // Un respaldo SIN fotos no borra las miniaturas web actuales: quedan como en nativo, donde las
+  // fotos nunca se borran al restaurar (huérfanas e inofensivas).
+  const traeFotosWeb = nuevas.some(esClaveFotoWeb);
+  const sobrantes = actuales.filter((k) => !nuevas.includes(k) && (traeFotosWeb || !esClaveFotoWeb(k)));
 
   try {
     if (nuevas.length) await AsyncStorage.multiSet(nuevas.map((k) => [k, validado.datos[k]]));
     if (sobrantes.length) await AsyncStorage.multiRemove(sobrantes);
-  } catch {
+  } catch (errorEscritura) {
     try {
       const creadas = nuevas.filter((k) => !actuales.includes(k));
       if (creadas.length) await AsyncStorage.multiRemove(creadas);
@@ -280,7 +314,8 @@ export const restaurarRespaldo = async (validado) => {
     } catch {
       // Si incluso deshacer falla no hay más que hacer: el mensaje avisa al usuario.
     }
-    throw new Error(MENSAJE_RESTAURACION_FALLIDA);
+    // En web se escribe antes de borrar: el pico es lo actual más lo nuevo y puede llenar la cuota.
+    throw new Error(esErrorDeCuota(errorEscritura) ? MENSAJE_SIN_ESPACIO : MENSAJE_RESTAURACION_FALLIDA);
   }
 
   // El borrador pertenece al estado anterior: se borra solo cuando todo salió bien.
@@ -309,26 +344,44 @@ const descargarEnWeb = (texto, nombre) => {
 /**
  * Crea el respaldo y lo comparte (nativo) o lo descarga (web).
  * @param {{ incluirFotos?: boolean }} [opciones]
- * @returns {Promise<{ resumen: object }>}
+ * Nunca entrega un archivo que la propia app no pueda restaurar: lo valida con las mismas reglas.
+ * @returns {Promise<{ resumen: object, fotosOmitidas: number }>}
  */
 export const exportarRespaldo = async ({ incluirFotos = false } = {}) => {
-  const respaldo = await construirRespaldo({ incluirFotos });
+  const { omitidas, ...respaldo } = await construirRespaldo({ incluirFotos });
   const texto = JSON.stringify(respaldo);
+  const comprobado = validarRespaldo(JSON.parse(texto));
+  if (!comprobado.ok || texto.length > MAX_BYTES_ARCHIVO) {
+    throw new Error(
+      incluirFotos
+        ? 'El respaldo con fotos es demasiado grande. Exporta uno sin fotos.'
+        : 'No se pudo crear un respaldo válido de tus datos.'
+    );
+  }
   const nombre = nombreArchivoRespaldo();
   if (esWeb()) {
     descargarEnWeb(texto, nombre);
   } else {
     const { File, Paths } = cargarFileSystem();
     const archivo = new File(Paths.cache, nombre);
-    await archivo.write(texto);
-    const Sharing = require('expo-sharing');
-    await Sharing.shareAsync(archivo.uri, {
-      mimeType: 'application/json',
-      dialogTitle: 'Guardar respaldo',
-      UTI: 'public.json',
-    });
+    try {
+      await archivo.write(texto);
+      const Sharing = require('expo-sharing');
+      await Sharing.shareAsync(archivo.uri, {
+        mimeType: 'application/json',
+        dialogTitle: 'Guardar respaldo',
+        UTI: 'public.json',
+      });
+    } finally {
+      // El archivo lleva todos los datos: no se deja en la caché después de compartirlo.
+      try {
+        if (archivo.exists) archivo.delete();
+      } catch {
+        // la caché la limpia el sistema
+      }
+    }
   }
-  return { resumen: resumir(respaldo.datos, respaldo.fotos) };
+  return { resumen: comprobado.resumen, fotosOmitidas: omitidas };
 };
 
 const elegirArchivoWeb = () =>
@@ -336,8 +389,23 @@ const elegirArchivoWeb = () =>
     const entrada = document.createElement('input');
     entrada.type = 'file';
     entrada.accept = 'application/json,.json';
-    entrada.onchange = () => resolve(entrada.files?.[0] || null);
-    entrada.oncancel = () => resolve(null);
+    let resuelto = false;
+    const terminar = (archivo) => {
+      if (resuelto) return;
+      resuelto = true;
+      window.removeEventListener('focus', alVolver);
+      resolve(archivo);
+    };
+    // Navegadores sin evento `cancel` (Safari < 16.4): al volver el foco sin archivo, se da por cancelado.
+    // El retraso deja llegar antes el `change` cuando sí se eligió uno.
+    function alVolver() {
+      setTimeout(() => {
+        if (!entrada.files?.length) terminar(null);
+      }, 1000);
+    }
+    entrada.onchange = () => terminar(entrada.files?.[0] || null);
+    entrada.oncancel = () => terminar(null);
+    window.addEventListener('focus', alVolver);
     entrada.click();
   });
 

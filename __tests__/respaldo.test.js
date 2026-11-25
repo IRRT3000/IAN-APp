@@ -27,6 +27,12 @@ jest.mock('expo-file-system', () => {
     get exists() {
       return mockArchivos.has(this.uri);
     }
+    get size() {
+      return Math.floor(((mockArchivos.get(this.uri) || '').length * 3) / 4);
+    }
+    delete() {
+      mockArchivos.delete(this.uri);
+    }
     async base64() {
       return mockArchivos.get(this.uri);
     }
@@ -57,6 +63,13 @@ jest.mock('expo-file-system', () => {
   }
   return { File, Directory, Paths: { document: new Directory(mockRaiz), cache: new Directory('file:///cache') } };
 });
+
+const mockCompartidos = [];
+jest.mock('expo-sharing', () => ({
+  shareAsync: jest.fn(async (uri) => {
+    mockCompartidos.push({ uri, contenido: mockArchivos.get(uri) });
+  }),
+}));
 
 const respaldo = require('../src/services/respaldo');
 
@@ -308,6 +321,84 @@ describe('atomicidad (CA-8)', () => {
     await expect(respaldo.restaurarRespaldo(respaldo.validarRespaldo(nuevo))).rejects.toThrow();
     AsyncStorage.multiRemove.mockImplementation(original);
     expect(llamadas).toBe(2);
+    expect(await volcado()).toEqual(antes);
+  });
+});
+
+describe('correcciones de la revisión de código', () => {
+  const fotoDe = (megas) => 'A'.repeat(Math.ceil(megas * 1024 * 1024 * 4 / 3 / 4) * 4);
+
+  test('BLOQUEANTE: una foto real de 3 MB hace ida y vuelta completa', async () => {
+    await sembrar(DATOS_BASE);
+    const grande = fotoDe(3);
+    mockArchivos.set(`${mockRaiz}/fotos/comidas/1-a.jpg`, grande);
+    mockCompartidos.length = 0;
+    const { fotosOmitidas } = await respaldo.exportarRespaldo({ incluirFotos: true });
+    expect(fotosOmitidas).toBe(0);
+    const { uri, contenido } = mockCompartidos[0];
+    expect(mockArchivos.has(uri)).toBe(false); // no queda en la caché
+    mockArchivos.clear();
+    await AsyncStorage.clear();
+    const v = respaldo.validarRespaldo(JSON.parse(contenido));
+    expect(v.ok).toBe(true);
+    await respaldo.restaurarRespaldo(v);
+    expect(mockArchivos.get(`${mockRaiz}/fotos/comidas/1-a.jpg`)).toBe(grande);
+  });
+
+  test('BLOQUEANTE: al exportar se omiten (y cuentan) las fotos que no se podrían restaurar', async () => {
+    await sembrar(DATOS_BASE);
+    mockArchivos.set(`${mockRaiz}/fotos/comidas/1-enorme.jpg`, fotoDe(7)); // > 8 MB en base64
+    mockArchivos.set(`${mockRaiz}/fotos/comidas/2-normal.jpg`, 'QUJD');
+    mockCompartidos.length = 0;
+    const { fotosOmitidas } = await respaldo.exportarRespaldo({ incluirFotos: true });
+    expect(fotosOmitidas).toBe(1);
+    const enArchivo = JSON.parse(mockCompartidos[0].contenido);
+    expect(enArchivo.fotos.map((f) => f.ruta)).toEqual(['fotos/comidas/2-normal.jpg']);
+    expect(enArchivo.omitidas).toBeUndefined();
+    expect(respaldo.validarRespaldo(enArchivo).ok).toBe(true);
+  });
+
+  test('web: restaurar un respaldo SIN fotos conserva las miniaturas actuales', async () => {
+    Platform.OS = 'web';
+    await sembrar({ ...DATOS_BASE, [K.fotoWeb]: 'data:image/jpeg;base64,QUJD' });
+    await respaldo.restaurarRespaldo(respaldo.validarRespaldo(respaldoValido()));
+    expect((await volcado())[K.fotoWeb]).toBe('data:image/jpeg;base64,QUJD');
+  });
+
+  test('nativo: las miniaturas web de un respaldo hecho en web se ignoran', () => {
+    const v = respaldo.validarRespaldo(respaldoValido({ ...DATOS_BASE, [K.fotoWeb]: 'data:image/jpeg;base64,QUJD' }));
+    expect(v.ok).toBe(true);
+    expect(v.datos[K.fotoWeb]).toBeUndefined();
+  });
+
+  test('la preferencia de sonidos restaurada se aplica al releerla', async () => {
+    const sonidos = require('../src/services/sonidos');
+    await sembrar({ [K.preferencias]: JSON.stringify({ sonidos: true }) });
+    await sonidos.cargarPreferenciaSonidos();
+    expect(sonidos.obtenerSonidosActivos()).toBe(true);
+    await respaldo.restaurarRespaldo(respaldo.validarRespaldo(respaldoValido({ [K.preferencias]: '{"sonidos":false}' })));
+    await sonidos.cargarPreferenciaSonidos();
+    expect(sonidos.obtenerSonidosActivos()).toBe(false);
+  });
+
+  test('web: si se llena la cuota, el mensaje lo dice y los datos quedan como estaban', async () => {
+    await sembrar(DATOS_BASE);
+    const antes = await volcado();
+    const original = AsyncStorage.multiSet.getMockImplementation();
+    let llamadas = 0;
+    AsyncStorage.multiSet.mockImplementation(async (pares) => {
+      llamadas += 1;
+      if (llamadas === 1) {
+        const e = new Error('The quota has been exceeded.');
+        e.name = 'QuotaExceededError';
+        throw e;
+      }
+      return original(pares);
+    });
+    await expect(
+      respaldo.restaurarRespaldo(respaldo.validarRespaldo(respaldoValido({ [K.perfil]: '{}' })))
+    ).rejects.toThrow(respaldo.MENSAJE_SIN_ESPACIO);
+    AsyncStorage.multiSet.mockImplementation(original);
     expect(await volcado()).toEqual(antes);
   });
 });

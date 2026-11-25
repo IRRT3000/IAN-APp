@@ -54,10 +54,16 @@ export default function SeccionRespaldo({ onDatosRestaurados, onRestauradoIntern
   const exportar = async () => {
     if (!empezar('exportar')) return;
     try {
-      await exportarRespaldo({ incluirFotos });
+      const { fotosOmitidas = 0 } = (await exportarRespaldo({ incluirFotos })) || {};
       vibrarExito();
       reproducirSonido('exito');
       anunciar('Respaldo creado');
+      if (fotosOmitidas > 0) {
+        mostrarAlerta(
+          'Respaldo creado',
+          `${plural(fotosOmitidas, 'foto no cupo', 'fotos no cupieron')} en el respaldo por su tamaño. Todos tus registros sí se guardaron.`
+        );
+      }
     } catch (error) {
       avisarError('No se pudo crear el respaldo', error?.message || 'Intenta de nuevo.');
     } finally {
@@ -69,17 +75,29 @@ export default function SeccionRespaldo({ onDatosRestaurados, onRestauradoIntern
     if (!empezar('restaurar')) return;
     try {
       await restaurarRespaldo(validado);
-      if (typeof onRestauradoInterno === 'function') await onRestauradoInterno();
-      if (typeof onDatosRestaurados === 'function') await onDatosRestaurados();
-      vibrarExito();
-      reproducirSonido('exito');
-      anunciar('Respaldo restaurado');
-      mostrarAlerta('Respaldo restaurado', 'Tus datos se restauraron correctamente.');
     } catch (error) {
       avisarError('No se pudo restaurar', error?.message || 'Tus datos siguen como estaban.');
-    } finally {
       terminar();
+      return;
     }
+    // Los datos YA están escritos: si recargar la pantalla falla, no es un fallo de restauración.
+    let recargado = true;
+    try {
+      if (typeof onRestauradoInterno === 'function') await onRestauradoInterno();
+      if (typeof onDatosRestaurados === 'function') await onDatosRestaurados();
+    } catch {
+      recargado = false;
+    }
+    vibrarExito();
+    reproducirSonido('exito');
+    anunciar('Respaldo restaurado');
+    mostrarAlerta(
+      'Respaldo restaurado',
+      recargado
+        ? 'Tus datos se restauraron correctamente.'
+        : 'Tus datos se restauraron. Cierra y vuelve a abrir la app para verlos.'
+    );
+    terminar();
   };
 
   const restaurar = async () => {

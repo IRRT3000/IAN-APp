@@ -76,6 +76,30 @@ describe('SeccionRespaldo', () => {
     expect(onDatosRestaurados).toHaveBeenCalledTimes(1);
   });
 
+  test('si recargar la pantalla falla, avisa que sí se restauró y pide reabrir', async () => {
+    jest.spyOn(respaldo, 'elegirYLeerRespaldo').mockResolvedValue(VALIDADO);
+    jest.spyOn(respaldo, 'restaurarRespaldo').mockResolvedValue();
+    jest.spyOn(sonidos, 'reproducirSonido').mockImplementation(() => {});
+    const alerta = jest.spyOn(alertas, 'mostrarAlerta').mockImplementation(() => {});
+    await render(<SeccionRespaldo onDatosRestaurados={jest.fn(async () => { throw new Error('x'); })} />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Restaurar respaldo' }));
+    await act(async () => {});
+    await act(async () => {
+      await alerta.mock.calls[0][2].find((b) => b.text === 'Restaurar').onPress();
+    });
+    expect(alerta).toHaveBeenLastCalledWith('Respaldo restaurado', expect.stringContaining('vuelve a abrir la app'));
+  });
+
+  test('al exportar avisa cuántas fotos no cupieron', async () => {
+    jest.spyOn(respaldo, 'exportarRespaldo').mockResolvedValue({ resumen: {}, fotosOmitidas: 2 });
+    jest.spyOn(sonidos, 'reproducirSonido').mockImplementation(() => {});
+    const alerta = jest.spyOn(alertas, 'mostrarAlerta').mockImplementation(() => {});
+    await render(<SeccionRespaldo />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Exportar respaldo' }));
+    await act(async () => {});
+    expect(alerta).toHaveBeenCalledWith('Respaldo creado', expect.stringContaining('2 fotos no cupieron'));
+  });
+
   test('un respaldo inválido avisa con su error y no restaura nada', async () => {
     jest.spyOn(respaldo, 'elegirYLeerRespaldo').mockResolvedValue({ ok: false, error: 'Este archivo no es un respaldo de esta app.' });
     const restaurar = jest.spyOn(respaldo, 'restaurarRespaldo');
