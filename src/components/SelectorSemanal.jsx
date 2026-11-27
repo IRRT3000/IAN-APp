@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   contenedorIndicador: {
-    height: 12,
+    height: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 4,

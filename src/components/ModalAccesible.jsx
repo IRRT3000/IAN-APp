@@ -10,6 +10,10 @@ import { crearGestorModales } from '../utils/gestorModales';
  * En web: #root queda inert + aria-hidden mientras haya modales; el foco va al título del modal
  * (o al diálogo si no tiene) y vuelve al control que lo abrió; el modal superior monta su propia
  * región de anuncios, porque la de App.js queda dentro del #root inerte.
+ *
+ * El foco inicial se mueve en `onShow`: react-native-web solo activa la trampa de foco
+ * (ModalFocusTrap) del modal nuevo al terminar su animación; si se enfocara antes, la trampa del
+ * modal de debajo (p. ej. el catálogo bajo "Nuevo ejercicio") recuperaría el foco.
  */
 const esWeb = Platform.OS === 'web';
 
@@ -19,6 +23,7 @@ const gestor = crearGestorModales({
 });
 
 const enfocarDialogo = () => {
+  if (typeof document === 'undefined') return;
   const dialogos = document.querySelectorAll('[aria-modal="true"]');
   const dialogo = dialogos[dialogos.length - 1];
   if (!dialogo) return;
@@ -27,7 +32,7 @@ const enfocarDialogo = () => {
   destino.focus({ preventScroll: true });
 };
 
-function ModalAccesibleWeb({ visible, children, ...props }) {
+function ModalAccesibleWeb({ visible, children, onShow, ...props }) {
   const id = useId();
   const [esSuperior, setEsSuperior] = useState(false);
 
@@ -36,16 +41,20 @@ function ModalAccesibleWeb({ visible, children, ...props }) {
     const actualizar = () => setEsSuperior(gestor.esSuperior(id));
     const cancelar = gestor.suscribir(actualizar);
     gestor.abrir(id);
-    const temporizador = setTimeout(enfocarDialogo, 60);
     return () => {
-      clearTimeout(temporizador);
       cancelar();
+      setEsSuperior(false);
       gestor.cerrar(id);
     };
   }, [visible, id]);
 
+  const alMostrar = (...args) => {
+    enfocarDialogo();
+    if (typeof onShow === 'function') onShow(...args);
+  };
+
   return (
-    <Modal visible={visible} {...props}>
+    <Modal visible={visible} onShow={alMostrar} {...props}>
       {children}
       {visible && esSuperior ? <RegionAnuncios /> : null}
     </Modal>

@@ -29,14 +29,16 @@ export function etiquetaFecha(fechaLocal, { conAnio = true, conDiaSemana = true 
 
 /** Día del selector semanal: "viernes 27 de noviembre, hoy, con actividad". */
 export function etiquetaDiaSelector({ fecha, esHoy = false, tieneActividad = false }) {
-  const base = etiquetaFecha(fecha, { conAnio: false });
+  // Si la fecha no es válida se usa tal cual, para que el control nunca quede sin nombre.
+  const base = etiquetaFecha(fecha, { conAnio: false }) || String(fecha || '');
   if (!base) return '';
   return [base, esHoy && 'hoy', tieneActividad && 'con actividad'].filter(Boolean).join(', ');
 }
 
 /** Celda de calendario o heatmap: "viernes 27 de noviembre, hoy, actividad nivel 2 de 4". */
 export function etiquetaCeldaHeatmap({ fecha, nivel = 0, esHoy = false, esFutura = false }) {
-  const base = etiquetaFecha(fecha, { conAnio: false });
+  // Si la fecha no es válida se usa tal cual, para que el control nunca quede sin nombre.
+  const base = etiquetaFecha(fecha, { conAnio: false }) || String(fecha || '');
   if (!base) return '';
   if (esFutura) return `${base}, día futuro`;
   const nivelSeguro = Math.max(0, Math.min(4, Number(nivel) || 0));

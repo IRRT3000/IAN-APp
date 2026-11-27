@@ -928,7 +928,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -1060,7 +1060,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -1192,7 +1192,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -1324,7 +1324,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -1456,7 +1456,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -1588,7 +1588,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -1723,7 +1723,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) con 2 registros de hoy 1`]
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -4405,7 +4405,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -4537,7 +4537,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -4669,7 +4669,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -4804,7 +4804,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -4936,7 +4936,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -5068,7 +5068,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -5200,7 +5200,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) día pasado en modo solo l
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -6981,7 +6981,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -7113,7 +7113,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -7245,7 +7245,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -7377,7 +7377,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -7509,7 +7509,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -7641,7 +7641,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -7776,7 +7776,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) modal de báscula y hora a
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -11291,7 +11291,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -11423,7 +11423,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -11555,7 +11555,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -11687,7 +11687,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -11819,7 +11819,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -11951,7 +11951,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }
@@ -12086,7 +12086,7 @@ exports[`Caracterización CambioFisicoView (Spec 022) sin registros 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "height": 12,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginTop": 4,
                       }

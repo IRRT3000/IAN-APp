@@ -30,7 +30,8 @@ describe('etiquetasFecha (Spec 026, CA-4)', () => {
       'viernes 27 de noviembre, hoy, con actividad'
     );
     expect(etiquetaDiaSelector({ fecha: '2026-11-21' })).toBe('sábado 21 de noviembre');
-    expect(etiquetaDiaSelector({ fecha: 'x' })).toBe('');
+    expect(etiquetaDiaSelector({ fecha: 'x' })).toBe('x');
+    expect(etiquetaDiaSelector({ fecha: undefined })).toBe('');
   });
 
   test('celda de calendario: nivel, hoy y futuro', () => {
