@@ -175,7 +175,11 @@ export const estilosParte1 = {
   },
 
   chipObjetivo: {
-    flex: 1,
+    // Spec 026: ancho según la etiqueta para que "Recomposición" quepa con texto de 11 px.
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 'auto',
+    paddingHorizontal: 4,
     paddingVertical: 6,
     marginHorizontal: 2,
     borderRadius: TOKENS.radii.xs,
