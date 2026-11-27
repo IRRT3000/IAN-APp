@@ -4,7 +4,8 @@
  */
 import { Feather } from '@expo/vector-icons';
 import { MOMENTOS_DIA, PASOS_BASCULA } from './base';
-import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import ModalAccesible from '../ModalAccesible';
 import { Text } from '../base/Texto';
 import { TOKENS } from '../../theme/tokens';
 import { styles } from './estilos';
@@ -13,7 +14,7 @@ import { vibrarSeleccionBascula } from '../../services/haptics';
 export const crearRenderModalBascula = (ctx) => (...args) => {
   const { ajustarHora12, ajustarMinutos12, ajustarPesoBascula, alternarPeriodo12, analizando, confirmarYAnalizarCambioFisico, fotosSeleccionadas, hora12, minutos12, modalVisible, momentoDia, periodo12, pesoSeleccionadoKg, setModalVisible, setMomentoDia, textoDiferenciaBase } = ctx;
   const renderModalBascula = () => (
-        <Modal
+        <ModalAccesible
           visible={modalVisible}
           transparent
           statusBarTranslucent
@@ -209,7 +210,7 @@ export const crearRenderModalBascula = (ctx) => (...args) => {
               </ScrollView>
             </View>
           </View>
-        </Modal>
+        </ModalAccesible>
     );
   return renderModalBascula(...args);
 };

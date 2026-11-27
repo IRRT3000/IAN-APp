@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import {
-  Modal,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
+import ModalAccesible from './ModalAccesible';
 import { Text } from './base/Texto';
 import Animated, {
   Easing,
@@ -164,7 +164,7 @@ export default function DetalleSesionEstudioModal({
   };
 
   return (
-    <Modal
+    <ModalAccesible
       visible={visible}
       animationType="slide"
       transparent={false}
@@ -324,7 +324,7 @@ export default function DetalleSesionEstudioModal({
           <CapsulaBorradoSeguroSesion onBorrar={handleEjecutarBorrado} />
         </View>
       </View>
-    </Modal>
+    </ModalAccesible>
   );
 }
 
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     borderColor: '#2E2E2E',
   },
   textoBadgeCategoriaHero: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
   },
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   },
   labelMetrica: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
     marginBottom: 8,
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
   },
   labelSeccion: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
     marginBottom: 8,

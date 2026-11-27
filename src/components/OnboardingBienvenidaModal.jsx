@@ -1,7 +1,8 @@
 import Animated from 'react-native-reanimated';
 import { BotonInteractivo } from './onboarding/base';
 import { Feather } from '@expo/vector-icons';
-import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import ModalAccesible from './ModalAccesible';
 import { Text } from './base/Texto';
 import { TOKENS } from '../theme/tokens';
 import { styles } from './onboarding/estilos';
@@ -52,7 +53,7 @@ export default function OnboardingBienvenidaModal({
   Object.assign(ctxRender, { ajustarAnioInicio, ajustarAnioNacimiento, ajustarDiaInicio, ajustarDiaNacimiento, ajustarEstatura, ajustarMesInicio, ajustarMesNacimiento, ajustarPesoInicial, anioInicioSeguro, anioNac, bioBannerAnimStyle, bloque1AnimStyle, bloque2AnimStyle, bloque3AnimStyle, celebCheckAnimStyle, celebCtaAnimStyle, celebHeaderAnimStyle, celebRingAnimStyle, clasificacionImc, datosObjetivoActivo, diaInicioSeguro, diaSeguro, edadBadgeAnimStyle, edadCalculada, errorValidacion, esFechaInicioHoy, escena, estaturaCm, fechaInicioEntrenoEfectiva, fechaNacimientoYYYYMMDD, focoNombre, handleAvanzarPaso, handleFinalizarCelebracion, handleRetrocederPaso, heroBadgeAnimStyle, heroCtaAnimStyle, heroPilar1AnimStyle, heroPilar2AnimStyle, heroPilar3AnimStyle, heroRingMidStyle, heroRingOuterStyle, heroTitleAnimStyle, imcCalculado, imcFillAnimStyle, insets, mesInicioSeguro, mesNac, metricaCardAnimStyle, modoEdicion, nivelExperienciaIA, nombre, objetivo, objetivoBannerAnimStyle, onCerrar, pItem1Style, pItem2Style, pItem3Style, pItem4Style, pItem5Style, pItem6Style, pasaporteCardBorderStyle, perfilConsolidado, pesoInicialKg, resumenTiempoEntreno, seg1Style, seg2Style, seg3Style, seg4Style, seleccionarEmpeceHoy, seleccionarObjetivo, seleccionarSexo, setErrorValidacion, setFocoNombre, setNombre, sexo, timelineAnimStyle });
 
   return (
-    <Modal
+    <ModalAccesible
       visible={visible}
       animationType="fade"
       transparent={false}
@@ -135,6 +136,6 @@ export default function OnboardingBienvenidaModal({
 
         {escena === 5 && renderEscenaCelebracion()}
       </View>
-    </Modal>
+    </ModalAccesible>
   );
 }

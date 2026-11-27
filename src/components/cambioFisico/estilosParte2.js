@@ -19,7 +19,7 @@ export const estilosParte2 = {
 
   textoChipContexto: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
   },
 
@@ -35,7 +35,7 @@ export const estilosParte2 = {
 
   etiquetaVeredicto: {
     color: TOKENS.colors.textMuted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
@@ -47,7 +47,7 @@ export const estilosParte2 = {
   },
 
   escalaVeredicto: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     color: TOKENS.colors.textSecondary,
   },
@@ -76,7 +76,7 @@ export const estilosParte2 = {
 
   etiquetaBloque: {
     color: TOKENS.colors.textMuted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -105,7 +105,7 @@ export const estilosParte2 = {
 
   etiquetaBalanceDia: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
@@ -141,7 +141,7 @@ export const estilosParte2 = {
 
   tituloComparacionResultado: {
     color: TOKENS.colors.textPrimary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -156,7 +156,7 @@ export const estilosParte2 = {
 
   itemRecomendacion: {
     color: TOKENS.colors.textPrimary,
-    fontSize: 10,
+    fontSize: 11,
     lineHeight: 14,
   },
 
@@ -198,7 +198,7 @@ export const estilosParte2 = {
 
   textoPrimerRegistro: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
   },
 
@@ -324,7 +324,7 @@ export const estilosParte2 = {
 
   etiquetaInteriorBascula: {
     color: TOKENS.colors.textMuted,
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
@@ -350,7 +350,7 @@ export const estilosParte2 = {
 
   textoDiferenciaBascula: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '600',
   },
 
@@ -386,7 +386,7 @@ export const estilosParte2 = {
 
   etiquetaSeccionModal: {
     color: TOKENS.colors.textMuted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
     marginBottom: 8,
@@ -419,7 +419,7 @@ export const estilosParte2 = {
 
   textoFlechaTiempo: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
 

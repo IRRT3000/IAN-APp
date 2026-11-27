@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
   },
   textoBadgeGrupoTarjeta: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
@@ -752,7 +752,7 @@ const styles = StyleSheet.create({
   },
   textoBadgeImplementoTarjeta: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
   },
   nombreEjercicioTarjeta: {
@@ -803,7 +803,7 @@ const styles = StyleSheet.create({
   },
   textoBadgeSoloLecturaItem: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
   filaMetricasTarjeta: {
@@ -827,7 +827,7 @@ const styles = StyleSheet.create({
   },
   etiquetaMetrica: {
     color: TOKENS.colors.textMuted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
@@ -876,7 +876,7 @@ const styles = StyleSheet.create({
   },
   numeroSerieChip: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     marginRight: 4,
   },

@@ -4,7 +4,6 @@ import {
   AppState,
   KeyboardAvoidingView,
   Linking,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -16,6 +15,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import ModalAccesible from './ModalAccesible';
 import { Text, TextInput } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import {
@@ -383,7 +383,7 @@ export default function PanelConfiguracionLateral({
   };
 
   return (
-    <Modal
+    <ModalAccesible
       visible={montado}
       transparent
       statusBarTranslucent
@@ -630,6 +630,7 @@ export default function PanelConfiguracionLateral({
                       />
 
                       <TextInput
+                        accessibilityLabel="Clave de API de Gemini"
                         style={styles.inputTexto}
                         value={claveInput}
                         onChangeText={(texto) => {
@@ -881,7 +882,7 @@ export default function PanelConfiguracionLateral({
           </GestureDetector>
         </View>
       </GestureHandlerRootView>
-    </Modal>
+    </ModalAccesible>
   );
 }
 
@@ -998,7 +999,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   etiquetaPasaporteDrawer: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.9,
     color: TOKENS.colors.textMuted,
@@ -1019,7 +1020,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   textoBadgeObjetivoPasaporte: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.5,
     color: TOKENS.colors.textSecondary,
@@ -1049,7 +1050,7 @@ const styles = StyleSheet.create({
     color: TOKENS.colors.textPrimary,
   },
   etiquetaMetricaPasaporte: {
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
     color: TOKENS.colors.textMuted,
@@ -1130,7 +1131,7 @@ const styles = StyleSheet.create({
     borderColor: TOKENS.colors.borderDefault,
   },
   textoBadgeByok: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.5,
     color: TOKENS.colors.textSecondary,
@@ -1163,7 +1164,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   textoMicroBadgeKeystore: {
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
     color: '#00E676',
@@ -1177,7 +1178,7 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   etiquetaCampo: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
     color: TOKENS.colors.textSecondary,
@@ -1335,7 +1336,7 @@ const styles = StyleSheet.create({
     color: TOKENS.colors.textPrimary,
   },
   subtituloAiStudio: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     letterSpacing: 0.5,
     color: TOKENS.colors.textMuted,
@@ -1392,7 +1393,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   tituloSeguridad: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
     color: TOKENS.colors.textPrimary,
@@ -1406,13 +1407,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0, 230, 118, 0.25)',
   },
   textoBadgeHardware: {
-    fontSize: 7,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.5,
     color: '#00E676',
   },
   textoPrivacidad: {
-    fontSize: 10,
+    fontSize: 11,
     lineHeight: 14,
     color: TOKENS.colors.textSecondary,
   },
@@ -1425,7 +1426,7 @@ const styles = StyleSheet.create({
   },
   textoCreditos: {
     flex: 1,
-    fontSize: 10,
+    fontSize: 11,
     lineHeight: 14,
     color: TOKENS.colors.textMuted,
     textDecorationLine: 'underline',

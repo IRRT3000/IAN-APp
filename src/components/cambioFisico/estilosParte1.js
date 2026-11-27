@@ -39,7 +39,7 @@ export const estilosParte1 = {
 
   textoBadgeSoloLecturaItem: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
 
@@ -97,7 +97,7 @@ export const estilosParte1 = {
 
   etiquetaPasaporteBio: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
@@ -115,7 +115,7 @@ export const estilosParte1 = {
 
   textoBotonEditarPerfilBio: {
     color: TOKENS.colors.textPrimary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
 
@@ -139,7 +139,7 @@ export const estilosParte1 = {
 
   etiquetaBio: {
     color: TOKENS.colors.textMuted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.4,
   },
@@ -153,7 +153,7 @@ export const estilosParte1 = {
 
   subvalorBio: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     marginTop: 1,
   },
 
@@ -163,7 +163,7 @@ export const estilosParte1 = {
 
   etiquetaObjetivo: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     marginBottom: 6,
     letterSpacing: 0.4,
@@ -194,7 +194,7 @@ export const estilosParte1 = {
   },
 
   textoChipObjetivo: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
 
@@ -320,7 +320,7 @@ export const estilosParte1 = {
 
   textoBadgeIndice: {
     color: '#FFFFFF',
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
   },
 

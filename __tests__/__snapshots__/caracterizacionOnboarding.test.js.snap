@@ -167,7 +167,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 style={
                   {
                     "color": "#0A0A0A",
-                    "fontSize": 10,
+                    "fontSize": 11,
                     "fontWeight": "800",
                     "letterSpacing": 1.3,
                   }
@@ -786,7 +786,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               style={
                 {
                   "color": "#898989",
-                  "fontSize": 10,
+                  "fontSize": 11,
                   "fontWeight": "700",
                   "letterSpacing": 1.2,
                   "marginBottom": 2,
@@ -963,7 +963,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 10,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1.3,
                       "textTransform": "uppercase",
@@ -1024,7 +1024,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       style={
                         {
                           "color": "#8E8E93",
-                          "fontSize": 10.5,
+                          "fontSize": 11,
                           "fontWeight": "700",
                           "letterSpacing": 1.1,
                           "textTransform": "uppercase",
@@ -1089,6 +1089,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       
                     </Text>
                     <TextInput
+                      accessibilityLabel="Nombre o alias, opcional"
                       maxFontSizeMultiplier={1.4}
                       maxLength={40}
                       onBlur={[Function]}
@@ -1134,7 +1135,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 10.5,
+                      "fontSize": 11,
                       "fontWeight": "700",
                       "letterSpacing": 1.1,
                       "textTransform": "uppercase",
@@ -1539,7 +1540,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       style={
                         {
                           "color": "#FFFFFF",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "800",
                           "letterSpacing": 0.9,
                           "marginBottom": 2,
@@ -1594,7 +1595,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     style={
                       {
                         "color": "#8E8E93",
-                        "fontSize": 10.5,
+                        "fontSize": 11,
                         "fontWeight": "700",
                         "letterSpacing": 1.1,
                         "textTransform": "uppercase",
@@ -1646,7 +1647,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       style={
                         {
                           "color": "#8E8E93",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "700",
                           "letterSpacing": 1.1,
                         }
@@ -1857,7 +1858,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       style={
                         {
                           "color": "#8E8E93",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "700",
                           "letterSpacing": 1.1,
                         }
@@ -1973,7 +1974,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         style={
                           {
                             "color": "#898989",
-                            "fontSize": 10,
+                            "fontSize": 11,
                             "fontVariant": [
                               "tabular-nums",
                             ],
@@ -2083,7 +2084,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       style={
                         {
                           "color": "#8E8E93",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "700",
                           "letterSpacing": 1.1,
                         }
@@ -2630,7 +2631,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               style={
                 {
                   "color": "#898989",
-                  "fontSize": 10,
+                  "fontSize": 11,
                   "fontWeight": "700",
                   "letterSpacing": 1.2,
                   "marginBottom": 2,
@@ -2807,7 +2808,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 10,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1.3,
                       "textTransform": "uppercase",
@@ -2869,7 +2870,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         style={
                           {
                             "color": "#8E8E93",
-                            "fontSize": 10.5,
+                            "fontSize": 11,
                             "fontWeight": "700",
                             "letterSpacing": 1.1,
                             "textTransform": "uppercase",
@@ -3306,7 +3307,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         style={
                           {
                             "color": "#8E8E93",
-                            "fontSize": 10.5,
+                            "fontSize": 11,
                             "fontWeight": "700",
                             "letterSpacing": 1.1,
                             "textTransform": "uppercase",
@@ -3917,7 +3918,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         style={
                           {
                             "color": "#8E8E93",
-                            "fontSize": 10,
+                            "fontSize": 11,
                             "fontWeight": "700",
                             "letterSpacing": 1,
                             "marginBottom": 4,
@@ -3964,7 +3965,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         style={
                           {
                             "color": "#8E8E93",
-                            "fontSize": 10,
+                            "fontSize": 11,
                             "fontWeight": "700",
                             "letterSpacing": 1,
                             "marginBottom": 4,
@@ -4011,7 +4012,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         style={
                           {
                             "color": "#8E8E93",
-                            "fontSize": 10,
+                            "fontSize": 11,
                             "fontWeight": "700",
                             "letterSpacing": 1,
                             "marginBottom": 4,
@@ -4078,7 +4079,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       style={
                         {
                           "color": "#FFFFFF",
-                          "fontSize": 10.5,
+                          "fontSize": 11,
                           "fontWeight": "800",
                           "letterSpacing": 0.7,
                         }
@@ -4091,7 +4092,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       style={
                         {
                           "color": "#898989",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "700",
                           "letterSpacing": 1,
                         }
@@ -4370,7 +4371,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               style={
                 {
                   "color": "#898989",
-                  "fontSize": 10,
+                  "fontSize": 11,
                   "fontWeight": "700",
                   "letterSpacing": 1.2,
                   "marginBottom": 2,
@@ -4547,7 +4548,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 10,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1.3,
                       "textTransform": "uppercase",
@@ -4714,7 +4715,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                     style={
                       {
                         "color": "#8E8E93",
-                        "fontSize": 10.5,
+                        "fontSize": 11,
                         "fontWeight": "700",
                         "letterSpacing": 1.1,
                         "textTransform": "uppercase",
@@ -4766,7 +4767,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       style={
                         {
                           "color": "#8E8E93",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "700",
                           "letterSpacing": 1.1,
                         }
@@ -4977,7 +4978,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       style={
                         {
                           "color": "#8E8E93",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "700",
                           "letterSpacing": 1.1,
                         }
@@ -5093,7 +5094,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         style={
                           {
                             "color": "#898989",
-                            "fontSize": 10,
+                            "fontSize": 11,
                             "fontVariant": [
                               "tabular-nums",
                             ],
@@ -5203,7 +5204,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       style={
                         {
                           "color": "#8E8E93",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "700",
                           "letterSpacing": 1.1,
                         }
@@ -5449,7 +5450,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       style={
                         {
                           "color": "#8E8E93",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "800",
                           "letterSpacing": 1.1,
                         }
@@ -5496,7 +5497,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                         style={
                           {
                             "color": "#0A0A0A",
-                            "fontSize": 10,
+                            "fontSize": 11,
                             "fontVariant": [
                               "tabular-nums",
                             ],
@@ -5830,7 +5831,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
               style={
                 {
                   "color": "#898989",
-                  "fontSize": 10,
+                  "fontSize": 11,
                   "fontWeight": "700",
                   "letterSpacing": 1.2,
                   "marginBottom": 2,
@@ -6007,7 +6008,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 10,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1.3,
                       "textTransform": "uppercase",
@@ -6188,7 +6189,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                                 [
                                   {
                                     "color": "#898989",
-                                    "fontSize": 9.5,
+                                    "fontSize": 11,
                                     "fontWeight": "800",
                                     "letterSpacing": 1,
                                   },
@@ -6370,7 +6371,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                                 [
                                   {
                                     "color": "#898989",
-                                    "fontSize": 9.5,
+                                    "fontSize": 11,
                                     "fontWeight": "800",
                                     "letterSpacing": 1,
                                   },
@@ -6558,7 +6559,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                                 [
                                   {
                                     "color": "#898989",
-                                    "fontSize": 9.5,
+                                    "fontSize": 11,
                                     "fontWeight": "800",
                                     "letterSpacing": 1,
                                   },
@@ -6772,7 +6773,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                                 [
                                   {
                                     "color": "#898989",
-                                    "fontSize": 9.5,
+                                    "fontSize": 11,
                                     "fontWeight": "800",
                                     "letterSpacing": 1,
                                   },
@@ -6907,7 +6908,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                       style={
                         {
                           "color": "#FFFFFF",
-                          "fontSize": 10.5,
+                          "fontSize": 11,
                           "fontWeight": "800",
                           "letterSpacing": 0.9,
                         }
@@ -7203,7 +7204,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 style={
                   {
                     "color": "#0A0A0A",
-                    "fontSize": 10,
+                    "fontSize": 11,
                     "fontWeight": "800",
                     "letterSpacing": 1.3,
                   }
@@ -7276,7 +7277,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#898989",
-                      "fontSize": 9.5,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1.2,
                       "marginBottom": 3,
@@ -7339,7 +7340,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#FFFFFF",
-                      "fontSize": 10,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1,
                     }
@@ -7387,7 +7388,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 9.5,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1,
                     }
@@ -7440,7 +7441,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 9.5,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1,
                     }
@@ -7507,7 +7508,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 9.5,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1,
                     }
@@ -7560,7 +7561,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 9.5,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1,
                     }
@@ -7613,7 +7614,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 9.5,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1,
                     }
@@ -7680,7 +7681,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 9.5,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1,
                     }
@@ -7744,7 +7745,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 style={
                   {
                     "color": "#8E8E93",
-                    "fontSize": 10,
+                    "fontSize": 11,
                     "fontWeight": "800",
                     "letterSpacing": 1.1,
                   }
@@ -7969,7 +7970,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
               style={
                 {
                   "color": "#898989",
-                  "fontSize": 10,
+                  "fontSize": 11,
                   "fontWeight": "700",
                   "letterSpacing": 1.2,
                   "marginBottom": 2,
@@ -8146,7 +8147,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 10,
+                      "fontSize": 11,
                       "fontWeight": "800",
                       "letterSpacing": 1.3,
                       "textTransform": "uppercase",
@@ -8207,7 +8208,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       style={
                         {
                           "color": "#8E8E93",
-                          "fontSize": 10.5,
+                          "fontSize": 11,
                           "fontWeight": "700",
                           "letterSpacing": 1.1,
                           "textTransform": "uppercase",
@@ -8272,6 +8273,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       
                     </Text>
                     <TextInput
+                      accessibilityLabel="Nombre o alias, opcional"
                       maxFontSizeMultiplier={1.4}
                       maxLength={40}
                       onBlur={[Function]}
@@ -8378,7 +8380,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                   style={
                     {
                       "color": "#8E8E93",
-                      "fontSize": 10.5,
+                      "fontSize": 11,
                       "fontWeight": "700",
                       "letterSpacing": 1.1,
                       "textTransform": "uppercase",
@@ -8783,7 +8785,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       style={
                         {
                           "color": "#FFFFFF",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "800",
                           "letterSpacing": 0.9,
                           "marginBottom": 2,
@@ -8838,7 +8840,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                     style={
                       {
                         "color": "#8E8E93",
-                        "fontSize": 10.5,
+                        "fontSize": 11,
                         "fontWeight": "700",
                         "letterSpacing": 1.1,
                         "textTransform": "uppercase",
@@ -8890,7 +8892,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       style={
                         {
                           "color": "#8E8E93",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "700",
                           "letterSpacing": 1.1,
                         }
@@ -9101,7 +9103,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       style={
                         {
                           "color": "#8E8E93",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "700",
                           "letterSpacing": 1.1,
                         }
@@ -9217,7 +9219,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                         style={
                           {
                             "color": "#898989",
-                            "fontSize": 10,
+                            "fontSize": 11,
                             "fontVariant": [
                               "tabular-nums",
                             ],
@@ -9327,7 +9329,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo edición: ar
                       style={
                         {
                           "color": "#8E8E93",
-                          "fontSize": 10,
+                          "fontSize": 11,
                           "fontWeight": "700",
                           "letterSpacing": 1.1,
                         }

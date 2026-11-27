@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
   textoEtiquetaVeredicto: {
     ...TOKENS.typography.labelCategory,
     color: TOKENS.colors.textSecondary,
-    fontSize: 9,
+    fontSize: 11,
   },
   displayPuntaje: {
     flexDirection: 'row',
@@ -769,7 +769,7 @@ const styles = StyleSheet.create({
   tituloSeccion: {
     ...TOKENS.typography.labelCategory,
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
   },
 
   /* Temas por Repasar */
@@ -810,7 +810,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   textoBadgeComprension: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.3,
   },
@@ -956,7 +956,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   textoPie: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '500',
     color: TOKENS.colors.textMuted,
   },
@@ -971,7 +971,7 @@ const styles = StyleSheet.create({
     borderColor: TOKENS.colors.borderSubtle,
   },
   textoBadgeHistorialLectura: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     color: TOKENS.colors.textMuted,
   },

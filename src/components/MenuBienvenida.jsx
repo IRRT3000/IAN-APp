@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   textoInsignia: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
   },
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   etiquetaPasaporte: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.9,
     color: TOKENS.colors.textMuted,
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   textoAccionPasaporte: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     color: TOKENS.colors.textSecondary,
     letterSpacing: 0.3,
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
     borderColor: TOKENS.colors.borderDefault,
   },
   textoBadgeUltimo: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
     color: TOKENS.colors.textPrimary,

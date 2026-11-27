@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  Modal,
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import ModalAccesible from '../ModalAccesible';
 import { Text } from '../base/Texto';
 import { Feather } from '@expo/vector-icons';
 import { formatearFechaLegible } from '../../utils/dateUtilsLocal';
@@ -51,7 +51,7 @@ export default function DaySummaryModal({
   const estiloNivel = PALETA_NIVELES_VASO[nivel] || PALETA_NIVELES_VASO[0];
 
   return (
-    <Modal
+    <ModalAccesible
       visible={visible}
       transparent={true}
       statusBarTranslucent
@@ -280,7 +280,7 @@ export default function DaySummaryModal({
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
-    </Modal>
+    </ModalAccesible>
   );
 }
 
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   },
   etiquetaVaso: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
   },
   textoInsignia: {
     color: '#0A0A0A',
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.5,
   },

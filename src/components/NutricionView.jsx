@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
   },
   etiquetaTotalPrincipal: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
   },
   etiquetaMacro: {
     color: TOKENS.colors.textMuted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.4,
   },
@@ -750,7 +750,7 @@ const styles = StyleSheet.create({
   },
   etiquetaSeccion: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
     marginBottom: 8,
@@ -891,7 +891,7 @@ const styles = StyleSheet.create({
   },
   textoBadgeTipoComida: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
   },
@@ -937,7 +937,7 @@ const styles = StyleSheet.create({
   },
   textoBadgeSoloLecturaItem: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
   descripcionComida: {
@@ -982,7 +982,7 @@ const styles = StyleSheet.create({
   },
   etiquetaDetallesIA: {
     color: TOKENS.colors.textMuted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
   },

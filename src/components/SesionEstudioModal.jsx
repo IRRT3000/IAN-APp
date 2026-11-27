@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
-  Modal,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
+import ModalAccesible from './ModalAccesible';
 import { Text, TextInput } from './base/Texto';
 import { mostrarAlerta } from '../utils/alertUtils';
 import { Feather } from '@expo/vector-icons';
@@ -186,7 +186,7 @@ export default function SesionEstudioModal({
   };
 
   return (
-    <Modal
+    <ModalAccesible
       visible={visible}
       animationType="slide"
       transparent={false}
@@ -289,6 +289,7 @@ export default function SesionEstudioModal({
               <View style={styles.panelNuevaMateriaEnLinea}>
                 <Text style={styles.subtituloNuevaMateria}>CREAR MATERIA RÁPIDA</Text>
                 <TextInput
+                  accessibilityLabel="Nombre de la nueva materia"
                   style={styles.inputNombreMateria}
                   placeholder="Nombre de la materia (ej. Cálculo)"
                   placeholderTextColor={TOKENS.colors.textMuted}
@@ -374,6 +375,7 @@ export default function SesionEstudioModal({
               </Text>
             </View>
             <TextInput
+              accessibilityLabel="Tema estudiado"
               style={[styles.inputTexto, errores.tema && styles.inputConError]}
               placeholder="¿Qué estudiaste específicamente?"
               placeholderTextColor={TOKENS.colors.textMuted}
@@ -467,6 +469,7 @@ export default function SesionEstudioModal({
                   style={{ marginRight: 4 }}
                 />
                 <TextInput
+                  accessibilityLabel="Minutos, otro valor"
                   style={styles.inputMinutosManual}
                   placeholder="Otro"
                   placeholderTextColor={TOKENS.colors.textMuted}
@@ -488,6 +491,7 @@ export default function SesionEstudioModal({
               </Text>
             </View>
             <TextInput
+              accessibilityLabel="Apuntes de la sesión"
               style={[
                 styles.inputTextArea,
                 errores.apuntes && styles.inputConError,
@@ -571,7 +575,7 @@ export default function SesionEstudioModal({
           </View>
         )}
       </View>
-    </Modal>
+    </ModalAccesible>
   );
 }
 
@@ -632,7 +636,7 @@ const styles = StyleSheet.create({
   },
   labelCampo: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
@@ -702,7 +706,7 @@ const styles = StyleSheet.create({
   },
   subtituloNuevaMateria: {
     color: TOKENS.colors.textMuted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
   },

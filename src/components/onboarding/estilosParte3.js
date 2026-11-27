@@ -14,7 +14,7 @@ export const estilosParte3 = {
 
   geminiCalibrationTitle: {
     color: TOKENS.colors.textPrimary,
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.9,
   },
@@ -102,7 +102,7 @@ export const estilosParte3 = {
 
   passportSerialLabel: {
     color: TOKENS.colors.textMuted,
-    fontSize: 9.5,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.2,
     marginBottom: 3,
@@ -128,7 +128,7 @@ export const estilosParte3 = {
 
   passportStatusText: {
     color: TOKENS.colors.textPrimary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
   },
@@ -152,7 +152,7 @@ export const estilosParte3 = {
 
   passportCellLabel: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 9.5,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
   },
@@ -182,7 +182,7 @@ export const estilosParte3 = {
 
   passportFooterText: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.1,
   },

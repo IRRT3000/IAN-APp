@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
   },
   tituloLeyenda: {
     color: TOKENS.colors.textMuted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
     marginBottom: 8,
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   },
   textoExtremoLeyenda: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     marginHorizontal: 6,
   },
