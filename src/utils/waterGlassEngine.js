@@ -64,7 +64,7 @@ export const PALETA_NIVELES_VASO = {
   0: {
     fondo: '#141414',
     borde: '#222222',
-    texto: '#666666',
+    texto: '#898989',
     etiqueta: '0% Vacío',
     descripcion: 'Sin actividad',
   },

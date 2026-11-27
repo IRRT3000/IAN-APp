@@ -1,28 +1,40 @@
 # MEMORY.md — Fitness Tracker & Nutritional AI
 Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o eliminar lo obsoleto.
 
-## Estado Actual
-- Versión v2.2.0 (build 7) — Release Multiplataforma (Spec 019: Web PWA & iOS) y Análisis Nutricional IA (Spec 018).
-- Specs completadas: 001 a 011, 013 a 019.
-- Spec 019 COMPLETADA & EN MAIN: Soporte Multiplataforma iOS / Web PWA y Android en main y GitHub. Dependencias react-dom, react-native-web y @expo/metro-runtime. Fallback web en apiKeyStorage.js con clave en AsyncStorage, puente alertUtils.js para Web, PWA standalone en app.json, script build:web, vercel.json configurado y probado para despliegue estático, workflow GitHub Actions. Puerta de calidad en verde (18 suites, 168 tests).
-- Spec 018 COMPLETADA: Análisis Nutricional Contextual y de Alta Precisión. Modal de preparación con texto opcional y vista previa compacta (135dp), botón "Analizar con IA" sticky/fijo en footer Thumb-Zone visible sin scroll incluso con teclado abierto, directiva de verdad base cuantitativa en prompt Gemini, modal de revisión con edición manual de macros 2x2, función pura `sanearValoresComida` y guardado atómico con hápticos.
-- Metro Config: `metro.config.js` con middleware para resolución de assets en enlaces cruzados NTFS (`unstable_path`).
-- Spec 012 (IA por Supabase + login OTP) ARCHIVADA: rama `spec/012-acceso-ia-seguro`. App opera en BYOK.
-- Spec 015 completada: Pestaña Estudio reemplaza a Heatmap en la barra (Heatmap accesible desde Inicio), materias Escuela/Personal y sesiones con campos obligatorios, partición mensual `@fitness_tracker_sesiones_estudio_v1:YYYY-MM`, cola serial de escritura y borrado sostenido de 1000ms.
-- Spec 016 completada: Resumen pedagógico del día de estudio generado por Gemini con BYOK. Análisis manual, 1 por día en «hoy» (`@fitness_tracker_resumen_estudio_v1:YYYY-MM-DD`), candado de módulo `analisisEnCurso`, verificación de medianoche, histórico 7 días, `ResumenEstudioCard.jsx` y normalizador tolerante de JSON.
-- Spec 017 COMPLETADA: Seguridad API Key Gemini con `expo-secure-store` (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`, `configureAndroidBackup`). Erradicación de `EXPO_PUBLIC_GEMINI_API_KEY`, envío por encabezado `x-goog-api-key`, migración transparente desde AsyncStorage, barrera en `bundle-check.js`, bloqueo de `RECORD_AUDIO`/`SYSTEM_ALERT_WINDOW` y refinamiento Dark Luxury OLED del Drawer.
-- Ecosistema MCP & Skills: Configurados MCPs en `.agents/mcp_config.json` (`expo`, `react-native-app`, `android-adb`, `github`) y Skills instaladas (`argent-*`, `react-native-best-practices`, `github-actions`, `eas-*`, `jest`).
-- Drawer de Configuración: Resuelto desbordamiento con `useWindowDimensions`, `flex: 1` e inoperancia táctil en Android (`activeOffsetX(25)`, `cancelsTouchesInView(false)`).
-- Live Mode & Modales Thumb-Zone: Acciones primarias (54dp) al alcance del pulgar; touch targets >= 44x44pt; modales con `onRequestClose` para botón Atrás en Android.
-- Erradicación 100% de Emojis: Cero glifos en UI, alertas y catálogo; uso exclusivo de `@expo/vector-icons` (`Feather`).
-- Sistema de Tokens (`src/theme/tokens.js`): Paleta `#0A0A0A`/`#141414`/`#262626`, `touchTarget` y `safeArea`.
-- Reparto de roles: Claude Code planifica y revisa; Antigravity implementa y diseña; cualquiera asume todos los roles si el otro agota tokens.
+## Estado Actual (2026-11-24)
+- `main` y Vercel (`ian-app`) siguen en v2.2.0 (build 7). Hay trabajo **sin fusionar** en la rama `claude/app-analysis-improvements-52feef` (Specs 020–024).
+- Specs completadas: 001–011, 013–019; 020–025 con `CODIGO_APROBADO`. Release de prueba v2.3.0 (build 8) publicada desde la rama, sin fusionar a `main`. La 012 está archivada: la app es BYOK por decisión del dueño (Q16).
+- **020 Seguridad:** CSP y cabeceras en `vercel.json`, `public/index.html` (`lang="es"`) y manifiesto PWA. `scripts/test-gate.js` existe porque Jest ignoraba los worktrees. SDK 58.0.26 y `npm audit` en 0 altas. Fotos permanentes en `fotosStorage.js` (`foto-doc:` en nativo, `foto-local:` en web con tope de 80). Los guardados lanzan el error en vez de devolver `[]`.
+- **021 Gemini:** un único motor `ejecutarConFailover` con reintentos, tope de 90 s, `thinkingLevel: 'low'` y mensajes claros. Cadena: `3.5-flash-lite` → `3.6-flash` → `3-flash-preview`. Con clave gratuita, Flash-Lite acertó 10/12 dentro de los rangos USDA.
+- **022 Refactor:** Onboarding 3015 → 133 líneas y CambioFisico 2191 → 76, con hooks y renders en `onboarding/` y `cambioFisico/`. El DOM es idéntico, verificado por hash, y hay 12 snapshots de caracterización.
+- **023 Accesibilidad:** 0 táctiles sin nombre o rol (test AST); `textMuted` en `#898989` (AA); anuncios con `anunciar`/`RegionAnuncios`; `base/Texto` limita la escala de letra a 1.4×; acción accesible «Borrar».
+- **024 Movimiento y feedback:** `usePreferenciaMovimiento` (una suscripción compartida) y `<ConfigMovimientoReducido/>` en `App.js`, que aplica el cambio en vivo a todas las animaciones; hápticos de éxito y error; 5 sonidos sintetizados (`expo-audio` sin micrófono) con interruptor en Configuración. Q14 (opacidad de pulsación) está **pendiente** de que el usuario vea un video.
+- **025 Respaldo:** `services/respaldo.js` + `SeccionRespaldo` en Configuración. Lista cerrada de claves (nunca la API key), validación de archivos no confiables, restauración atómica con vuelta atrás y fotos opcionales con topes (8 MB por foto, 45 MB en total). Usa `expo-sharing` y `File.pickFileAsync`.
+- **Pendiente del usuario:**
+  - aceptar la enmienda de CA-4 de la 020 (parche de SDK);
+  - probar en Android (caché de fotos, TalkBack, «Quitar animaciones», sonidos);
+  - rotar la API key compartida en el chat;
+  - confirmar si la fecha por defecto `2010-11-26` es intencional.
 
 ## Decisiones Técnicas Clave
-- Puerta de Calidad (`npm run gate`): Valida en serie `lint` (código 0, sin errores), `test` (`jest --ci` con 17 suites, 161 tests) y `bundle:check` (`expo export --platform android` con escaneo de secretos limpiando `.bundle-check/` en `finally`).
-- Seguridad de Claves: La API key nunca se incrusta en código ni viaja en query params (`?key=`). Solo reside en SecureStore protegida contra backups.
-- Safe Areas Resilientes (`useSafeInsets.js`): Pisos mínimos obligatorios (`top >= 28` Android / `20` iOS; `bottom >= 12` Android / `20` iOS).
-- Ergonomía Thumb-Zone: Acciones primarias y guardado en la mitad inferior; cabeceras despejadas solo para cancelación/cierre e insignias.
-- Persistencia inmutable en AsyncStorage: Registros con fechas locales `YYYY-MM-DD` (`obtenerFechaLocal()`). Prohibido `toISOString()`.
-- Claves mensuales de estudio: `@fitness_tracker_sesiones_estudio_v1:YYYY-MM` para prevenir desbordes de CursorWindow (~2 MB) en Android.
-- Claves inmutables por fecha de resumen: `@fitness_tracker_resumen_estudio_v1:YYYY-MM-DD` previene duplicados y sobrecosto BYOK.
+- **Puerta de calidad** (`npm run gate`): lint → `test-gate` (falla si no corre ninguna suite) → `bundle:check`.
+- **Claves:** nunca en el código ni en la URL. En nativo, SecureStore; en web, AsyncStorage protegido por la CSP (`connect-src` solo permite Gemini).
+- **Gemini con clave gratuita:**
+  - Las peticiones con imagen dan 503/429 con frecuencia: usar Flash-Lite con reintentos.
+  - Gemini 4 necesita facturación.
+  - `3.8-flash`/`3.7-flash` siguen prohibidos (503).
+- **Fechas:** siempre locales `YYYY-MM-DD` (`obtenerFechaLocal()`). Prohibido `toISOString()`.
+- **Persistencia:** inmutable, con claves mensuales para estudio (CursorWindow). Las fotos nunca van dentro de las listas.
+- **Componentes partidos (Spec 022):**
+  - Los renders se invocan como funciones con `ctxRender`.
+  - `contextoRender.test.js` vigila que el contexto esté completo.
+  - Cualquier cambio visual debe actualizar los snapshots y justificar el diff.
+- **Accesibilidad:**
+  - Todo táctil lleva `accessibilityLabel` + `accessibilityRole`.
+  - Los radios y casillas usan `aria-checked`; las pestañas, `aria-selected`.
+  - El texto se importa de `components/base/Texto`, no de `react-native`.
+- **Alertas:** usar siempre `mostrarAlerta` (`Alert.alert` no muestra nada en web).
+- **Tests de componentes:** importar `test-utils/setupComponentes`, con RNTL 14 (API async) y el resolver de Jest de Reanimated.
+- **UI:** cero emojis, iconos `Feather`, tokens Dark Luxury OLED. Objetivos táctiles ≥ 44 pt y acciones primarias en la zona del pulgar.
+- **Archivos de más de 500 líneas** (storage.js, PanelConfiguracionLateral, gemini.js): localizar con `grep` y leer por rangos.
+- **Reparto de roles:** Claude Code planifica y revisa; Antigravity implementa. Cualquiera de los dos asume todos los roles si el otro no está disponible.

@@ -1,14 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   FlatList,
-  Image,
   Platform,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Text } from './base/Texto';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -18,6 +16,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import SelectorSemanal from './SelectorSemanal';
 import ModalAnalisisComida from './ModalAnalisisComida';
+import FotoPersistida from './FotoPersistida';
+import { eliminarFoto, persistirFoto } from '../services/fotosStorage';
 import { mostrarAlerta } from '../utils/alertUtils';
 import {
   cargarComidas,
@@ -29,8 +29,11 @@ import {
   vibrarConfirmacionBorrado,
   vibrarInicioPresionBorrado,
   vibrarSeleccionBascula,
+  vibrarExito,
 } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
+import { anunciar } from '../utils/accesibilidad';
+import { reproducirSonido } from '../services/sonidos';
 
 const TIPOS_COMIDA = ['Desayuno', 'Comida', 'Cena', 'Snack'];
 const DURACION_PULSACION_BORRADO_MS = 1000;
@@ -47,6 +50,7 @@ function CapsulaBorradoSeguroNutricion({ onBorrar, onAvisoCorto }) {
     timerRef.current = setTimeout(() => {
       presionadoLargoRef.current = true;
       vibrarConfirmacionBorrado();
+      reproducirSonido('borrado');
       onBorrar();
       progreso.value = withTiming(0, { duration: 150 });
     }, DURACION_PULSACION_BORRADO_MS);
@@ -70,6 +74,11 @@ function CapsulaBorradoSeguroNutricion({ onBorrar, onAvisoCorto }) {
 
   return (
     <TouchableOpacity
+      accessibilityRole="button" accessibilityLabel="Borrar comida" accessibilityHint="Mantén pulsado un segundo para borrar, o usa la acción Borrar del lector de pantalla"
+      accessibilityActions={[{ name: 'borrar', label: 'Borrar' }]}
+      onAccessibilityAction={(evento) => {
+        if (evento.nativeEvent.actionName === 'borrar') onBorrar();
+      }}
       activeOpacity={0.9}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -181,7 +190,7 @@ export default function NutricionView({
         setComidasInternas(listaActualizada);
       }
     } catch (error) {
-      Alert.alert(
+      mostrarAlerta(
         'Error al eliminar',
         error?.message || 'No se pudo eliminar la comida.',
         [{ text: 'Entendido', style: 'cancel' }]
@@ -218,7 +227,7 @@ export default function NutricionView({
   const tomarFoto = async () => {
     const tienePermiso = await solicitarPermisoCamara();
     if (!tienePermiso) {
-      Alert.alert(
+      mostrarAlerta(
         'Permiso denegado',
         'Se necesita acceso a la cámara para capturar tus platos.'
       );
@@ -257,7 +266,11 @@ export default function NutricionView({
   };
 
   const handleGuardarComidaDesdeModal = async (comidaNormalizada) => {
+    let uriFotoPersistida = '';
+    let comidaGuardada = false;
     try {
+      // Copia la foto a almacenamiento permanente antes de guardar (Spec 020, plan §6).
+      uriFotoPersistida = await persistirFoto(borradorFoto?.uri || '', 'comidas');
       const nuevaComida = {
         tipo: tipoSeleccionado,
         nombre: comidaNormalizada.nombre,
@@ -272,13 +285,16 @@ export default function NutricionView({
           grasas: comidaNormalizada.grasas,
         },
         detalles: comidaNormalizada.detalles,
-        uriFoto: borradorFoto?.uri || '',
-        fotoUri: borradorFoto?.uri || '',
+        uriFoto: uriFotoPersistida,
+        fotoUri: uriFotoPersistida,
         fecha: obtenerFechaLocal(),
       };
 
       const listaActualizada = await guardarComida(nuevaComida);
-      vibrarConfirmacionBorrado();
+      comidaGuardada = true;
+      anunciar('Comida guardada en tu día');
+      vibrarExito();
+      reproducirSonido('exito');
       setFechaSeleccionada(obtenerFechaLocal());
 
       if (typeof onComidaRegistrada === 'function') {
@@ -290,7 +306,11 @@ export default function NutricionView({
       setModalAnalisisVisible(false);
       setBorradorFoto(null);
     } catch (error) {
-      Alert.alert(
+      // Solo si la comida NO se guardó, la foto recién persistida queda sin dueño y se borra.
+      if (!comidaGuardada && uriFotoPersistida && uriFotoPersistida !== borradorFoto?.uri) {
+        eliminarFoto(uriFotoPersistida);
+      }
+      mostrarAlerta(
         'Error al guardar',
         error?.message || 'No se pudo guardar la comida.',
         [{ text: 'Entendido', style: 'cancel' }]
@@ -313,6 +333,7 @@ export default function NutricionView({
 
         {/* Insignia de Calibración Biométrica IA (Spec 010) */}
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel="Editar perfil biométrico"
           style={styles.insigniaCalibracionIA}
           activeOpacity={typeof onAbrirEdicionPerfil === 'function' ? 0.8 : 1}
           disabled={typeof onAbrirEdicionPerfil !== 'function'}
@@ -404,6 +425,7 @@ export default function NutricionView({
                 const activo = tipoSeleccionado === tipo;
                 return (
                   <TouchableOpacity
+                    accessibilityRole="radio" accessibilityLabel={`Tipo de comida: ${tipo}`} aria-checked={activo}
                     key={tipo}
                     style={[
                       styles.botonTipoComida,
@@ -430,6 +452,7 @@ export default function NutricionView({
 
           <View style={styles.seccionAcciones}>
             <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Escanear comida con la cámara"
               style={[styles.botonCaptura, styles.botonCamara]}
               onPress={tomarFoto}
               disabled={modalAnalisisVisible}
@@ -445,6 +468,7 @@ export default function NutricionView({
             </TouchableOpacity>
 
             <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Elegir foto de comida de la galería"
               style={[styles.botonCaptura, styles.botonGaleria]}
               onPress={seleccionarDeGaleria}
               disabled={modalAnalisisVisible}
@@ -514,8 +538,8 @@ export default function NutricionView({
 
               <View style={styles.cuerpoTarjetaComida}>
                 {foto ? (
-                  <Image
-                    source={{ uri: foto }}
+                  <FotoPersistida
+                    uri={foto}
                     style={styles.miniaturaComida}
                     resizeMode="cover"
                   />

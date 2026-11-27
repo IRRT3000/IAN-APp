@@ -3,10 +3,10 @@ import {
   Modal,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Text } from './base/Texto';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -22,6 +22,7 @@ import {
 } from '../services/haptics';
 import { formatearFechaLegible } from '../utils/dateUtilsLocal';
 import { useSafeInsets } from '../utils/useSafeInsets';
+import { reproducirSonido } from '../services/sonidos';
 
 const DURACION_PULSACION_BORRADO_MS = 1000;
 
@@ -79,6 +80,7 @@ function CapsulaBorradoSeguroSesion({ onBorrar }) {
     timerRef.current = setTimeout(() => {
       completadoRef.current = true;
       vibrarConfirmacionBorrado();
+      reproducirSonido('borrado');
       progreso.value = withTiming(0, { duration: 150 });
       if (typeof onBorrar === 'function') {
         onBorrar();
@@ -107,7 +109,12 @@ function CapsulaBorradoSeguroSesion({ onBorrar }) {
       onPressOut={handlePressOut}
       style={styles.botonBorradoContenedor}
       accessibilityRole="button"
-      accessibilityLabel="Mantén presionado un segundo para eliminar la sesión"
+      accessibilityLabel="Eliminar sesión"
+      accessibilityHint="Mantén pulsado un segundo para eliminar, o usa la acción Eliminar del lector de pantalla"
+      accessibilityActions={[{ name: 'borrar', label: 'Eliminar' }]}
+      onAccessibilityAction={(evento) => {
+        if (evento.nativeEvent.actionName === 'borrar' && typeof onBorrar === 'function') onBorrar();
+      }}
     >
       <Animated.View style={[styles.barraProgresoFill, estiloProgreso]} />
       <View style={styles.contenidoBorrado}>

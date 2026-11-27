@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './base/Texto';
 import {
   obtenerDiasConActividad,
   obtenerFechaLocal,

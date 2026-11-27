@@ -102,7 +102,7 @@ describe('Gemini Estudio (Spec 016)', () => {
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    test('failover: si el primer modelo responde 503, se intenta el segundo y retorna su resultado (CA-5)', async () => {
+    test('saturación: ante un 503 reintenta el MISMO modelo con espera y retorna su resultado (Spec 021, CA-5b)', async () => {
       const jsonValidoGemini = {
         resumenSimple: 'Buen avance en cálculo.',
         resumenDetallado:
@@ -122,7 +122,7 @@ describe('Gemini Estudio (Spec 016)', () => {
           status: 503,
           text: async () => 'Service Unavailable',
         })
-        // 2do intento (modelo respaldo): 200 OK con respuesta estructurada
+        // 2do intento (mismo modelo, tras espera): 200 OK con respuesta estructurada
         .mockResolvedValueOnce({
           ok: true,
           status: 200,
@@ -140,16 +140,20 @@ describe('Gemini Estudio (Spec 016)', () => {
       global.fetch = mockFetch;
 
       const eventosProgreso = [];
+      const esperas = [];
       const respuesta = await analizarEstudioDelDiaConGemini(contextoBase, {
         onProgreso: (p) => eventosProgreso.push(p),
+        entorno: { esperar: async (ms) => esperas.push(ms), aleatorio: () => 0.5 },
       });
 
       expect(mockFetch).toHaveBeenCalledTimes(2);
       expect(respuesta.resultado.veredicto).toBe(8.5);
       expect(respuesta.resultado.minutosTotales).toBe(50);
       expect(respuesta.modeloUsado).toBe('gemini-3.5-flash-lite');
-      expect(eventosProgreso.length).toBe(2);
-      expect(eventosProgreso[1].falloAnterior?.status).toBe(503);
+      expect(esperas).toEqual([1000]);
+      expect(eventosProgreso).toHaveLength(2);
+      expect(eventosProgreso[1]).toMatchObject({ reintento: 1, motivo: 'SATURACION' });
+      expect(eventosProgreso[1].falloAnterior).toBeUndefined();
     });
 
     test('failover ante JSON malformado o sin veredicto numérico (Defensa 4 & CA-7)', async () => {
@@ -196,9 +200,13 @@ describe('Gemini Estudio (Spec 016)', () => {
 
       global.fetch = mockFetch;
 
-      const respuesta = await analizarEstudioDelDiaConGemini(contextoBase);
+      // Respuesta incompleta: no se reintenta el mismo modelo, se pasa al siguiente (Spec 021, RF-2).
+      const respuesta = await analizarEstudioDelDiaConGemini(contextoBase, {
+        entorno: { esperar: async () => {} },
+      });
       expect(mockFetch).toHaveBeenCalledTimes(2);
       expect(respuesta.resultado.veredicto).toBe(7.5);
+      expect(respuesta.modeloUsado).toBe('gemini-3.6-flash');
     });
 
     test('lanza GeminiError con fallos acumulados si todos los modelos fallan (CA-5)', async () => {
@@ -210,9 +218,13 @@ describe('Gemini Estudio (Spec 016)', () => {
 
       global.fetch = mockFetch;
 
-      await expect(
-        analizarEstudioDelDiaConGemini(contextoBase)
-      ).rejects.toThrow(GeminiError);
+      const promesa = analizarEstudioDelDiaConGemini(contextoBase, {
+        entorno: { esperar: async () => {}, aleatorio: () => 0.5 },
+      });
+      await expect(promesa).rejects.toThrow(GeminiError);
+      await expect(promesa).rejects.toThrow('Gemini está saturado en este momento');
+      // 3 modelos × (1 intento + 2 reintentos por saturación)
+      expect(mockFetch).toHaveBeenCalledTimes(9);
     });
   });
 });

@@ -2,15 +2,16 @@
  * Servicio Multimodal Gemini Vision para análisis nutricional y de cambio físico.
  * Lee la clave de API desde el almacenamiento seguro del dispositivo (BYOK),
  * y el modelo desde process.env.EXPO_PUBLIC_GEMINI_MODEL.
- * Modelos de respaldo: process.env.EXPO_PUBLIC_GEMINI_FALLBACK_MODELS (por defecto 'gemini-3.5-flash-lite').
+ * Modelos de respaldo: process.env.EXPO_PUBLIC_GEMINI_FALLBACK_MODELS (por defecto MODELOS_RESPALDO_DEFAULT).
  *
- * NOTA CRÍTICA (RF-1): Cualquier variante 3.8 de Gemini está estrictamente prohibida
- * y se filtra automáticamente aunque figure en variables de entorno (.env).
+ * NOTA CRÍTICA (RF-1, Spec 002): Cualquier variante 3.8 de Gemini está prohibida y se filtra
+ * aunque figure en variables de entorno. Re-probada el 2026-11-23: sigue devolviendo 503.
  *
- * Estrategia de resiliencia (failover):
- *   principal -> respaldo -> error final al usuario.
- *   Cualquier fallo de un modelo (503, 429, 5xx, 404, timeout, red, JSON inválido)
- *   pasa inmediatamente al siguiente. Cada petición tiene un máximo de 60 s.
+ * Estrategia de resiliencia (Spec 021): un único motor `ejecutarConFailover`.
+ *   - Saturación (5xx/red): hasta 2 reintentos en el mismo modelo con espera exponencial.
+ *   - Límite (429): 1 reintento solo si el servidor pide ≤ 10 s; si no, siguiente modelo.
+ *   - Clave inválida o contenido bloqueado: se corta la cadena.
+ *   - Toda la operación dura como máximo 90 s; el usuario ve una frase clara, nunca códigos.
  */
 
 import {
@@ -40,8 +41,12 @@ const construirEncabezados = (apiKey) => ({
 });
 
 export const TIMEOUT_POR_PETICION_MS = 60000;
-export const MODELO_PRINCIPAL_DEFAULT = 'gemini-3-flash-preview';
-export const MODELOS_RESPALDO_DEFAULT = ['gemini-3.5-flash-lite'];
+/** Máximo de caracteres de la descripción opcional de una comida que se envía a Gemini (Spec 020, RF-6). */
+export const LIMITE_DESCRIPCION_COMIDA = 500;
+// Spec 021 (2026-11-23): con clave gratuita, 3.5 Flash-Lite acertó 6/6 fotos dentro del rango USDA en ~1.6 s;
+// los demás modelos quedaron limitados por 429/503. Respaldos: 3.6 Flash y 3-flash-preview.
+export const MODELO_PRINCIPAL_DEFAULT = 'gemini-3.5-flash-lite';
+export const MODELOS_RESPALDO_DEFAULT = ['gemini-3.6-flash', 'gemini-3-flash-preview'];
 
 /**
  * Verifica si un identificador de modelo corresponde a la familia prohibida (RF-1).
@@ -196,14 +201,17 @@ export const construirPromptAltaPrecision = (
 ) => {
   const {
     sexo = PERFIL_USUARIO_BASE.sexo,
-    edadTexto = '15 años',
+    edadTexto = 'edad no especificada',
     alturaCm = PERFIL_USUARIO_BASE.alturaCm,
     pesoKgActual = PERFIL_USUARIO_BASE.pesoKgActual,
     tiempoEntrenandoTexto = 'En progreso',
     objetivo = PERFIL_USUARIO_BASE.objetivo,
   } = contextoPerfil || {};
 
-  const textoUsuarioLimpio = String(descripcionUsuario || '').trim();
+  // Recorte por puntos de código (Array.from) para no partir emojis ni caracteres compuestos (Spec 020, RF-6).
+  const textoUsuarioLimpio = Array.from(String(descripcionUsuario || '').trim())
+    .slice(0, LIMITE_DESCRIPCION_COMIDA)
+    .join('');
   const bloqueContextoUsuario =
     textoUsuarioLimpio.length > 0
       ? `\nCONTEXTO Y DETALLES ESPECIFICADOS POR EL USUARIO:\n"${textoUsuarioLimpio}"\n\nDIRECTIVA CRÍTICA DE PRIORIDAD CUANTITATIVA:\n1. Si el usuario especificó cantidades, pesos (ej. gramos, mililitros, piezas) o ingredientes concretos en la descripción, toma esos datos como la VERDAD BASE INMUTABLE y no los contradigas por la perspectiva o ángulo de la foto.\n2. Utiliza la fotografía para identificar ingredientes secundarios no mencionados (guarniciones, aderezos, aceites visibles), evaluar el método de preparación observable y complementar el análisis.\n3. Calcula las calorías y macronutrientes asegurando coherencia termodinámica con las cantidades declaradas por el usuario.\n`
@@ -251,8 +259,8 @@ Donde "calorias", "proteinas", "carbohidratos" y "grasas" sean números (enteros
  */
 const construirPromptCambioFisico = (contexto, cantidadFotos) => {
   const {
-    edadTexto = '15 años',
-    fechaNacimiento = '26/11/2010',
+    edadTexto = 'edad no especificada',
+    fechaNacimiento = 'no especificada',
     tiempoEntrenandoTexto = 'En progreso',
     fechaInicioEntreno = '01/11/2025',
     alturaCm = PERFIL_USUARIO_BASE.alturaCm,
@@ -432,7 +440,55 @@ Devuelve ÚNICAMENTE un objeto JSON válido (sin bloques markdown ni texto adici
 };
 
 /**
- * Ejecuta una llamada genérica a un modelo de Gemini con soporte para 0, 1 o múltiples imágenes Base64.
+ * Nivel de razonamiento ("thinking") por caso de uso (Spec 021, RF-4).
+ * Los modelos Flash 3.x cobran el razonamiento como salida; 'low' reduce costo y latencia.
+ */
+export const NIVEL_RAZONAMIENTO = {
+  comida: 'low',
+  fisico: 'low',
+  comparacion: 'low',
+  estudio: 'low',
+};
+
+/** Tope de tokens de salida para que el razonamiento no se coma la respuesta (RF-7). */
+export const MAX_TOKENS_SALIDA = 4096;
+
+/** Política de reintentos (Spec 021, RF-2). */
+export const POLITICA_REINTENTOS = {
+  reintentosSaturacion: 2,
+  baseMs: 1000,
+  factor: 2,
+  jitter: 0.3,
+  maxRetryDelayMs: 10000,
+  presupuestoTotalMs: 90000,
+  minimoRestanteMs: 5000,
+};
+
+const FINISH_REASONS_BLOQUEO = new Set([
+  'SAFETY',
+  'RECITATION',
+  'PROHIBITED_CONTENT',
+  'BLOCKLIST',
+  'SPII',
+]);
+
+/** Modelos que rechazaron `thinkingConfig` en esta sesión: no se les vuelve a enviar (RF-4). */
+const modelosSinRazonamiento = new Set();
+
+/** Solo para pruebas: limpia el estado de módulo entre tests. */
+export const __reiniciarEstadoGeminiParaTests = () => {
+  modelosSinRazonamiento.clear();
+};
+
+const convertirRetryDelayAMs = (valor) => {
+  const coincidencia = /^(\d+(?:\.\d+)?)s$/.exec(String(valor || '').trim());
+  return coincidencia ? Math.round(Number(coincidencia[1]) * 1000) : null;
+};
+
+/**
+ * Ejecuta UNA petición a un modelo concreto (Spec 021, plan §1).
+ * Lanza GeminiError con `status` (HTTP o 'TIMEOUT' | 'RED' | 'VACIO' | 'JSON' | 'CORTADO' | 'SEGURIDAD'),
+ * `detalle` (cuerpo de error completo), `reason` y `retryDelayMs` cuando el servidor los indica.
  */
 const ejecutarLlamadaGemini = async ({
   modelo,
@@ -441,6 +497,7 @@ const ejecutarLlamadaGemini = async ({
   imagenesBase64 = [],
   temperature = 0.15,
   timeoutMs = TIMEOUT_POR_PETICION_MS,
+  nivelRazonamiento = null,
 }) => {
   const endpoint = `${GEMINI_API_BASE_URL}/${modelo}:generateContent`;
 
@@ -451,16 +508,18 @@ const ejecutarLlamadaGemini = async ({
     },
   }));
 
+  const generationConfig = {
+    response_mime_type: 'application/json',
+    temperature,
+    maxOutputTokens: MAX_TOKENS_SALIDA,
+  };
+  if (nivelRazonamiento) {
+    generationConfig.thinkingConfig = { thinkingLevel: nivelRazonamiento };
+  }
+
   const payload = {
-    contents: [
-      {
-        parts: [{ text: promptTexto }, ...partesImagen],
-      },
-    ],
-    generationConfig: {
-      response_mime_type: 'application/json',
-      temperature,
-    },
+    contents: [{ parts: [{ text: promptTexto }, ...partesImagen] }],
+    generationConfig,
   };
 
   const controlador = new AbortController();
@@ -477,10 +536,9 @@ const ejecutarLlamadaGemini = async ({
       });
     } catch (errorRed) {
       if (errorRed?.name === 'AbortError') {
-        throw new GeminiError(
-          `sin respuesta en ${Math.round(timeoutMs / 1000)} s`,
-          { status: 'TIMEOUT' }
-        );
+        throw new GeminiError(`sin respuesta en ${Math.round(timeoutMs / 1000)} s`, {
+          status: 'TIMEOUT',
+        });
       }
       throw new GeminiError('fallo de red', { status: 'RED' });
     }
@@ -488,20 +546,45 @@ const ejecutarLlamadaGemini = async ({
     if (!response.ok) {
       const textoError = await response.text();
       let mensajeServidor = textoError;
+      let reason = null;
+      let retryDelayMs = null;
       try {
-        mensajeServidor = JSON.parse(textoError)?.error?.message || textoError;
+        const cuerpo = JSON.parse(textoError)?.error || {};
+        mensajeServidor = cuerpo.message || textoError;
+        for (const detalle of Array.isArray(cuerpo.details) ? cuerpo.details : []) {
+          const tipo = String(detalle?.['@type'] || '');
+          if (tipo.endsWith('ErrorInfo') && detalle.reason) reason = detalle.reason;
+          if (tipo.endsWith('RetryInfo')) retryDelayMs = convertirRetryDelayAMs(detalle.retryDelay);
+        }
       } catch {
         // cuerpo no JSON: se usa el texto tal cual
       }
-      throw new GeminiError(String(mensajeServidor).slice(0, 200), {
+      const error = new GeminiError(String(mensajeServidor).slice(0, 200), {
         status: response.status,
       });
+      error.detalle = String(textoError);
+      error.reason = reason;
+      error.retryDelayMs = retryDelayMs;
+      throw error;
     }
 
     const data = await response.json();
+
+    if (data?.promptFeedback?.blockReason) {
+      throw new GeminiError('contenido bloqueado', { status: 'SEGURIDAD' });
+    }
+    const candidato = data?.candidates?.[0];
+    if (FINISH_REASONS_BLOQUEO.has(candidato?.finishReason)) {
+      throw new GeminiError('respuesta bloqueada', { status: 'SEGURIDAD' });
+    }
+    if (candidato?.finishReason === 'MAX_TOKENS') {
+      throw new GeminiError('respuesta cortada', { status: 'CORTADO' });
+    }
+
     const textoRespuesta =
-      data?.candidates?.[0]?.content?.parts
-        ?.map((part) => part.text || '')
+      candidato?.content?.parts
+        ?.filter((part) => part?.thought !== true)
+        .map((part) => part.text || '')
         .join('')
         .trim() || '';
 
@@ -526,59 +609,227 @@ const ejecutarLlamadaGemini = async ({
 };
 
 /**
- * Ejecuta UNA petición de análisis nutricional a un modelo concreto con límite de tiempo.
+ * Clasifica un fallo en su clase de reintento (Spec 021, RF-2).
+ * @param {GeminiError} error
+ * @returns {'SATURACION'|'LIMITE'|'TIMEOUT'|'INCOMPLETA'|'CLAVE'|'PERMISO'|'SEGURIDAD'|'RAZONAMIENTO_NO_SOPORTADO'|'OTRO'}
  */
-const solicitarAnalisis = async ({
-  modelo,
+export const clasificarFallo = (error) => {
+  const status = error?.status;
+  const detalle = String(error?.detalle || error?.message || '');
+  if (status === 401) return 'CLAVE';
+  if (status === 400) {
+    if (error?.reason === 'API_KEY_INVALID' || /api key/i.test(detalle)) return 'CLAVE';
+    if (/thinking[_ ]?(config|level)|thinkingLevel/i.test(detalle)) return 'RAZONAMIENTO_NO_SOPORTADO';
+    return 'OTRO';
+  }
+  if (status === 403) return 'PERMISO';
+  if (status === 429) return 'LIMITE';
+  if ([500, 502, 503, 504, 'RED'].includes(status)) return 'SATURACION';
+  if (status === 'TIMEOUT') return 'TIMEOUT';
+  if (['JSON', 'VACIO', 'CORTADO'].includes(status)) return 'INCOMPLETA';
+  if (status === 'SEGURIDAD') return 'SEGURIDAD';
+  return 'OTRO';
+};
+
+const MENSAJES_POR_CLASE = {
+  CLAVE: 'Tu clave de Gemini no es válida o no tiene permiso. Revísala en Configuración.',
+  PERMISO: 'Tu clave de Gemini no es válida o no tiene permiso. Revísala en Configuración.',
+  LIMITE:
+    'Llegaste al límite de uso de tu clave de Gemini. Espera un minuto o revisa tu plan en Google AI Studio.',
+  SATURACION: 'Gemini está saturado en este momento. Inténtalo de nuevo en unos minutos.',
+  TIMEOUT: 'Gemini está saturado en este momento. Inténtalo de nuevo en unos minutos.',
+  INCOMPLETA: 'Gemini devolvió una respuesta incompleta. Inténtalo de nuevo.',
+  OTRO: 'No se pudo completar el análisis. Inténtalo de nuevo en unos minutos.',
+};
+
+/**
+ * Frase para el usuario según los fallos (Spec 021, RF-6). Nunca incluye modelos, códigos ni la clave.
+ * @param {Array<{clase: string}>} fallos
+ * @param {'comida'|'fisico'|'comparacion'|'estudio'} contexto
+ * @returns {string}
+ */
+export const mensajeParaUsuario = (fallos = [], contexto = 'comida') => {
+  const prioritaria = ['CLAVE', 'PERMISO', 'SEGURIDAD'].find((clase) =>
+    fallos.some((f) => f.clase === clase)
+  );
+  // Si TODOS los intentos fallaron por red, el problema es la conexión del usuario, no Gemini.
+  if (!prioritaria && fallos.length > 0 && fallos.every((f) => f.status === 'RED')) {
+    return 'No hay conexión a internet. Revisa tu red e inténtalo de nuevo.';
+  }
+  const clase = prioritaria || fallos[fallos.length - 1]?.clase || 'SATURACION';
+  if (clase === 'SEGURIDAD') {
+    return contexto === 'estudio'
+      ? 'Gemini no pudo procesar este resumen.'
+      : 'Gemini no pudo analizar esta imagen.';
+  }
+  return MENSAJES_POR_CLASE[clase] || MENSAJES_POR_CLASE.OTRO;
+};
+
+const esperarMs = (ms) => new Promise((resolver) => setTimeout(resolver, ms));
+const ENTORNO_POR_DEFECTO = { esperar: esperarMs, ahora: () => Date.now(), aleatorio: Math.random };
+
+/**
+ * Motor único de failover con reintentos y tope de tiempo (Spec 021, RF-1/RF-2, plan §2).
+ * @param {Object} params
+ * @param {string} params.apiKey - se recibe por parámetro; el motor no la relee ni la registra
+ * @param {'comida'|'fisico'|'comparacion'|'estudio'} params.contexto
+ * @param {(modelo: string) => {promptTexto: string, imagenesBase64?: string[], temperature?: number, nivelRazonamiento?: string|null}} params.construirPeticion
+ * @param {(json: Object, modelo: string) => any} params.interpretar - lanza GeminiError status 'JSON' si la respuesta está incompleta
+ * @param {Function} [params.onProgreso]
+ * @param {number} [params.timeoutMs]
+ * @param {{esperar?: Function, ahora?: Function, aleatorio?: Function}} [params.entorno]
+ */
+const ejecutarConFailover = async ({
   apiKey,
-  base64Limpio,
-  tipoComida,
-  contextoPerfil,
-  descripcionUsuario = '',
-  timeoutMs,
+  contexto,
+  construirPeticion,
+  interpretar,
+  onProgreso,
+  timeoutMs = TIMEOUT_POR_PETICION_MS,
+  entorno = {},
 }) => {
-  const resultado = await ejecutarLlamadaGemini({
-    modelo,
-    apiKey,
-    promptTexto: construirPromptAltaPrecision(
-      tipoComida,
-      contextoPerfil,
-      descripcionUsuario
-    ),
-    imagenesBase64: [base64Limpio],
-    temperature: 0.1,
-    timeoutMs,
-  });
+  const { esperar, ahora, aleatorio } = { ...ENTORNO_POR_DEFECTO, ...entorno };
+  const politica = POLITICA_REINTENTOS;
+  const modelos = obtenerModelos();
+  const inicio = ahora();
+  const fallos = [];
+  let permisosFallidos = 0;
+
+  const terminar = () => {
+    const ultimo = fallos[fallos.length - 1];
+    throw new GeminiError(mensajeParaUsuario(fallos, contexto), {
+      status: ultimo?.status ?? 'FALLO_TOTAL',
+      fallos,
+    });
+  };
+
+  for (let i = 0; i < modelos.length; i += 1) {
+    const modelo = modelos[i];
+    onProgreso?.({
+      modelo,
+      indice: i + 1,
+      total: modelos.length,
+      falloAnterior: i > 0 ? fallos[fallos.length - 1] : undefined,
+    });
+
+    let reintentosHechos = 0;
+    let usarRazonamiento = !modelosSinRazonamiento.has(modelo);
+
+    // Bucle de intentos sobre el MISMO modelo.
+    for (;;) {
+      const restante = politica.presupuestoTotalMs - (ahora() - inicio);
+      if (restante < politica.minimoRestanteMs) terminar();
+
+      const peticion = construirPeticion(modelo);
+      try {
+        const json = await ejecutarLlamadaGemini({
+          modelo,
+          apiKey,
+          promptTexto: peticion.promptTexto,
+          imagenesBase64: peticion.imagenesBase64 || [],
+          temperature: peticion.temperature,
+          nivelRazonamiento: usarRazonamiento ? peticion.nivelRazonamiento ?? null : null,
+          timeoutMs: Math.min(timeoutMs, restante),
+        });
+        return interpretar(json, modelo);
+      } catch (error) {
+        const clase = clasificarFallo(error);
+
+        if (clase === 'RAZONAMIENTO_NO_SOPORTADO' && usarRazonamiento) {
+          modelosSinRazonamiento.add(modelo);
+          usarRazonamiento = false;
+          continue; // no consume reintentos
+        }
+
+        fallos.push({
+          modelo,
+          status: error?.status ?? 'DESCONOCIDO',
+          clase,
+          // Nunca se guarda la clave aunque el servidor la repita (Spec 021, RF-6).
+          mensaje: apiKey
+            ? String(error?.message || 'error desconocido').split(apiKey).join('***')
+            : String(error?.message || 'error desconocido'),
+        });
+
+        if (clase === 'CLAVE' || clase === 'SEGURIDAD') terminar();
+        if (clase === 'PERMISO') {
+          permisosFallidos += 1;
+          if (permisosFallidos >= 2) terminar();
+          break;
+        }
+
+        let espera = null;
+        if (clase === 'SATURACION' && reintentosHechos < politica.reintentosSaturacion) {
+          const variacion = 1 + (aleatorio() * 2 - 1) * politica.jitter;
+          espera = Math.round(
+            politica.baseMs * Math.pow(politica.factor, reintentosHechos) * variacion
+          );
+        } else if (
+          clase === 'LIMITE' &&
+          reintentosHechos === 0 &&
+          Number.isFinite(error?.retryDelayMs) &&
+          error.retryDelayMs <= politica.maxRetryDelayMs
+        ) {
+          espera = error.retryDelayMs;
+        }
+
+        if (espera === null) break; // siguiente modelo
+        if (ahora() - inicio + espera + politica.minimoRestanteMs > politica.presupuestoTotalMs) {
+          break;
+        }
+
+        onProgreso?.({
+          modelo,
+          indice: i + 1,
+          total: modelos.length,
+          reintento: reintentosHechos + 1,
+          motivo: clase,
+        });
+        await esperar(espera);
+        reintentosHechos += 1;
+      }
+    }
+  }
+
+  terminar();
+  return undefined;
+};
+
+/** Error de respuesta incompleta, que el motor clasifica como INCOMPLETA. */
+const respuestaIncompleta = (motivo) =>
+  new GeminiError(`respuesta incompleta: ${motivo}`, { status: 'JSON' });
+
+const redondear1 = (valor) => Math.round((Number(valor) || 0) * 10) / 10;
+
+/**
+ * Normaliza la respuesta de comida (Spec 021, RF-3): solo valida el esquema.
+ * Acepta 0 kcal (agua, café, foto sin comida) y el alias `caloriasTotales`.
+ */
+const interpretarComida = (resultado, modelo, tipoComida) => {
+  const caloriasBrutas = resultado?.calorias ?? resultado?.caloriasTotales;
+  const esNumerico =
+    typeof caloriasBrutas === 'number' ||
+    (typeof caloriasBrutas === 'string' && caloriasBrutas.trim() !== '');
+  const calorias = Number(caloriasBrutas);
+  if (!esNumerico || !Number.isFinite(calorias) || calorias < 0) {
+    throw respuestaIncompleta('calorías');
+  }
 
   const nombreFinal = String(
-    resultado?.nombre || resultado?.descripcion || `${tipoComida} analizada`
+    resultado?.nombre || resultado?.nombrePlatillo || resultado?.descripcion || `${tipoComida} analizada`
   ).trim();
-  const caloriasFinal = Math.round(Number(resultado?.calorias) || 0);
-  const proteinasFinal =
-    Math.round(
-      (Number(resultado?.proteinas ?? resultado?.macros?.proteinas) || 0) * 10
-    ) / 10;
-  const carbohidratosFinal =
-    Math.round(
-      (Number(resultado?.carbohidratos ?? resultado?.macros?.carbohidratos) || 0) * 10
-    ) / 10;
-  const grasasFinal =
-    Math.round(
-      (Number(resultado?.grasas ?? resultado?.macros?.grasas) || 0) * 10
-    ) / 10;
+  const proteinas = redondear1(resultado?.proteinas ?? resultado?.macros?.proteinas);
+  const carbohidratos = redondear1(resultado?.carbohidratos ?? resultado?.macros?.carbohidratos);
+  const grasas = redondear1(resultado?.grasas ?? resultado?.macros?.grasas);
 
   return {
     nombre: nombreFinal,
     descripcion: nombreFinal,
-    calorias: caloriasFinal,
-    proteinas: proteinasFinal,
-    carbohidratos: carbohidratosFinal,
-    grasas: grasasFinal,
-    macros: {
-      proteinas: proteinasFinal,
-      carbohidratos: carbohidratosFinal,
-      grasas: grasasFinal,
-    },
+    calorias: Math.round(calorias),
+    proteinas,
+    carbohidratos,
+    grasas,
+    macros: { proteinas, carbohidratos, grasas },
     detalles: String(resultado?.detalles || '').trim(),
     modeloUsado: modelo,
   };
@@ -628,42 +879,26 @@ export const analizarComidaConGemini = async (
   };
 
   const base64Limpio = base64Image.replace(/^data:image\/[a-zA-Z+]+;base64,/, '');
-  const modelos = obtenerModelos();
-  const fallos = [];
-
-  for (let indice = 0; indice < modelos.length; indice += 1) {
-    const modelo = modelos[indice];
-    onProgreso?.({
-      modelo,
-      indice: indice + 1,
-      total: modelos.length,
-      falloAnterior: fallos[fallos.length - 1],
-    });
-
-    try {
-      return await solicitarAnalisis({
-        modelo,
-        apiKey,
-        base64Limpio,
-        tipoComida,
-        contextoPerfil,
-        descripcionUsuario,
-        timeoutMs,
-      });
-    } catch (error) {
-      fallos.push({
-        modelo,
-        status: error?.status ?? 'DESCONOCIDO',
-        mensaje: error?.message || 'error desconocido',
-      });
-    }
-  }
-
-  const resumen = fallos.map((f) => `• ${f.modelo}: ${f.status}`).join('\n');
-  throw new GeminiError(
-    `No se pudo analizar la comida. Los ${modelos.length} modelos de Gemini fallaron:\n${resumen}\n\nIntenta de nuevo en unos minutos.`,
-    { status: fallos[fallos.length - 1]?.status ?? null, fallos }
+  const promptTexto = construirPromptAltaPrecision(
+    tipoComida,
+    contextoPerfil,
+    descripcionUsuario
   );
+
+  return ejecutarConFailover({
+    apiKey,
+    contexto: 'comida',
+    construirPeticion: () => ({
+      promptTexto,
+      imagenesBase64: [base64Limpio],
+      temperature: 0.1,
+      nivelRazonamiento: NIVEL_RAZONAMIENTO.comida,
+    }),
+    interpretar: (json, modelo) => interpretarComida(json, modelo, tipoComida),
+    onProgreso,
+    timeoutMs,
+    entorno: opciones.entorno,
+  });
 };
 
 /**
@@ -703,69 +938,58 @@ export const analizarCambioFisicoConGemini = async (
     contextoUsuario,
     fotosLimpias.length
   );
-  const modelos = obtenerModelos();
-  const fallos = [];
+  return ejecutarConFailover({
+    apiKey,
+    contexto: 'fisico',
+    construirPeticion: () => ({
+      promptTexto,
+      imagenesBase64: fotosLimpias,
+      temperature: 0.2,
+      nivelRazonamiento: NIVEL_RAZONAMIENTO.fisico,
+    }),
+    interpretar: interpretarCambioFisico,
+    onProgreso,
+    timeoutMs,
+    entorno: opciones.entorno,
+  });
+};
 
-  for (let indice = 0; indice < modelos.length; indice += 1) {
-    const modelo = modelos[indice];
-    onProgreso?.({
-      modelo,
-      indice: indice + 1,
-      total: modelos.length,
-      falloAnterior: fallos[fallos.length - 1],
-    });
+/**
+ * Valida un veredicto 0-10: número, o texto numérico no vacío. null/undefined/'' no son válidos.
+ * @returns {number|null}
+ */
+const leerVeredicto = (valor) => {
+  const esCandidato =
+    typeof valor === 'number' || (typeof valor === 'string' && valor.trim() !== '');
+  const numero = Number(valor);
+  if (!esCandidato || !Number.isFinite(numero) || numero < 0 || numero > 10) return null;
+  return Math.round(numero * 10) / 10;
+};
 
-    try {
-      const resultado = await ejecutarLlamadaGemini({
-        modelo,
-        apiKey,
-        promptTexto,
-        imagenesBase64: fotosLimpias,
-        temperature: 0.2,
-        timeoutMs,
-      });
+/** Spec 021, RF-3: sin veredicto válido o sin resumen, la respuesta es incompleta (ya no se inventa 7.5). */
+const interpretarCambioFisico = (resultado, modelo) => {
+  const veredicto = leerVeredicto(resultado?.veredicto);
+  const resumenSimple = String(resultado?.resumenSimple || '').trim();
+  if (veredicto === null) throw respuestaIncompleta('veredicto');
+  if (!resumenSimple) throw respuestaIncompleta('resumenSimple');
 
-      const veredictoBruto = Number(resultado?.veredicto);
-      const veredictoNormalizado = Number.isFinite(veredictoBruto)
-        ? Math.min(10, Math.max(0, Math.round(veredictoBruto * 10) / 10))
-        : 7.5;
+  const puntosClave = Array.isArray(resultado?.puntosClave)
+    ? resultado.puntosClave
+        .map((p) => String(p || '').trim())
+        .filter(Boolean)
+        .slice(0, 5)
+    : [];
 
-      const puntosClave = Array.isArray(resultado?.puntosClave)
-        ? resultado.puntosClave
-            .map((p) => String(p || '').trim())
-            .filter(Boolean)
-            .slice(0, 5)
-        : [];
-
-      return {
-        resumenSimple:
-          String(resultado?.resumenSimple || '').trim() ||
-          'Buen estado físico general acorde a tu perfil y objetivo de mantenimiento.',
-        resumenDetallado:
-          String(resultado?.resumenDetallado || '').trim() ||
-          String(resultado?.resumenSimple || '').trim() ||
-          'Análisis detallado registrado correctamente.',
-        balanceDelDia:
-          String(resultado?.balanceDelDia || '').trim() ||
-          'Mantén el registro de tus comidas y entrenamientos del día para optimizar tu objetivo.',
-        veredicto: veredictoNormalizado,
-        puntosClave,
-        modeloUsado: modelo,
-      };
-    } catch (error) {
-      fallos.push({
-        modelo,
-        status: error?.status ?? 'DESCONOCIDO',
-        mensaje: error?.message || 'error desconocido',
-      });
-    }
-  }
-
-  const resumen = fallos.map((f) => `• ${f.modelo}: ${f.status}`).join('\n');
-  throw new GeminiError(
-    `No se pudo analizar el cambio físico. Los ${modelos.length} modelos de Gemini fallaron:\n${resumen}\n\nIntenta de nuevo en unos minutos.`,
-    { status: fallos[fallos.length - 1]?.status ?? null, fallos }
-  );
+  return {
+    resumenSimple,
+    resumenDetallado: String(resultado?.resumenDetallado || '').trim() || resumenSimple,
+    balanceDelDia:
+      String(resultado?.balanceDelDia || '').trim() ||
+      'Mantén el registro de tus comidas y entrenamientos del día para optimizar tu objetivo.',
+    veredicto,
+    puntosClave,
+    modeloUsado: modelo,
+  };
 };
 
 /**
@@ -809,63 +1033,44 @@ export const compararCambioFisicoConGemini = async (
     fotosLimpias.length,
     perfilActivo
   );
-  const modelos = obtenerModelos();
-  const fallos = [];
+  return ejecutarConFailover({
+    apiKey,
+    contexto: 'comparacion',
+    construirPeticion: () => ({
+      promptTexto,
+      imagenesBase64: fotosLimpias,
+      temperature: 0.2,
+      nivelRazonamiento: NIVEL_RAZONAMIENTO.comparacion,
+    }),
+    interpretar: interpretarComparacion,
+    onProgreso,
+    timeoutMs,
+    entorno: opciones.entorno,
+  });
+};
 
-  for (let indice = 0; indice < modelos.length; indice += 1) {
-    const modelo = modelos[indice];
-    onProgreso?.({
-      modelo,
-      indice: indice + 1,
-      total: modelos.length,
-      falloAnterior: fallos[fallos.length - 1],
-    });
+/** Spec 021, RF-3: sin `evolucion` la comparación es incompleta (ya no se inventa un texto). */
+const interpretarComparacion = (resultado, modelo) => {
+  const evolucion = String(resultado?.evolucion || '').trim();
+  if (!evolucion) throw respuestaIncompleta('evolucion');
 
-    try {
-      const resultado = await ejecutarLlamadaGemini({
-        modelo,
-        apiKey,
-        promptTexto,
-        imagenesBase64: fotosLimpias,
-        temperature: 0.2,
-        timeoutMs,
-      });
+  const recomendaciones = Array.isArray(resultado?.recomendacionesOptimizacion)
+    ? resultado.recomendacionesOptimizacion
+        .map((r) => String(r || '').trim())
+        .filter(Boolean)
+        .slice(0, 5)
+    : [];
 
-      const recomendaciones = Array.isArray(
-        resultado?.recomendacionesOptimizacion
-      )
-        ? resultado.recomendacionesOptimizacion
-            .map((r) => String(r || '').trim())
-            .filter(Boolean)
-            .slice(0, 5)
-        : [];
-
-      return {
-        evolucion:
-          String(resultado?.evolucion || '').trim() ||
-          'Se observa continuidad consistente entre el registro anterior y el chequeo actual.',
-        recomendacionesOptimizacion:
-          recomendaciones.length > 0
-            ? recomendaciones
-            : [
-                'Mantén un control constante de proteína diaria y sobrecarga progresiva en tus entrenamientos.',
-              ],
-        modeloUsado: modelo,
-      };
-    } catch (error) {
-      fallos.push({
-        modelo,
-        status: error?.status ?? 'DESCONOCIDO',
-        mensaje: error?.message || 'error desconocido',
-      });
-    }
-  }
-
-  const resumen = fallos.map((f) => `• ${f.modelo}: ${f.status}`).join('\n');
-  throw new GeminiError(
-    `No se pudo completar la comparación física. Los ${modelos.length} modelos de Gemini fallaron:\n${resumen}`,
-    { status: fallos[fallos.length - 1]?.status ?? null, fallos }
-  );
+  return {
+    evolucion,
+    recomendacionesOptimizacion:
+      recomendaciones.length > 0
+        ? recomendaciones
+        : [
+            'Mantén un control constante de proteína diaria y sobrecarga progresiva en tus entrenamientos.',
+          ],
+    modeloUsado: modelo,
+  };
 };
 
 
@@ -994,55 +1199,21 @@ export const analizarEstudioDelDiaConGemini = async (
     hora12h,
   });
 
-  const modelos = obtenerModelos();
-  const fallos = [];
-
-  for (let indice = 0; indice < modelos.length; indice += 1) {
-    const modelo = modelos[indice];
-    onProgreso?.({
-      modelo,
-      indice: indice + 1,
-      total: modelos.length,
-      falloAnterior: fallos[fallos.length - 1],
-    });
-
-    try {
-      const json = await ejecutarLlamadaGemini({
-        modelo,
-        apiKey,
-        promptTexto,
-        temperature: 0.3,
-        timeoutMs,
-      });
-
+  return ejecutarConFailover({
+    apiKey,
+    contexto: 'estudio',
+    construirPeticion: () => ({
+      promptTexto,
+      temperature: 0.3,
+      nivelRazonamiento: NIVEL_RAZONAMIENTO.estudio,
+    }),
+    interpretar: (json, modelo) => {
       const resultado = normalizarResumenEstudio(json, contexto);
-      if (!resultado) {
-        throw new GeminiError('respuesta inválida', { status: 'JSON' });
-      }
-
-      return {
-        resultado,
-        modeloUsado: modelo,
-        hora12h,
-      };
-    } catch (errorIntento) {
-      fallos.push({
-        modelo,
-        status: errorIntento?.status || 'ERROR',
-        mensaje: errorIntento?.message || 'Error desconocido',
-      });
-    }
-  }
-
-  const detalleFallos = fallos
-    .map((f) => `• ${f.modelo}: ${f.status || f.mensaje}`)
-    .join('\n');
-
-  throw new GeminiError(
-    `No se pudo analizar tu día de estudio. Los ${modelos.length} modelos de Gemini fallaron:\n${detalleFallos}\n\nIntenta de nuevo en unos minutos.`,
-    {
-      status: fallos[fallos.length - 1]?.status || 'FALLO_TOTAL',
-      fallos,
-    }
-  );
+      if (!resultado) throw respuestaIncompleta('resumen de estudio');
+      return { resultado, modeloUsado: modelo, hora12h };
+    },
+    onProgreso,
+    timeoutMs,
+    entorno: opciones.entorno,
+  });
 };

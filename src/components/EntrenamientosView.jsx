@@ -1,13 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   FlatList,
   Platform,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Text } from './base/Texto';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -39,6 +38,7 @@ import {
   vibrarSeleccionBascula,
 } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
+import { reproducirSonido } from '../services/sonidos';
 
 const DURACION_PULSACION_BORRADO_MS = 1000;
 
@@ -74,6 +74,7 @@ function CapsulaBorradoSeguro({ onBorrar, onAvisoCorto }) {
     timerRef.current = setTimeout(() => {
       presionadoLargoRef.current = true;
       vibrarConfirmacionBorrado();
+      reproducirSonido('borrado');
       onBorrar();
       progreso.value = withTiming(0, { duration: 150 });
     }, DURACION_PULSACION_BORRADO_MS);
@@ -97,6 +98,11 @@ function CapsulaBorradoSeguro({ onBorrar, onAvisoCorto }) {
 
   return (
     <TouchableOpacity
+      accessibilityRole="button" accessibilityLabel="Borrar ejercicio" accessibilityHint="Mantén pulsado un segundo para borrar, o usa la acción Borrar del lector de pantalla"
+      accessibilityActions={[{ name: 'borrar', label: 'Borrar' }]}
+      onAccessibilityAction={(evento) => {
+        if (evento.nativeEvent.actionName === 'borrar') onBorrar();
+      }}
       activeOpacity={0.9}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -217,6 +223,7 @@ function TarjetaEntrenamientoItem({
       {tieneSeriesDetalle ? (
         <View style={styles.seccionDesglose}>
           <TouchableOpacity
+            accessibilityRole="button" accessibilityLabel={expandido ? 'Ocultar series' : 'Ver series'} aria-expanded={expandido}
             style={styles.botonAlternarDesglose}
             activeOpacity={0.7}
             onPress={alternarExpandido}
@@ -374,7 +381,7 @@ export default function EntrenamientosView({
       }
     } catch (err) {
       console.error('Error al terminar sesión activa:', err);
-      Alert.alert(
+      mostrarAlerta(
         'Error',
         'No se pudo guardar el entrenamiento en el almacenamiento local.'
       );
@@ -406,7 +413,7 @@ export default function EntrenamientosView({
         onEntrenamientosActualizados(listaActualizada);
       }
     } catch (error) {
-      Alert.alert(
+      mostrarAlerta(
         'Error al eliminar',
         error?.message || 'No se pudo eliminar el entrenamiento.',
         [{ text: 'Entendido', style: 'cancel' }]
@@ -505,6 +512,7 @@ export default function EntrenamientosView({
         </View>
 
         <TouchableOpacity
+          accessibilityRole="button"
           style={styles.botonCalculadoraPastilla}
           activeOpacity={0.7}
           onPress={() => {

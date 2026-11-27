@@ -6,11 +6,10 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Text, TextInput } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import {
   CATALOGO_EJERCICIOS_BASE,
@@ -249,6 +248,7 @@ export default function CatalogoEjerciciosModal({
       <View style={[styles.contenedorModal, { paddingTop: insets.headerPaddingTop }]}>
         <View style={styles.cabecera}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.botonCerrar}
             onPress={onCerrar}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -260,6 +260,7 @@ export default function CatalogoEjerciciosModal({
           <Text style={styles.tituloModal}>Catálogo de Ejercicios</Text>
 
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.botonCrearPildora}
             onPress={() => abrirModalCrear()}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -288,6 +289,7 @@ export default function CatalogoEjerciciosModal({
           />
           {busqueda.length > 0 ? (
             <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Borrar búsqueda"
               onPress={() => setBusqueda('')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
@@ -306,6 +308,7 @@ export default function CatalogoEjerciciosModal({
               const activo = grupoFiltro === grupo;
               return (
                 <TouchableOpacity
+                  accessibilityRole="radio" accessibilityLabel={`Filtrar por ${grupo}`} aria-checked={activo}
                   key={`filtro-${grupo}`}
                   style={[
                     styles.chipFiltro,
@@ -341,6 +344,7 @@ export default function CatalogoEjerciciosModal({
             const iconoFeather = obtenerIconoImplementoFeather(item.implemento);
             return (
               <TouchableOpacity
+                accessibilityRole="button" accessibilityLabel={`Elegir ${item.nombre}`}
                 style={styles.tarjetaEjercicio}
                 activeOpacity={0.7}
                 onPress={() => {
@@ -392,6 +396,7 @@ export default function CatalogoEjerciciosModal({
               <Text style={styles.textoVacio}>No se encontraron ejercicios.</Text>
               {busqueda.trim().length > 0 ? (
                 <TouchableOpacity
+                  accessibilityRole="button" accessibilityLabel="Crear ejercicio personalizado con esta búsqueda"
                   style={styles.botonCrearDesdeBusqueda}
                   activeOpacity={0.8}
                   onPress={() => abrirModalCrear(busqueda.trim())}
@@ -431,6 +436,7 @@ export default function CatalogoEjerciciosModal({
                 <View style={styles.cabeceraSubModal}>
                   <Text style={styles.tituloSubModal}>Nuevo Ejercicio</Text>
                   <TouchableOpacity
+                    accessibilityRole="button" accessibilityLabel="Cerrar"
                     style={styles.botonCerrarSubModal}
                     onPress={() => setSubModalVisible(false)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -455,6 +461,7 @@ export default function CatalogoEjerciciosModal({
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
                   {GRUPOS_MUSCULARES_REGISTRO.map((g) => (
                     <TouchableOpacity
+                      accessibilityRole="radio" accessibilityLabel={`Grupo muscular ${g}`} aria-checked={nuevoGrupo === g}
                       key={`nuevo-g-${g}`}
                       style={[styles.chipOpcion, nuevoGrupo === g && styles.chipOpcionActivo]}
                       onPress={() => setNuevoGrupo(g)}
@@ -470,6 +477,7 @@ export default function CatalogoEjerciciosModal({
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 18 }}>
                   {IMPLEMENTOS.map((imp) => (
                     <TouchableOpacity
+                      accessibilityRole="radio" accessibilityLabel={`Implemento ${imp}`} aria-checked={nuevoImplemento === imp}
                       key={`nuevo-imp-${imp}`}
                       style={[styles.chipOpcion, nuevoImplemento === imp && styles.chipOpcionActivo]}
                       onPress={() => setNuevoImplemento(imp)}
@@ -482,6 +490,7 @@ export default function CatalogoEjerciciosModal({
                 </ScrollView>
 
                 <TouchableOpacity
+                  accessibilityRole="button" accessibilityLabel="Crear ejercicio"
                   style={styles.botonConfirmarCreacion}
                   onPress={manejarCrearPersonalizado}
                 >

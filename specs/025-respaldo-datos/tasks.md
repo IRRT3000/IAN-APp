@@ -1,0 +1,33 @@
+# Tareas — Spec 025: Respaldo y Restauración de Datos
+
+- [x] **T1** (Claude / planificación): Decisiones del dueño y borrador de `spec.md`, `plan.md` y `tasks.md`.
+- [x] **T2** (revisor-critico): Revisión del plan.
+  - Ronda 1: `CAMBIOS_REQUERIDOS`. Hubo 3 bloqueantes: la restauración no era atómica, el cambio de carpeta de fotos tampoco y se colaban las claves `:corrupto:`. Hubo también 7 menores. Todo se aplicó en la v2.
+  - Ronda 2: `PLAN_APROBADO`. Sus 3 menores se aplicaron en la implementación: el borrador se borra solo al final, se usa `setSonidosActivosUI` y la forma de catálogo, días y materias está confirmada (listas).
+- [x] **T3** (Implementador): `npx expo install expo-sharing`.
+  - **Desviación:** también se instaló `expo-asset`. `npx expo-doctor` lo exigía como dependencia directa de `expo-audio` (Spec 024). Sin él, la app puede cerrarse fuera de Expo Go. Ahora `expo-doctor` pasa 20/20.
+- [x] **T4** (Implementador): `src/services/respaldo.js` y `__tests__/respaldo.test.js`.
+- [x] **T5** (Implementador): `src/components/SeccionRespaldo.jsx`, renderizado dentro de `PanelConfiguracionLateral.jsx`, y prop `onDatosRestaurados` en `App.js`, con su test de componente.
+  - **Desviación:** la sección es un componente propio en lugar de código dentro del panel, que ya tiene más de 1000 líneas.
+- [x] **T6** (revisor-critico): Revisión del código.
+  - Ronda 1: `CODIGO_RECHAZADO`.
+    - **Bloqueante:** una foto real de cámara (1.5–4 MB) superaba el tope de 2 MB, así que «Incluir fotos» creaba un respaldo que la app no podía restaurar. Corregido:
+      - el tope por foto sube a 8 MB en base64;
+      - al exportar se aplican las mismas reglas que al importar, se omiten y se cuentan las fotos que no caben, y se avisa al usuario;
+      - el archivo final se valida antes de compartirlo;
+      - un test hace la ida y vuelta con una foto de 3 MB.
+    - **Importantes corregidos:**
+      - en web, un respaldo sin fotos ya no borra las miniaturas actuales;
+      - el selector web tiene un respaldo por `focus` para los navegadores sin el evento `cancel`;
+      - un test verifica que la preferencia de sonidos restaurada se aplica.
+    - **Menores corregidos:**
+      - las miniaturas web se ignoran en nativo;
+      - hay un mensaje propio cuando se llena la cuota del navegador;
+      - la expresión regular de rutas va sin `/i`;
+      - el `.json` se borra de la caché después de compartirlo;
+      - si la recarga de pantalla falla, el aviso dice que los datos sí se restauraron.
+    - **Menor aceptado:** si una foto con el mismo nombre ya existía, se sobrescribe con el mismo contenido. Los nombres llevan marca de tiempo, así que es improbable.
+  - Ronda 2: `CODIGO_APROBADO`. Se aplicaron 3 de sus 4 menores: el respaldo por `focus` solo se activa sin `cancel`, un valor guardado dañado se deja fuera sin abortar y se quitó un JSDoc duplicado. El cuarto (probar en Android que los botones del panel responden) queda en la lista de prueba manual.
+- [x] **T7** (Implementador): `npm run gate` (420 tests), prueba manual en web y `MEMORY.md`.
+  - Prueba en web ya hecha: exportar y restaurar de punta a punta con confirmación y aviso; el archivo no contiene la API key.
+  - **Nota:** `expo-sharing` es un módulo nativo nuevo, así que hace falta un build nuevo y subir `versionCode`.

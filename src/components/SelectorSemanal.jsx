@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from './base/Texto';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -74,6 +75,7 @@ const CeldaDiaSemanal = React.memo(function CeldaDiaSemanal({
   return (
     <Animated.View style={[styles.envoltorioCelda, estiloAnimado]}>
       <TouchableOpacity
+        accessibilityRole="radio" accessibilityLabel={`${item.esHoy ? 'Hoy, ' : ''}${item.fechaCorta}`} aria-checked={estaSeleccionado}
         style={[
           styles.celda,
           estaSeleccionado && styles.celdaSeleccionada,

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { mostrarAlerta } from './alertUtils';
 import { obtenerFechaLocal } from './dateUtilsLocal';
 import {
   guardarSesionEstudio,
@@ -14,7 +14,9 @@ import {
 } from '../services/estudioStorage';
 import { construirContextoResumenEstudio } from './resumenEstudio';
 import { analizarEstudioDelDiaConGemini } from '../services/gemini';
-import { vibrarEjercicioCompletado } from '../services/haptics';
+import { vibrarEjercicioCompletado, vibrarError } from '../services/haptics';
+import { anunciar } from './accesibilidad';
+import { reproducirSonido } from '../services/sonidos';
 
 /**
  * Candado de módulo para evitar llamadas concurrentes a Gemini
@@ -225,7 +227,7 @@ export function useEstudio({
 
     const fechaHoyActual = obtenerFechaLocal();
     if (fechaHoyActual !== fechaSeleccionada) {
-      Alert.alert(
+      mostrarAlerta(
         'Día no disponible',
         'Cambió el día; vuelve a abrir el día de hoy.'
       );
@@ -244,7 +246,7 @@ export function useEstudio({
             setEntradaResumen(resumenGuardado);
           }
           if (!resumenGuardado) {
-            Alert.alert(
+            mostrarAlerta(
               'Análisis de estudio',
               'Hay un resumen de hoy que no se pudo leer; no se volverá a analizar.'
             );
@@ -281,6 +283,8 @@ export function useEstudio({
           setEntradaResumen(entrada);
         }
         vibrarEjercicioCompletado();
+        anunciar('Resumen del día de estudio listo');
+        reproducirSonido('exito');
       } catch (error) {
         if (error?.message && error.message.includes('Ya existe')) {
           const resumenGuardado = await obtenerResumenEstudio(fechaHoyActual);
@@ -288,13 +292,15 @@ export function useEstudio({
             setEntradaResumen(resumenGuardado);
           }
           if (!resumenGuardado) {
-            Alert.alert(
+            mostrarAlerta(
               'Análisis de estudio',
               'Hay un resumen de hoy que no se pudo leer; no se volverá a analizar.'
             );
           }
         } else {
-          Alert.alert(
+          vibrarError();
+          reproducirSonido('error');
+          mostrarAlerta(
             'Análisis de estudio',
             error?.message || 'Error al analizar el día de estudio.'
           );

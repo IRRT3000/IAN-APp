@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { eliminarFotos } from './fotosStorage';
 
-const STORAGE_KEY = '@fitness_tracker_entrenamientos_v1';
-const STORAGE_KEY_COMIDAS = '@fitness_tracker_comidas_v1';
-const STORAGE_KEY_PERFIL = '@fitness_tracker_perfil_v1';
-const STORAGE_KEY_CAMBIOS_FISICOS = '@fitness_tracker_cambios_fisicos_v1';
+export const STORAGE_KEY = '@fitness_tracker_entrenamientos_v1';
+export const STORAGE_KEY_COMIDAS = '@fitness_tracker_comidas_v1';
+export const STORAGE_KEY_PERFIL = '@fitness_tracker_perfil_v1';
+export const STORAGE_KEY_CAMBIOS_FISICOS = '@fitness_tracker_cambios_fisicos_v1';
 export const STORAGE_KEY_CATALOGO_PERSONALIZADO =
   '@fitness_tracker_catalogo_personalizado_v1';
 export const STORAGE_KEY_SESION_ACTIVA_DRAFT =
@@ -918,8 +919,11 @@ export const guardarComida = async (nuevaComida) => {
 
     return nuevaListaInmutable.map((item) => ({ ...item }));
   } catch (error) {
+    // Antes devolvía [] y la vista lo tomaba como éxito: la lista desaparecía y el registro se perdía.
     console.error('Error al guardar comida en AsyncStorage:', error);
-    return [];
+    throw new Error(
+      'No se pudo guardar la comida. Es posible que el almacenamiento del dispositivo esté lleno.'
+    );
   }
 };
 
@@ -932,6 +936,9 @@ export const guardarComida = async (nuevaComida) => {
 export const eliminarComida = async (id) => {
   try {
     const comidasActuales = await cargarComidas();
+    const comidaBorrada = comidasActuales.find(
+      (comida) => String(comida.id) === String(id)
+    );
     const nuevaListaInmutable = comidasActuales
       .filter((comida) => String(comida.id) !== String(id))
       .map((comida) => ({ ...comida }));
@@ -940,6 +947,11 @@ export const eliminarComida = async (id) => {
       STORAGE_KEY_COMIDAS,
       JSON.stringify(nuevaListaInmutable)
     );
+
+    // Solo tras escribir la lista se borra la foto; eliminarFotos nunca lanza (Spec 020, plan §6).
+    if (comidaBorrada) {
+      await eliminarFotos([comidaBorrada.uriFoto, comidaBorrada.fotoUri]);
+    }
 
     return nuevaListaInmutable.map((item) => ({ ...item }));
   } catch (error) {
@@ -1085,8 +1097,11 @@ export const guardarCambioFisico = async (nuevoRegistro) => {
 
     return nuevaListaInmutable.map(clonarCambioFisico);
   } catch (error) {
+    // Antes devolvía [] y la vista lo tomaba como éxito: la lista desaparecía y el registro se perdía.
     console.error('Error al guardar cambio físico en AsyncStorage:', error);
-    return [];
+    throw new Error(
+      'No se pudo guardar el registro físico. Es posible que el almacenamiento del dispositivo esté lleno.'
+    );
   }
 };
 
@@ -1141,6 +1156,9 @@ export const actualizarComparacionCambioFisico = async (
 export const eliminarCambioFisico = async (id) => {
   try {
     const registrosActuales = await cargarCambiosFisicos();
+    const registroBorrado = registrosActuales.find(
+      (registro) => String(registro.id) === String(id)
+    );
     const nuevaListaInmutable = registrosActuales
       .filter((registro) => String(registro.id) !== String(id))
       .map(clonarCambioFisico);
@@ -1149,6 +1167,11 @@ export const eliminarCambioFisico = async (id) => {
       STORAGE_KEY_CAMBIOS_FISICOS,
       JSON.stringify(nuevaListaInmutable)
     );
+
+    // Solo tras escribir la lista se borran sus fotos; eliminarFotos nunca lanza (Spec 020, plan §6).
+    if (registroBorrado) {
+      await eliminarFotos(registroBorrado.urisFotos || []);
+    }
 
     return nuevaListaInmutable.map(clonarCambioFisico);
   } catch (error) {

@@ -9,17 +9,19 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
+  Switch,
+  // De react-native y no de gesture-handler: en web, el de gesture-handler envuelve todo en un
+  // <button> y, con accessibilityRole, el hijo es otro <button> anidado (HTML inválido).
+  TouchableOpacity,
   useWindowDimensions,
   View,
 } from 'react-native';
+import { Text, TextInput } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
-  TouchableOpacity,
 } from 'react-native-gesture-handler';
 import * as Clipboard from 'expo-clipboard';
 import Animated, {
@@ -45,10 +47,19 @@ import { mostrarAlerta } from '../utils/alertUtils';
 import {
   vibrarConfirmacionBorrado,
   vibrarEjercicioCompletado,
+  vibrarError,
   vibrarInicioPresionBorrado,
 } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';
+import { anunciar } from '../utils/accesibilidad';
+import {
+  establecerSonidosActivos,
+  cargarPreferenciaSonidos,
+  obtenerSonidosActivos,
+  reproducirSonido,
+} from '../services/sonidos';
+import SeccionRespaldo from './SeccionRespaldo';
 
 export default function PanelConfiguracionLateral({
   visible,
@@ -57,12 +68,23 @@ export default function PanelConfiguracionLateral({
   onEditarPerfil,
   onAbrirOnboardingPerfil,
   onAbrirEdicionPerfil,
+  onDatosRestaurados,
 }) {
   const insets = useSafeInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const ANCHO_DRAWER = Math.min(Math.round(windowWidth * 0.85), 380);
 
   const [montado, setMontado] = useState(visible);
+  // Spec 024 (RF-5): interruptor de sonidos de la interfaz.
+  // null = sin cambio local: se lee del servicio en cada render, porque la preferencia guardada
+  // puede cargarse después de montar el panel.
+  const [sonidosActivosUI, setSonidosActivosUI] = useState(null);
+  const sonidosActivos = sonidosActivosUI ?? obtenerSonidosActivos();
+  const alternarSonidos = async (valor) => {
+    setSonidosActivosUI(valor);
+    await establecerSonidosActivos(valor);
+    if (valor) reproducirSonido('toque');
+  };
   const [claveInput, setClaveInput] = useState('');
   const [finClaveGuardada, setFinClaveGuardada] = useState(null);
   const textoPegadoRef = useRef(null);
@@ -219,6 +241,8 @@ export default function PanelConfiguracionLateral({
           texto: 'Clave validada y guardada en el almacenamiento seguro de tu teléfono.',
         });
         vibrarEjercicioCompletado();
+        anunciar('Clave de Gemini guardada');
+        reproducirSonido('exito');
       } else {
         setMensajeEstado({
           tipo: 'error',
@@ -230,7 +254,8 @@ export default function PanelConfiguracionLateral({
         tipo: 'error',
         texto: resultado.error || 'La clave ingresada no es válida.',
       });
-      vibrarConfirmacionBorrado();
+      vibrarError();
+      reproducirSonido('error');
     }
   };
 
@@ -262,6 +287,7 @@ export default function PanelConfiguracionLateral({
               texto: 'Clave eliminada del dispositivo.',
             });
             vibrarConfirmacionBorrado();
+            reproducirSonido('borrado');
           },
         },
       ]
@@ -369,6 +395,7 @@ export default function PanelConfiguracionLateral({
           {/* 1. Backdrop Oscuro con Fade */}
           <Animated.View style={[styles.backdrop, estiloAnimadoBackdrop]}>
             <Pressable
+              accessibilityRole="button"
               style={StyleSheet.absoluteFillObject}
               onPress={cerrarDrawer}
               accessibilityLabel="Cerrar panel de configuración"
@@ -395,6 +422,7 @@ export default function PanelConfiguracionLateral({
                   <Text style={styles.tituloDrawer}>Configuración</Text>
                 </View>
                 <TouchableOpacity
+                  accessibilityRole="button" accessibilityLabel="Cerrar configuración"
                   style={styles.botonCerrar}
                   activeOpacity={0.7}
                   onPress={cerrarDrawer}
@@ -480,6 +508,7 @@ export default function PanelConfiguracionLateral({
                     </Text>
 
                     <TouchableOpacity
+                      accessibilityRole="button" accessibilityLabel="Recalibrar pasaporte biométrico"
                       style={styles.botonRecalibrarPasaporte}
                       activeOpacity={0.85}
                       onPress={handleRecalibrarPasaporte}
@@ -495,6 +524,38 @@ export default function PanelConfiguracionLateral({
                       </Text>
                     </TouchableOpacity>
                   </View>
+
+                  {/* Spec 024: sonidos sutiles de la interfaz (activados por defecto) */}
+                  <View style={styles.tarjetaSonidos}>
+                    <View style={styles.filaSonidos}>
+                      <Feather name="volume-2" size={16} color={TOKENS.colors.textSecondary} />
+                      <View style={styles.textosSonidos}>
+                        <Text style={styles.tituloSonidos}>Sonidos de la interfaz</Text>
+                        <Text style={styles.descripcionSonidos}>
+                          Sonidos breves al guardar, terminar un análisis o borrar. Respetan el modo silencio.
+                        </Text>
+                      </View>
+                      <Switch
+                        accessibilityRole="switch"
+                        accessibilityLabel="Sonidos de la interfaz"
+                        aria-checked={sonidosActivos}
+                        value={sonidosActivos}
+                        onValueChange={alternarSonidos}
+                        trackColor={{ false: TOKENS.colors.borderStrong, true: TOKENS.colors.textPrimary }}
+                        thumbColor={sonidosActivos ? TOKENS.colors.canvas : TOKENS.colors.textSecondary}
+                        ios_backgroundColor={TOKENS.colors.borderStrong}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Spec 025: respaldo y restauración de datos */}
+                  <SeccionRespaldo
+                    onDatosRestaurados={onDatosRestaurados}
+                    onRestauradoInterno={async () => {
+                      await cargarPreferenciaSonidos();
+                      setSonidosActivosUI(null);
+                    }}
+                  />
 
                   {/* Tarjeta de Estado de Conexión (Halo LED concéntrico + BYOK) */}
                   <View style={styles.tarjetaEstado}>
@@ -600,6 +661,7 @@ export default function PanelConfiguracionLateral({
 
                       <View style={styles.grupoBotonesInput}>
                         <TouchableOpacity
+                          accessibilityRole="button"
                           style={styles.botonIconoInput}
                           activeOpacity={0.7}
                           onPress={() => setMostrarClave((prev) => !prev)}
@@ -616,6 +678,7 @@ export default function PanelConfiguracionLateral({
                         </TouchableOpacity>
 
                         <TouchableOpacity
+                          accessibilityRole="button"
                           style={styles.botonIconoInput}
                           activeOpacity={0.7}
                           onPress={handlePegarPortapapeles}
@@ -688,6 +751,7 @@ export default function PanelConfiguracionLateral({
 
                     {/* Botón Principal: Probar y Guardar (54pt Hero) */}
                     <TouchableOpacity
+                      accessibilityRole="button" accessibilityLabel="Probar y guardar clave" aria-busy={validando || undefined}
                       style={[
                         styles.botonGuardar,
                         validando ? styles.botonGuardarDeshabilitado : null,
@@ -716,6 +780,7 @@ export default function PanelConfiguracionLateral({
                     {/* Botón Secundario: Eliminar Clave (48pt Tinte Rojo Sutil) */}
                     {tieneClaveConfigurada ? (
                       <TouchableOpacity
+                        accessibilityRole="button" accessibilityLabel="Eliminar clave"
                         style={styles.botonEliminar}
                         activeOpacity={0.8}
                         onPress={handleEliminarClave}
@@ -753,6 +818,7 @@ export default function PanelConfiguracionLateral({
                       para proyectos personales.
                     </Text>
                     <TouchableOpacity
+                      accessibilityRole="link" accessibilityLabel="Obtener clave gratis en Google AI Studio"
                       style={styles.botonAiStudio}
                       activeOpacity={0.85}
                       onPress={handleAbrirGoogleAIStudio}
@@ -820,6 +886,33 @@ export default function PanelConfiguracionLateral({
 }
 
 const styles = StyleSheet.create({
+  tarjetaSonidos: {
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    borderRadius: TOKENS.radii.md,
+    padding: 14,
+    marginBottom: 20,
+  },
+  filaSonidos: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 44,
+  },
+  textosSonidos: {
+    flex: 1,
+  },
+  tituloSonidos: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  descripcionSonidos: {
+    color: TOKENS.colors.textMuted,
+    fontSize: 12,
+    marginTop: 2,
+  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#000000',

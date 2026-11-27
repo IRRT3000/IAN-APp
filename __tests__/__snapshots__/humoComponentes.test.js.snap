@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Prueba de humo de componentes (Spec 022, plan §1a) el simulado de Reanimated renderiza un Animated.View con useAnimatedStyle 1`] = `
+<View
+  style={
+    {
+      "opacity": 1,
+    }
+  }
+  testID="caja"
+>
+  <Text>
+    animada
+  </Text>
+</View>
+`;

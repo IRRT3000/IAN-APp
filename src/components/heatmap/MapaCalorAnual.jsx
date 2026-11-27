@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../base/Texto';
 import { Feather } from '@expo/vector-icons';
 import MonthBlock from './MonthBlock';
 import DaySummaryModal from './DaySummaryModal';
@@ -51,6 +52,7 @@ export default function MapaCalorAnual({
 
         <View style={styles.selectorAnio}>
           <TouchableOpacity
+            accessibilityRole="button" accessibilityLabel="Año anterior"
             style={styles.botonAnio}
             activeOpacity={0.7}
             onPress={handlePrevYear}
@@ -62,6 +64,7 @@ export default function MapaCalorAnual({
           <Text style={styles.textoAnioActual}>{year}</Text>
 
           <TouchableOpacity
+            accessibilityRole="button" accessibilityLabel="Año siguiente" aria-disabled={!puedeAvanzarAnio || undefined}
             style={[styles.botonAnio, !puedeAvanzarAnio && styles.botonAnioDeshabilitado]}
             activeOpacity={0.7}
             disabled={!puedeAvanzarAnio}

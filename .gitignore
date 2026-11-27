@@ -54,3 +54,6 @@ googlecloudtools.datacloud_telemetry/
 .claude/*
 !.claude/agents/
 
+
+# Bancos de prueba temporales (no se commitean)
+.bench/

@@ -4,10 +4,10 @@ import {
   FlatList,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Text } from './base/Texto';
 import Animated, {
   FadeIn,
   useAnimatedStyle,
@@ -63,6 +63,7 @@ const PastillaFiltro = React.memo(function PastillaFiltro({
   return (
     <Animated.View style={[styles.envoltorioPastilla, estiloAnimado]}>
       <TouchableOpacity
+        accessibilityLabel={`Filtrar por ${etiqueta}`}
         style={[styles.pastillaFiltro, esActiva && styles.pastillaFiltroActiva]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -70,6 +71,7 @@ const PastillaFiltro = React.memo(function PastillaFiltro({
         activeOpacity={0.85}
         accessibilityRole="tab"
         accessibilityState={{ selected: esActiva }}
+        aria-selected={esActiva}
       >
         {categoria ? (
           <View

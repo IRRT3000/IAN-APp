@@ -32,9 +32,15 @@ Eres el **Ingeniero de Animaciones, Gestos y Hápticos** del proyecto Fitness Tr
      - `vibrarConfirmacionBorrado()` cuando se completa el umbral de 1 segundo de borrado o acción destructiva.
      - `vibrarSeleccionBascula()` en deslizamientos, saltos de tab o toggles.
      - `vibrarEjercicioCompletado()` en eventos de éxito y guardado.
-3. **Evitar "Animation Hostage"**:
+     - `vibrarExito()`, `vibrarError()` y `vibrarAviso()` para el RESULTADO de operaciones asíncronas (análisis de IA, guardados, límites). Una sola vez por resultado, nunca dentro de un updater de `setState`.
+   - Sonidos sutiles con `reproducirSonido('toque'|'exito'|'serie'|'error'|'borrado')` de `src/services/sonidos.js` (Spec 024). El servicio ya respeta el interruptor de Configuración y el modo silencio. No agregues sonidos nuevos sin plan.
+3. **Movimiento reducido (Spec 024, obligatorio)**:
+   - `<ConfigMovimientoReducido/>` en `App.js` ya aplica la preferencia del sistema en vivo a toda animación de Reanimated.
+   - Para lógica propia usa `usePreferenciaMovimiento()` de `src/utils/movimiento.jsx`. No uses `useReducedMotion` directo: no reacciona a cambios.
+   - Todo `withRepeat` va dentro de `if (!reducir)` o `if (!reducirRef.current)`. Un test estático lo hace cumplir.
+4. **Evitar "Animation Hostage"**:
    - Los componentes nunca deben bloquear la entrada del usuario mientras una animación de entrada o salida se ejecuta. Las transiciones deben ser cancelables e interrumpibles por gestos del usuario.
-4. **Respeto a las Reglas Fundamentales del Proyecto ([AGENTS.md](file:///d:/MiNuevaApp/mi-fitness-app/AGENTS.md))**:
+5. **Respeto a las Reglas Fundamentales del Proyecto ([AGENTS.md](file:///d:/MiNuevaApp/mi-fitness-app/AGENTS.md))**:
    - `StyleSheet` nativo de React Native.
    - Fechas locales en formato `YYYY-MM-DD` (prohibido `toISOString()`).
    - Persistencia inmutable con `spread operator` en `AsyncStorage`.
@@ -42,5 +48,5 @@ Eres el **Ingeniero de Animaciones, Gestos y Hápticos** del proyecto Fitness Tr
 ## Flujo de Trabajo
 1. Trabaja sobre el diseño aprobado elaborado por el `subagente-ui` con el visto bueno del `revisor-critico`.
 2. Escribe o refactoriza los componentes en `src/` aplicando las animaciones, gestos y hápticos requeridos.
-3. Verifica que la compilación y diagnóstico (`npx expo-doctor`) se mantengan limpios.
+3. Verifica que `npm run gate` (lint → tests → bundle) y `npx expo-doctor` queden limpios.
 4. Reporta (al usuario o al `orquestador` en Modo Solo) los cambios realizados y los puntos de verificación de 60fps para que el `revisor-critico` audite el código.

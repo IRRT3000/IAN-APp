@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Text } from '../base/Texto';
 import HeatmapDayCell from './HeatmapDayCell';
 import {
   DIAS_SEMANA_CORTO,
@@ -7,6 +8,7 @@ import {
   esFechaFutura,
   generarMatrizMes,
 } from '../../utils/dateUtilsLocal';
+import { TOKENS } from '../../theme/tokens';
 
 // Espacio horizontal ocupado fuera de la cuadrícula en el widget de Inicio:
 // padding de App (16*2) + padding de tarjeta (16*2) + padding del bloque (8*2) + margen de seguridad.
@@ -182,7 +184,7 @@ const styles = StyleSheet.create({
     width: 14,
     marginHorizontal: 1.5,
     textAlign: 'center',
-    color: '#555555',
+    color: TOKENS.colors.textMuted, // Spec 023: antes #555555 (contraste ~2.6)
     fontSize: 8,
     fontWeight: '700',
   },

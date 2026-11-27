@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useWindowDimensions,
 } from 'react-native';
+import { Text } from './base/Texto';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -105,13 +105,14 @@ export default function BarraNavegacionInferior({
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               accessibilityRole="tab"
               accessibilityState={{ selected: esActivo }}
+              aria-selected={esActivo}
               accessibilityLabel={`${tab.etiqueta}${tieneContador ? `, ${tab.contador} registros hoy` : ''}`}
             >
               <View style={styles.filaIcono}>
                 <Feather
                   name={tab.icono}
                   size={18}
-                  color={esActivo ? '#FFFFFF' : '#666666'}
+                  color={esActivo ? '#FFFFFF' : '#898989'}
                 />
                 {tieneContador ? (
                   <View style={styles.badgeContador}>
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   etiquetaInactiva: {
-    color: '#666666',
+    color: '#898989',
   },
   badgeContador: {
     position: 'absolute',

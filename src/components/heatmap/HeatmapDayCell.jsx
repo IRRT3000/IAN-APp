@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../base/Texto';
 import { PALETA_NIVELES_VASO } from '../../utils/waterGlassEngine';
 
 /**
@@ -55,6 +56,7 @@ function HeatmapDayCell({
 
   return (
     <TouchableOpacity
+      accessibilityRole="button" accessibilityLabel={`${isToday ? 'Hoy, ' : ''}${fechaStr}, nivel de actividad ${nivelSeguro} de 4${isFuture ? ', día futuro' : ''}`} aria-disabled={isFuture || undefined}
       activeOpacity={isFuture ? 1 : 0.7}
       disabled={isFuture}
       onPress={handlePress}

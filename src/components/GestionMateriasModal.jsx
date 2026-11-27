@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   Modal,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Text, TextInput } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import { TOKENS } from '../theme/tokens';
 import { vibrarSeleccionBascula } from '../services/haptics';
@@ -88,7 +86,7 @@ export default function GestionMateriasModal({
   const handleBorrar = (materia) => {
     const totalSesiones = conteoPorMateria[materia.id] || 0;
     if (totalSesiones > 0) {
-      Alert.alert(
+      mostrarAlerta(
         'No se puede eliminar',
         `La materia "${materia.nombre}" tiene ${totalSesiones} sesión(es) registrada(s). No puedes borrar una materia con historial.`
       );
@@ -153,6 +151,7 @@ export default function GestionMateriasModal({
           {/* Botón para alternar creación */}
           {!modoCrear && !idMateriaEditando ? (
             <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Crear nueva materia"
               style={styles.botonCrearNueva}
               onPress={() => {
                 vibrarSeleccionBascula();
@@ -170,7 +169,9 @@ export default function GestionMateriasModal({
             <View style={styles.cajaFormulario}>
               <View style={styles.filaHeaderForm}>
                 <Text style={styles.etiquetaFormulario}>NUEVA MATERIA</Text>
-                <TouchableOpacity onPress={limpiarFormularioCrear} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <TouchableOpacity
+                  accessibilityRole="button" accessibilityLabel="Cancelar nueva materia"
+                  onPress={limpiarFormularioCrear} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                   <Feather name="x" size={16} color={TOKENS.colors.textMuted} />
                 </TouchableOpacity>
               </View>
@@ -187,6 +188,7 @@ export default function GestionMateriasModal({
 
               <View style={styles.filaSelectorCategoria}>
                 <TouchableOpacity
+                  accessibilityRole="radio" accessibilityLabel="Categoría Escuela" aria-checked={categoriaNueva === 'Escuela'}
                   style={[
                     styles.pastillaCategoria,
                     categoriaNueva === 'Escuela' && styles.pastillaCategoriaActiva,
@@ -207,6 +209,7 @@ export default function GestionMateriasModal({
                 </TouchableOpacity>
 
                 <TouchableOpacity
+                  accessibilityRole="radio" accessibilityLabel="Categoría Personal" aria-checked={categoriaNueva === 'Personal'}
                   style={[
                     styles.pastillaCategoria,
                     categoriaNueva === 'Personal' && styles.pastillaCategoriaActiva,
@@ -229,7 +232,9 @@ export default function GestionMateriasModal({
 
               {errorFormulario ? <Text style={styles.textoError}>{errorFormulario}</Text> : null}
 
-              <TouchableOpacity style={styles.botonGuardarForm} onPress={handleGuardarNueva} activeOpacity={0.85}>
+              <TouchableOpacity
+                accessibilityRole="button" accessibilityLabel="Guardar materia"
+                style={styles.botonGuardarForm} onPress={handleGuardarNueva} activeOpacity={0.85}>
                 <Text style={styles.textoBotonGuardarForm}>Guardar materia</Text>
               </TouchableOpacity>
             </View>
@@ -255,7 +260,9 @@ export default function GestionMateriasModal({
                     <View key={mat.id} style={styles.cajaFormulario}>
                       <View style={styles.filaHeaderForm}>
                         <Text style={styles.etiquetaFormulario}>EDITAR MATERIA</Text>
-                        <TouchableOpacity onPress={limpiarFormularioEditar}>
+                        <TouchableOpacity
+                          accessibilityRole="button" accessibilityLabel="Cancelar edición"
+                          onPress={limpiarFormularioEditar}>
                           <Feather name="x" size={16} color={TOKENS.colors.textMuted} />
                         </TouchableOpacity>
                       </View>
@@ -270,6 +277,7 @@ export default function GestionMateriasModal({
 
                       <View style={styles.filaSelectorCategoria}>
                         <TouchableOpacity
+                          accessibilityRole="radio" accessibilityLabel="Categoría Escuela" aria-checked={categoriaEditando === 'Escuela'}
                           style={[
                             styles.pastillaCategoria,
                             categoriaEditando === 'Escuela' && styles.pastillaCategoriaActiva,
@@ -290,6 +298,7 @@ export default function GestionMateriasModal({
                         </TouchableOpacity>
 
                         <TouchableOpacity
+                          accessibilityRole="radio" accessibilityLabel="Categoría Personal" aria-checked={categoriaEditando === 'Personal'}
                           style={[
                             styles.pastillaCategoria,
                             categoriaEditando === 'Personal' && styles.pastillaCategoriaActiva,
@@ -312,7 +321,9 @@ export default function GestionMateriasModal({
 
                       {errorFormulario ? <Text style={styles.textoError}>{errorFormulario}</Text> : null}
 
-                      <TouchableOpacity style={styles.botonGuardarForm} onPress={handleGuardarEditar}>
+                      <TouchableOpacity
+                        accessibilityRole="button" accessibilityLabel="Guardar cambios de la materia"
+                        style={styles.botonGuardarForm} onPress={handleGuardarEditar}>
                         <Text style={styles.textoBotonGuardarForm}>Guardar cambios</Text>
                       </TouchableOpacity>
                     </View>
@@ -339,6 +350,7 @@ export default function GestionMateriasModal({
 
                     <View style={styles.accionesMateria}>
                       <TouchableOpacity
+                        accessibilityRole="button"
                         style={styles.botonAccionMateria}
                         onPress={() => handleIniciarEditar(mat)}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -348,6 +360,7 @@ export default function GestionMateriasModal({
                       </TouchableOpacity>
 
                       <TouchableOpacity
+                        accessibilityRole="button"
                         style={styles.botonAccionMateria}
                         onPress={() => handleBorrar(mat)}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

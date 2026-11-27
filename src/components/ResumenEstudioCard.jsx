@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Text } from './base/Texto';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { TOKENS } from '../theme/tokens';
 import { vibrarSeleccionBascula } from '../services/haptics';
+import { textoProgresoGemini } from '../utils/progresoGemini';
 import {
   contarSesionesSinAnalizar,
   textoSesionesSinAnalizar,
@@ -69,9 +70,12 @@ export default function ResumenEstudioCard({
   // 2. Estado 1: Hoy sin resumen disponible
   if (esHoy && !entradaResumen) {
     const textoProgreso = progreso?.modelo
-      ? progreso.total && progreso.indice
-        ? `Analizando con ${progreso.modelo} (${progreso.indice}/${progreso.total})...`
-        : `Analizando con ${progreso.modelo}...`
+      ? textoProgresoGemini(
+          progreso,
+          progreso.total && progreso.indice
+            ? `Analizando con ${progreso.modelo} (${progreso.indice}/${progreso.total})...`
+            : `Analizando con ${progreso.modelo}...`
+        )
       : 'Analizando...';
 
     const handlePressAnalizar = () => {

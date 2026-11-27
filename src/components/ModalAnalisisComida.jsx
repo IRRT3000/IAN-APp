@@ -7,16 +7,23 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Text, TextInput } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';
-import { analizarComidaConGemini } from '../services/gemini';
+import {
+  analizarComidaConGemini,
+  LIMITE_DESCRIPCION_COMIDA,
+} from '../services/gemini';
 import { sanearValoresComida } from '../utils/validacionComida';
+import { textoProgresoGemini } from '../utils/progresoGemini';
+import { anunciar, anunciarError } from '../utils/accesibilidad';
+import RegionAnuncios from './base/RegionAnuncios';
+import { vibrarExito, vibrarError } from '../services/haptics';
+import { reproducirSonido } from '../services/sonidos';
 
 export default function ModalAnalisisComida({
   visible,
@@ -53,7 +60,9 @@ export default function ModalAnalisisComida({
         descripcionUsuario,
         perfilUsuario,
         onProgreso: (info) => {
-          setTextoProgreso(`Consultando ${info.modelo} (${info.indice}/${info.total})...`);
+          setTextoProgreso(
+            textoProgresoGemini(info, `Consultando ${info.modelo} (${info.indice}/${info.total})...`)
+          );
         },
       });
 
@@ -73,10 +82,16 @@ export default function ModalAnalisisComida({
       setGrasasEditadas(String(saneado.grasas));
       setDetallesIA(saneado.detalles);
       setEstadoModal('revision');
+      anunciar(`Análisis listo: ${saneado.nombre}, ${saneado.calorias} kilocalorías`);
+      vibrarExito();
+      reproducirSonido('exito');
     } catch (error) {
-      setErrorAnalisis(
-        error?.message || 'No se pudo analizar la foto. Conservamos tus datos para reintentar.'
-      );
+      vibrarError();
+      reproducirSonido('error');
+      const mensajeError =
+        error?.message || 'No se pudo analizar la foto. Conservamos tus datos para reintentar.';
+      setErrorAnalisis(mensajeError);
+      anunciarError(mensajeError);
       setEstadoModal('preparacion'); // Preserva foto y descripción (Defensa 1)
     }
   };
@@ -108,6 +123,8 @@ export default function ModalAnalisisComida({
       animationType="fade"
       onRequestClose={onCerrar}
     >
+      {/* Spec 023: en web, aria-modal deja inerte lo de fuera; la región de anuncios va dentro del modal. */}
+      <RegionAnuncios />
       <View style={styles.backdrop}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -139,6 +156,7 @@ export default function ModalAnalisisComida({
 
               {estadoModal !== 'analizando' ? (
                 <TouchableOpacity
+                  accessibilityRole="button" accessibilityLabel="Cerrar análisis de comida"
                   style={styles.botonCerrar}
                   onPress={onCerrar}
                   hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -163,6 +181,7 @@ export default function ModalAnalisisComida({
                       <Image source={{ uri: fotoUri }} style={styles.fotoPrevia} />
                       {typeof onCambiarFoto === 'function' ? (
                         <TouchableOpacity
+                          accessibilityRole="button" accessibilityLabel="Cambiar foto"
                           style={styles.botonCambiarFoto}
                           onPress={onCambiarFoto}
                           activeOpacity={0.8}
@@ -183,12 +202,18 @@ export default function ModalAnalisisComida({
                     placeholderTextColor={TOKENS.colors.textMuted}
                     multiline
                     numberOfLines={3}
+                    maxLength={LIMITE_DESCRIPCION_COMIDA}
                     value={descripcionUsuario}
                     onChangeText={setDescripcionUsuario}
                   />
 
                   {errorAnalisis ? (
-                    <View style={styles.bloqueError}>
+                    <View
+                      style={styles.bloqueError}
+                      accessible
+                      accessibilityRole="alert"
+                      accessibilityLiveRegion="assertive"
+                    >
                       <Feather
                         name="alert-circle"
                         size={14}
@@ -298,6 +323,7 @@ export default function ModalAnalisisComida({
             {estadoModal === 'preparacion' ? (
               <View style={styles.footerAcciones}>
                 <TouchableOpacity
+                  accessibilityRole="button" accessibilityLabel="Analizar con IA"
                   style={styles.botonPrimarioLleno}
                   onPress={ejecutarAnalisis}
                   activeOpacity={0.85}
@@ -317,6 +343,7 @@ export default function ModalAnalisisComida({
               <View style={styles.footerAcciones}>
                 <View style={styles.thumbZoneAccionesRevision}>
                   <TouchableOpacity
+                    accessibilityRole="button" accessibilityLabel="Descartar análisis" aria-disabled={guardando || undefined}
                     style={styles.botonSecundario}
                     onPress={onCerrar}
                     disabled={guardando}
@@ -332,6 +359,7 @@ export default function ModalAnalisisComida({
                   </TouchableOpacity>
 
                   <TouchableOpacity
+                    accessibilityRole="button" accessibilityLabel="Guardar en mi día" aria-busy={guardando || undefined}
                     style={styles.botonPrimario}
                     onPress={handleConfirmarGuardado}
                     disabled={guardando}
