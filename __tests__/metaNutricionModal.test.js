@@ -61,6 +61,14 @@ describe('ModalMetaNutricion', () => {
     expect(c.prot().props.value).toBe('200');
   });
 
+  it('kcal parciales fuera de rango no pasan a ser la base', async () => {
+    const c = await montar();
+    await fireEvent.changeText(c.kcal(), '5');
+    await fireEvent.changeText(c.prot(), '150');
+    await fireEvent.changeText(c.kcal(), '5520');
+    expect(c.prot().props.value).toBe('300');
+  });
+
   it('sin meta activa no inventa macros', async () => {
     const c = await montar(null);
     await fireEvent.changeText(c.kcal(), '2000');

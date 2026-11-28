@@ -63,27 +63,32 @@ export default function ModalMetaNutricion({
 
   const cambiarCampo = (clave, texto) => {
     setError('');
-    setValores((prev) => {
-      const siguiente = { ...prev, [clave]: texto };
-      if (clave === 'calorias') {
-        const macros = reescalarMacros(baseRef.current, aNumero(texto));
-        if (!macros) return siguiente;
-        return {
-          ...siguiente,
-          proteinas: String(macros.proteinas),
-          carbohidratos: String(macros.carbohidratos),
-          grasas: String(macros.grasas),
-        };
-      }
-      const kcal = aNumero(siguiente.calorias);
-      baseRef.current = {
-        calorias: Number.isFinite(kcal) && kcal > 0 ? kcal : baseRef.current.calorias,
-        proteinas: aNumero(siguiente.proteinas),
-        carbohidratos: aNumero(siguiente.carbohidratos),
-        grasas: aNumero(siguiente.grasas),
-      };
-      return siguiente;
-    });
+    const siguiente = { ...valores, [clave]: texto };
+    if (clave === 'calorias') {
+      const macros = reescalarMacros(baseRef.current, aNumero(texto));
+      setValores(
+        macros
+          ? {
+              ...siguiente,
+              proteinas: String(macros.proteinas),
+              carbohidratos: String(macros.carbohidratos),
+              grasas: String(macros.grasas),
+            }
+          : siguiente
+      );
+      return;
+    }
+    // Un macro editado a mano pasa a ser la base. Solo se toman unas kcal en rango
+    // para que un valor parcial («5») no deforme el reparto.
+    const kcal = aNumero(siguiente.calorias);
+    const { min, max } = LIMITES_META_NUTRICION.calorias;
+    baseRef.current = {
+      calorias: Number.isFinite(kcal) && kcal >= min && kcal <= max ? kcal : baseRef.current.calorias,
+      proteinas: aNumero(siguiente.proteinas),
+      carbohidratos: aNumero(siguiente.carbohidratos),
+      grasas: aNumero(siguiente.grasas),
+    };
+    setValores(siguiente);
   };
 
   const ejecutar = async (meta) => {
