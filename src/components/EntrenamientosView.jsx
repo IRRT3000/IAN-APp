@@ -17,6 +17,7 @@ import CatalogoEjerciciosModal from './CatalogoEjerciciosModal';
 import LiveModeModal from './LiveModeModal';
 import CalculadoraPesoModal from './CalculadoraPesoModal';
 import MiniaturaEjercicio from './MiniaturaEjercicio';
+import ModalProgresoEjercicio from './entrenamientos/ModalProgresoEjercicio';
 import { mostrarAlerta } from '../utils/alertUtils';
 import {
   cargarCatalogoPersonalizado,
@@ -33,6 +34,7 @@ import {
 } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
 import { reproducirSonido } from '../services/sonidos';
+import { indexarHistoriales, registroEsRecord } from '../utils/progresoEjercicio';
 
 const DURACION_PULSACION_BORRADO_MS = 1000;
 
@@ -119,8 +121,10 @@ function TarjetaEntrenamientoItem({
   item,
   esHoy,
   mostrandoAviso,
+  esRecord = false,
   onBorrar,
   onAvisoCorto,
+  onVerProgreso,
 }) {
   const [expandido, setExpandido] = useState(false);
   const tieneSeriesDetalle =
@@ -165,6 +169,22 @@ function TarjetaEntrenamientoItem({
                 <Text style={styles.textoBadgeImplementoTarjeta}>
                   {item.implemento}
                 </Text>
+              </View>
+            ) : null}
+
+            {esRecord ? (
+              <View
+                style={styles.badgeRecordTarjeta}
+                accessible
+                accessibilityLabel="Nuevo récord personal"
+              >
+                <Feather
+                  name="award"
+                  size={10}
+                  color={TOKENS.colors.badgeText}
+                  style={{ marginRight: 4 }}
+                />
+                <Text style={styles.textoBadgeRecordTarjeta}>Récord</Text>
               </View>
             ) : null}
           </View>
@@ -212,6 +232,24 @@ function TarjetaEntrenamientoItem({
           </View>
         ) : null}
       </View>
+
+      {String(item.ejercicio ?? '').trim() && typeof onVerProgreso === 'function' ? (
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={`Ver progreso de ${item.ejercicio}`}
+          style={styles.botonVerProgreso}
+          activeOpacity={0.7}
+          onPress={() => onVerProgreso(item.ejercicio)}
+        >
+          <Feather
+            name="trending-up"
+            size={14}
+            color={TOKENS.colors.textSecondary}
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.textoVerProgreso}>Ver progreso</Text>
+        </TouchableOpacity>
+      ) : null}
 
       {tieneSeriesDetalle ? (
         <View style={styles.seccionDesglose}>
@@ -280,6 +318,7 @@ export default function EntrenamientosView({
   const [draftSesion, setDraftSesion] = useState(null);
   const [ejerciciosPersonalizados, setEjerciciosPersonalizados] = useState([]);
   const [avisoBorradoId, setAvisoBorradoId] = useState(null);
+  const [progresoDe, setProgresoDe] = useState(null);
   const timerAvisoRef = useRef(null);
 
   const hoyDinamico = obtenerFechaLocal();
@@ -342,6 +381,18 @@ export default function EntrenamientosView({
   const entrenamientosFecha = useMemo(() => {
     return entrenamientos.filter((item) => item.fecha === fechaSeleccionada);
   }, [entrenamientos, fechaSeleccionada]);
+
+  // Spec 030: historial por ejercicio calculado una vez para las insignias de récord.
+  const indiceHistoriales = useMemo(() => indexarHistoriales(entrenamientos), [entrenamientos]);
+  const idsRecord = useMemo(
+    () =>
+      new Set(
+        entrenamientosFecha
+          .filter((item) => registroEsRecord(entrenamientos, item, indiceHistoriales))
+          .map((item) => item.id)
+      ),
+    [entrenamientos, entrenamientosFecha, indiceHistoriales]
+  );
 
   const manejarSeleccionarEjercicio = (ejercicio) => {
     setCatalogoModalVisible(false);
@@ -533,8 +584,10 @@ export default function EntrenamientosView({
             item={item}
             esHoy={esHoy}
             mostrandoAviso={avisoBorradoId === item.id}
+            esRecord={idsRecord.has(item.id)}
             onBorrar={solicitarConfirmacionBorrado}
             onAvisoCorto={mostrarAvisoToqueCorto}
+            onVerProgreso={setProgresoDe}
           />
         )}
         contentContainerStyle={styles.listaContenido}
@@ -587,6 +640,16 @@ export default function EntrenamientosView({
         visible={calculadoraVisible}
         onCerrar={() => setCalculadoraVisible(false)}
       />
+
+      {progresoDe ? (
+        <ModalProgresoEjercicio
+          key={`progreso-${progresoDe}`}
+          visible
+          nombreEjercicio={progresoDe}
+          entrenamientos={entrenamientos}
+          onCerrar={() => setProgresoDe(null)}
+        />
+      ) : null}
     </View>
   );
 }
@@ -746,6 +809,32 @@ const styles = StyleSheet.create({
   textoBadgeImplementoTarjeta: {
     color: TOKENS.colors.textSecondary,
     fontSize: 11,
+    fontWeight: '600',
+  },
+  badgeRecordTarjeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.colors.badgeBg,
+    borderRadius: TOKENS.radii.xs,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 6,
+  },
+  textoBadgeRecordTarjeta: {
+    color: TOKENS.colors.badgeText,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  botonVerProgreso: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    minHeight: TOKENS.touchTarget.minSize,
+    paddingRight: 8,
+  },
+  textoVerProgreso: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 13,
     fontWeight: '600',
   },
   nombreEjercicioTarjeta: {
