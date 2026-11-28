@@ -78,7 +78,7 @@ export default function ModalProgresoEjercicio({ visible, nombreEjercicio, entre
     }`;
   }
   // Con muchas columnas, la fecha solo va en algunas (siempre en la última) para que no se corte.
-  const pasoEtiqueta = ultimas.length > 6 ? Math.ceil(ultimas.length / (cruzaAnio ? 4 : 6)) : 1;
+  const pasoEtiqueta = ultimas.length > 6 ? Math.ceil(ultimas.length / (cruzaAnio ? 3 : 6)) : 1;
   const sesionesLista = [...historial].reverse().slice(0, MAX_SESIONES_LISTA);
 
   return (
