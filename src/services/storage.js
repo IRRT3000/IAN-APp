@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { eliminarFotos } from './fotosStorage';
+import { calcularScoreVaso, obtenerNivelColor } from '../utils/waterGlassEngine';
 
 export const STORAGE_KEY = '@fitness_tracker_entrenamientos_v1';
 export const STORAGE_KEY_COMIDAS = '@fitness_tracker_comidas_v1';
@@ -13,8 +14,6 @@ export const STORAGE_KEY_DIAS_DESCANSO =
   '@fitness_tracker_dias_descanso_v1';
 export const STORAGE_KEY_META_NUTRICION =
   '@fitness_tracker_meta_nutricion_v1';
-
-import { calcularScoreVaso, obtenerNivelColor } from '../utils/waterGlassEngine';
 
 export const OBJETIVOS_PERFIL_VALIDOS = [
   'Mantenimiento',

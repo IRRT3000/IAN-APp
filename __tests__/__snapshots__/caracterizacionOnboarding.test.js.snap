@@ -7783,7 +7783,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
         }
       >
         <View
-          accessibilityLabel="Entrar a Fitness Tracker"
+          accessibilityLabel="Entrar a IXN"
           accessibilityRole="button"
           accessibilityState={
             {
@@ -7848,7 +7848,7 @@ exports[`Caracterización OnboardingBienvenidaModal (Spec 022) modo alta: recorr
                 }
               }
             >
-              Entrar a Fitness Tracker
+              Entrar a IXN
             </Text>
             <Text
               allowFontScaling={false}

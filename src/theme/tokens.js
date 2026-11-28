@@ -1,5 +1,5 @@
 /**
- * Tokens de diseño centralizados para Fitness Tracker.
+ * Tokens de diseño centralizados para IXN.
  * Spec 006: Rediseño Total Monocromo Matte Luxury (Android-First Edition).
  * Spec 009: Adaptación Ergonómica Mobile-First (iOS & Android).
  * 

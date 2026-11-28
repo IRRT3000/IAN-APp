@@ -1,4 +1,4 @@
-# MEMORY.md — Fitness Tracker & Nutritional AI
+# MEMORY.md — IXN (antes Fitness Tracker)
 Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o eliminar lo obsoleto.
 
 ## Estado Actual (2026-11-27)
@@ -21,6 +21,7 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
 
 ## Decisiones Técnicas Clave
 - **Nutrición sin IA (Spec 028):** registro manual (`ModalComidaManual`), edición de comidas de hoy con `actualizarComida` (conserva id, fecha, foto y `detalles`) y meta diaria en `utils/metaNutricional.js` (Mifflin-St Jeor × 1.55, ajuste por objetivo). La meta propia vive en `@fitness_tracker_meta_nutricion_v1` y viaja en el respaldo.
+- **Marca IXN (Spec 027):** solo cambian los nombres visibles (`expo.name`, web, manifiesto, saludo y onboarding). `slug`, `package`, `bundleIdentifier`, `APP_RESPALDO = 'mi-fitness-app'`, las claves `@fitness_tracker_*` y el nombre del APK no se tocan para no romper actualizaciones ni respaldos.
 - **Antes de cada PR:** probar la preview de Vercel de la rama (enlace compartible por el conector) y Android con Expo Go (`npx expo start` + emulador `medium_phone` vía `adb`), y dejar el QR listo para el usuario.
 - **Puerta de calidad** (`npm run gate`): lint → `test-gate` (falla si no corre ninguna suite) → `bundle:check`.
 - **Claves:** nunca en el código ni en la URL. En nativo, SecureStore; en web, AsyncStorage protegido por la CSP (`connect-src` solo permite Gemini).

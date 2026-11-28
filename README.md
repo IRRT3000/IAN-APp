@@ -1,4 +1,4 @@
-# Fitness Tracker & Nutritional AI 🏋️‍♂️
+# IXN 🏋️‍♂️
 
 > Aplicación móvil *Local-First* de entrenamiento de fuerza, análisis nutricional multimodal con Gemini Vision y mapa de calor anual de consistencia.
 
