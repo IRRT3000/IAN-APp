@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mi-fitness-app",
+    "name": "IXN",
     "slug": "mi-fitness-app",
     "version": "2.3.0",
     "orientation": "portrait",
@@ -26,8 +26,8 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "name": "Fitness Tracker & Nutritional AI",
-      "shortName": "Fitness",
+      "name": "IXN",
+      "shortName": "IXN",
       "themeColor": "#0A0A0A",
       "backgroundColor": "#0A0A0A",
       "display": "standalone",

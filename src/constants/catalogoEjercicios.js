@@ -1,5 +1,5 @@
 /**
- * Catálogo estático de ejercicios y grupos musculares para Fitness Tracker.
+ * Catálogo estático de ejercicios y grupos musculares para IXN.
  * Spec 003: Registro de Entrenamientos Activo (RF-5, RF-6).
  */
 

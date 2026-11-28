@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
-  Platform,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -11,7 +10,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  withSpring,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import SelectorSemanal from './SelectorSemanal';
@@ -26,12 +24,8 @@ import {
   eliminarEntrenamiento,
   eliminarSesionActivaDraft,
   guardarEntrenamiento,
-  obtenerDiasConActividad,
   obtenerFechaLocal,
 } from '../services/storage';
-import {
-  obtenerColorGrupo,
-} from '../constants/catalogoEjercicios';
 import {
   vibrarConfirmacionBorrado,
   vibrarInicioPresionBorrado,
@@ -131,7 +125,6 @@ function TarjetaEntrenamientoItem({
   const [expandido, setExpandido] = useState(false);
   const tieneSeriesDetalle =
     Array.isArray(item.seriesDetalle) && item.seriesDetalle.length > 0;
-  const colorGrupo = obtenerColorGrupo(item.grupoMuscular);
   const iconoFeather = obtenerIconoImplementoFeather(item.implemento);
 
   const alternarExpandido = () => {
