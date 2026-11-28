@@ -38,10 +38,6 @@
 - **Causa Raíz:** `jest-expo` transforma `require` de imagen a `1`, comparar `require` no detecta un mapa cruzado.
 - **Solución:** comparar ids y leer texto del mapa y cabecera con `fs` relativo a la raíz (sin `__dirname`/`process`).
 
-### INC-009: Regla `react-hooks/set-state-in-effect` en Candados de Módulo
-- **Causa Raíz:** `setAnalizando(true)` síncrono en `useEffect` dispara error fatal de cascading renders en ESLint React 19.
-- **Solución:** Inicializar con lazy initializer `useState(() => Boolean(analisisEnCurso))` y reservar el efecto para suscripciones asíncronas (`finally`).
-
 ### INC-011: Error 404 en Assets de Metro por Junction Cruzada (C: y D:)
 - **Causa Raíz:** Junction NTFS (`C:` a `D:`) genera URLs con `unstable_path=.%2FD%3A%2F...`; Metro rechaza rutas relativas con unidad Windows.
 - **Solución:** `metro.config.js` con `enhanceMiddleware` que normaliza `unstable_path` y sirve el asset mediante `fs.createReadStream`.
@@ -53,3 +49,7 @@
 ### INC-015: Estado y foco de modales en web (react-native-web 0.21)
 - **Causa Raíz:** RNW ignora `accessibilityState` (solo traduce `aria-*`), y su `ModalFocusTrap` del modal de abajo recupera el foco si se enfoca un submodal antes de que termine su animación.
 - **Solución:** estado con `aria-checked/selected/disabled/busy`; `ModalAccesible` enfoca el título en `onShow`. La prueba estática prohíbe `accessibilityState`.
+
+### INC-016: Tarjeta de modal con bloque vacío al abrir el teclado en Android
+- **Causa Raíz:** con edge-to-edge (SDK 58) el `insets.bottom` dentro del `Modal` crece con el teclado; usado como `paddingBottom` de la tarjeta, encogía el contenido a una franja. `KeyboardAvoidingView` sin `behavior` en Android no compensaba nada.
+- **Solución:** padding fijo en la tarjeta, solo `insets.top` en el fondo, `behavior` `height` en Android y `flexShrink: 1` en lugar de `maxHeight: '92%'` (Spec 029).

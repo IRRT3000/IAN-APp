@@ -20,3 +20,6 @@
 
 ## 5. Cierre
 - `npm run gate` (regenerar y justificar snapshots si cambian). `grep` sin «FITNESS TRACKER» ni «MATTE LUXURY» en `src/` y `__tests__/`. Revisión de código. Prueba en el emulador por Remote Control sin commits. Actualizar `MEMORY.md` y evaluar `TROUBLESHOOTING.md` (teclado Android en modales).
+
+## Resultado en el emulador
+La primera prueba (solo `flexShrink`) dejó un bloque vacío dentro de la tarjeta: el `insets.bottom` de `useSafeInsets` crecía con el teclado y se sumaba como `paddingBottom`. Arreglo final: padding fijo en la tarjeta, `insets.top` solo en el fondo y `behavior` `height` en Android. La segunda prueba pasó CA-1 a CA-4.
