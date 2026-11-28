@@ -80,7 +80,7 @@ export default function MenuBienvenida({
 
   const fechaFormateadaEditorial = formatearFechaLegible(fechaHoy).toUpperCase();
   const nombreLimpio = String(perfilUsuario?.nombre || '').trim();
-  const tituloSaludo = nombreLimpio ? `Hola, ${nombreLimpio}` : 'Fitness Tracker';
+  const tituloSaludo = nombreLimpio ? `Hola, ${nombreLimpio}` : 'IXN';
   const alturaPerfil = Number(perfilUsuario?.alturaCm) || 182;
   const pesoPerfil = Number(
     perfilUsuario?.pesoKgActual ?? perfilUsuario?.pesoKgBase ?? 74

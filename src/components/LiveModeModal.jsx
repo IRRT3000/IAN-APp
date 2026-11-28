@@ -200,11 +200,17 @@ export default function LiveModeModal({
     );
   };
 
+  // Ref con la versión más reciente: el BackHandler no se vuelve a suscribir en cada render.
+  const confirmarDescarteRef = useRef(confirmarDescarte);
+  useEffect(() => {
+    confirmarDescarteRef.current = confirmarDescarte;
+  });
+
   useEffect(() => {
     if (!visible) return;
 
     const onBackPress = () => {
-      confirmarDescarte();
+      confirmarDescarteRef.current();
       return true;
     };
 

@@ -220,7 +220,7 @@ export function useAccionesOnboarding({ anioInicioSeguro, anioNac, bioBannerSV, 
         onPerfilActualizado?.(perfilGuardado);
         await vibrarEjercicioCompletado();
         transicionarAEscena(5, 1);
-      } catch (error) {
+      } catch {
         setErrorValidacion('No se pudo guardar el perfil. Inténtalo de nuevo.');
         guardandoRef.current = false;
       } finally {

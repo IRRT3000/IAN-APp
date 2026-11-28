@@ -162,7 +162,7 @@ export const crearRenderEscenaCelebracion = (ctx) => (...args) => {
               accessibilityLabel={
                 modoEdicion
                   ? 'Volver con Perfil Actualizado'
-                  : 'Entrar a Fitness Tracker'
+                  : 'Entrar a IXN'
               }
               onPress={handleFinalizarCelebracion}
               style={styles.primaryCtaButton}
@@ -170,7 +170,7 @@ export const crearRenderEscenaCelebracion = (ctx) => (...args) => {
               <Text style={styles.primaryCtaText}>
                 {modoEdicion
                   ? 'Volver con Perfil Actualizado'
-                  : 'Entrar a Fitness Tracker'}
+                  : 'Entrar a IXN'}
               </Text>
               <Feather name="check" size={18} color={TOKENS.colors.textInverse} />
             </BotonInteractivo>
