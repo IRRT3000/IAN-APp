@@ -78,16 +78,14 @@ export default function ModalComidaManual({
 
   return (
     <ModalAccesible visible={visible} transparent animationType="fade" onRequestClose={onCerrar}>
-      <View style={styles.backdrop}>
+      {/* Spec 029: el inset inferior no se usa; en Android edge-to-edge puede incluir el teclado. */}
+      <View style={[styles.backdrop, { paddingTop: insets.top + TOKENS.spacing.md }]}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardContainer}
         >
           <View
-            style={[
-              styles.tarjetaModal,
-              { paddingTop: Math.max(16, insets.top), paddingBottom: Math.max(16, insets.bottom) },
-            ]}
+            style={styles.tarjetaModal}
           >
             <View style={styles.cabecera}>
               <Text style={styles.tituloCabecera} accessibilityRole="header">

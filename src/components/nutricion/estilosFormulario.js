@@ -20,11 +20,12 @@ export const estilosFormulario = StyleSheet.create({
     borderColor: TOKENS.colors.borderDefault,
     borderWidth: 1,
     borderRadius: TOKENS.radii.lg,
-    maxHeight: '92%',
+    flexShrink: 1,
     maxWidth: 480,
     width: '100%',
     alignSelf: 'center',
     paddingHorizontal: TOKENS.spacing.md,
+    paddingVertical: TOKENS.spacing.md,
   },
   scrollArea: {
     flexShrink: 1,

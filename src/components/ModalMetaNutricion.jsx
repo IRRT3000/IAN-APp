@@ -10,6 +10,7 @@ import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';
 import { LIMITES_META_NUTRICION } from '../services/storage';
 import { anunciarError } from '../utils/accesibilidad';
+import { reescalarMacros } from '../utils/metaNutricional';
 import { estilosFormulario as styles } from './nutricion/estilosFormulario';
 
 const CAMPOS = [
@@ -52,6 +53,43 @@ export default function ModalMetaNutricion({
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
   const guardandoRef = useRef(false);
+  // Reparto del que parte el reescalado al cambiar las kcal (Spec 029, CA-4).
+  const baseRef = useRef({
+    calorias: Number(metaActiva?.calorias),
+    proteinas: Number(metaActiva?.proteinas),
+    carbohidratos: Number(metaActiva?.carbohidratos),
+    grasas: Number(metaActiva?.grasas),
+  });
+
+  const cambiarCampo = (clave, texto) => {
+    setError('');
+    const siguiente = { ...valores, [clave]: texto };
+    if (clave === 'calorias') {
+      const macros = reescalarMacros(baseRef.current, aNumero(texto));
+      setValores(
+        macros
+          ? {
+              ...siguiente,
+              proteinas: String(macros.proteinas),
+              carbohidratos: String(macros.carbohidratos),
+              grasas: String(macros.grasas),
+            }
+          : siguiente
+      );
+      return;
+    }
+    // Un macro editado a mano pasa a ser la base. Solo se toman unas kcal en rango
+    // para que un valor parcial («5») no deforme el reparto.
+    const kcal = aNumero(siguiente.calorias);
+    const { min, max } = LIMITES_META_NUTRICION.calorias;
+    baseRef.current = {
+      calorias: Number.isFinite(kcal) && kcal >= min && kcal <= max ? kcal : baseRef.current.calorias,
+      proteinas: aNumero(siguiente.proteinas),
+      carbohidratos: aNumero(siguiente.carbohidratos),
+      grasas: aNumero(siguiente.grasas),
+    };
+    setValores(siguiente);
+  };
 
   const ejecutar = async (meta) => {
     if (guardandoRef.current) return;
@@ -84,16 +122,14 @@ export default function ModalMetaNutricion({
 
   return (
     <ModalAccesible visible={visible} transparent animationType="fade" onRequestClose={onCerrar}>
-      <View style={styles.backdrop}>
+      {/* Spec 029: el inset inferior no se usa; en Android edge-to-edge puede incluir el teclado. */}
+      <View style={[styles.backdrop, { paddingTop: insets.top + TOKENS.spacing.md }]}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardContainer}
         >
           <View
-            style={[
-              styles.tarjetaModal,
-              { paddingTop: Math.max(16, insets.top), paddingBottom: Math.max(16, insets.bottom) },
-            ]}
+            style={styles.tarjetaModal}
           >
             <View style={styles.cabecera}>
               <Text style={styles.tituloCabecera} accessibilityRole="header">
@@ -143,7 +179,7 @@ export default function ModalMetaNutricion({
                       style={styles.inputMacro}
                       keyboardType="number-pad"
                       value={valores[campo.clave]}
-                      onChangeText={(texto) => setValores((prev) => ({ ...prev, [campo.clave]: texto }))}
+                      onChangeText={(texto) => cambiarCampo(campo.clave, texto)}
                     />
                   </View>
                 ))}

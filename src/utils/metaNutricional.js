@@ -91,3 +91,24 @@ export function calcularProgreso(consumido, meta) {
     exceso: Math.max(0, Math.round(c - m)),
   };
 }
+
+/**
+ * Reescala los macros de una meta en proporción a unas kcal nuevas (Spec 029, CA-4).
+ * Siempre parte de `base`, nunca del valor anterior. Devuelve null si no se puede.
+ */
+export function reescalarMacros(base, kcal) {
+  const kcalBase = Number(base?.calorias);
+  const kcalNuevas = Number(kcal);
+  if (!Number.isFinite(kcalBase) || kcalBase <= 0) return null;
+  if (!Number.isFinite(kcalNuevas) || kcalNuevas <= 0) return null;
+  const factor = kcalNuevas / kcalBase;
+  const escalar = (valor) => {
+    const n = Number(valor);
+    return Number.isFinite(n) && n > 0 ? Math.round(n * factor) : 0;
+  };
+  return {
+    proteinas: escalar(base.proteinas),
+    carbohidratos: escalar(base.carbohidratos),
+    grasas: escalar(base.grasas),
+  };
+}

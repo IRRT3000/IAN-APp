@@ -1,11 +1,10 @@
 # MEMORY.md — IXN (antes Fitness Tracker)
 Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o eliminar lo obsoleto.
 
-## Estado Actual (2026-11-27)
-- **Dónde nos quedamos (cierre del 27/11/2026):** `main` está en v2.3.0 (build 8) con las Specs 020–026 y Vercel producción (https://ian-app.vercel.app/) ya la sirve, revisada sin errores de consola. Se mergearon el PR #11 (Specs 020–025, commit `0a0726d`) y después el PR #12 (Spec 026, `d76fd13`), ambos probados antes en su preview de Vercel y en Android (emulador con Expo Go). Las ramas de esos PR siguen en GitHub sin borrar.
+## Estado Actual (2026-11-28)
+- **Dónde nos quedamos (28/11/2026):** `main` (v2.3.0) tiene también las Specs 027 (marca IXN, PR #14) y 028 (Nutrición sin IA, PR #15), en producción en Vercel y probadas en el emulador. La Spec 029 (arreglos tras esa prueba: teclado Android en los formularios de Nutrición, texto de marca en la celebración, error de meta que se borra y macros que siguen a las kcal) está en la rama `claude/project-thread-g1b1ey`, aprobada y probada en el emulador. Siguiente: Fase 2 del roadmap (progreso en Entrenos: récords y 1RM, gráfica por ejercicio, editar ejercicio guardado, temporizador de descanso). Supabase queda fuera por decisión del dueño.
 - La rama local `claude/app-status-c09be7` (una "Spec 020" de accesibilidad paralela) quedó **obsoleta**: lo útil se portó a la 026. No fusionarla.
-- Siguiente paso sugerido: Spec de UX (valores iniciales del onboarding 2010/182 cm/74 kg/Hombre, entrada numérica directa, temporizador de descanso, meta de kcal, registro manual de comidas).
-- Specs completadas: 001–011, 013–026 con `CODIGO_APROBADO`. La 012 está archivada: la app es BYOK por decisión del dueño (Q16).
+- Specs completadas: 001–011, 013–029 con `CODIGO_APROBADO`. La 012 está archivada: la app es BYOK por decisión del dueño (Q16).
 - **020 Seguridad:** CSP y cabeceras en `vercel.json`, `public/index.html` (`lang="es"`) y manifiesto PWA. `scripts/test-gate.js` existe porque Jest ignoraba los worktrees. SDK 58.0.26 y `npm audit` en 0 altas. Fotos permanentes en `fotosStorage.js` (`foto-doc:` en nativo, `foto-local:` en web con tope de 80). Los guardados lanzan el error en vez de devolver `[]`.
 - **021 Gemini:** un único motor `ejecutarConFailover` con reintentos, tope de 90 s, `thinkingLevel: 'low'` y mensajes claros. Cadena: `3.5-flash-lite` → `3.6-flash` → `3-flash-preview`. Con clave gratuita, Flash-Lite acertó 10/12 dentro de los rangos USDA.
 - **022 Refactor:** Onboarding 3015 → 133 líneas y CambioFisico 2191 → 76, con hooks y renders en `onboarding/` y `cambioFisico/`. El DOM es idéntico, verificado por hash, y hay 12 snapshots de caracterización.
@@ -20,6 +19,7 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
   - confirmar si la fecha por defecto `2010-11-26` es intencional.
 
 ## Decisiones Técnicas Clave
+- **Modales con teclado en Android (Spec 029):** en formularios con teclado, no sumar `insets.bottom` como padding (en edge-to-edge puede incluir el teclado); `KeyboardAvoidingView` con `height` en Android y tarjeta con `flexShrink: 1`, sin `maxHeight` en %.
 - **Nutrición sin IA (Spec 028):** registro manual (`ModalComidaManual`), edición de comidas de hoy con `actualizarComida` (conserva id, fecha, foto y `detalles`) y meta diaria en `utils/metaNutricional.js` (Mifflin-St Jeor × 1.55, ajuste por objetivo). La meta propia vive en `@fitness_tracker_meta_nutricion_v1` y viaja en el respaldo.
 - **Marca IXN (Spec 027):** solo cambian los nombres visibles (`expo.name`, web, manifiesto, saludo y onboarding). `slug`, `package`, `bundleIdentifier`, `APP_RESPALDO = 'mi-fitness-app'`, las claves `@fitness_tracker_*` y el nombre del APK no se tocan para no romper actualizaciones ni respaldos.
 - **Antes de cada PR:** probar la preview de Vercel de la rama (enlace compartible por el conector) y Android con Expo Go (`npx expo start` + emulador `medium_phone` vía `adb`), y dejar el QR listo para el usuario.
