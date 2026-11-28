@@ -20,6 +20,7 @@ Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o elimina
   - confirmar si la fecha por defecto `2010-11-26` es intencional.
 
 ## Decisiones Técnicas Clave
+- **Nutrición sin IA (Spec 028):** registro manual (`ModalComidaManual`), edición de comidas de hoy con `actualizarComida` (conserva id, fecha, foto y `detalles`) y meta diaria en `utils/metaNutricional.js` (Mifflin-St Jeor × 1.55, ajuste por objetivo). La meta propia vive en `@fitness_tracker_meta_nutricion_v1` y viaja en el respaldo.
 - **Antes de cada PR:** probar la preview de Vercel de la rama (enlace compartible por el conector) y Android con Expo Go (`npx expo start` + emulador `medium_phone` vía `adb`), y dejar el QR listo para el usuario.
 - **Puerta de calidad** (`npm run gate`): lint → `test-gate` (falla si no corre ninguna suite) → `bundle:check`.
 - **Claves:** nunca en el código ni en la URL. En nativo, SecureStore; en web, AsyncStorage protegido por la CSP (`connect-src` solo permite Gemini).

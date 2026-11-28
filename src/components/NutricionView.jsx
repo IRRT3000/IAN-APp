@@ -16,15 +16,25 @@ import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import SelectorSemanal from './SelectorSemanal';
 import ModalAnalisisComida from './ModalAnalisisComida';
+import ModalComidaManual, { TIPOS_COMIDA } from './ModalComidaManual';
+import ModalMetaNutricion from './ModalMetaNutricion';
 import FotoPersistida from './FotoPersistida';
 import { eliminarFoto, persistirFoto } from '../services/fotosStorage';
 import { mostrarAlerta } from '../utils/alertUtils';
 import {
+  actualizarComida,
   cargarComidas,
+  cargarMetaNutricion,
   eliminarComida,
   guardarComida,
+  guardarMetaNutricion,
   obtenerFechaLocal,
 } from '../services/storage';
+import {
+  calcularMetaNutricional,
+  calcularProgreso,
+  resolverMetaActiva,
+} from '../utils/metaNutricional';
 import {
   vibrarConfirmacionBorrado,
   vibrarInicioPresionBorrado,
@@ -35,7 +45,6 @@ import { TOKENS } from '../theme/tokens';
 import { anunciar } from '../utils/accesibilidad';
 import { reproducirSonido } from '../services/sonidos';
 
-const TIPOS_COMIDA = ['Desayuno', 'Comida', 'Cena', 'Snack'];
 const DURACION_PULSACION_BORRADO_MS = 1000;
 
 function CapsulaBorradoSeguroNutricion({ onBorrar, onAvisoCorto }) {
@@ -106,6 +115,9 @@ export default function NutricionView({
   const [modalAnalisisVisible, setModalAnalisisVisible] = useState(false);
   const [borradorFoto, setBorradorFoto] = useState(null);
   const [avisoBorradoId, setAvisoBorradoId] = useState(null);
+  const [modalManual, setModalManual] = useState({ visible: false, comida: null });
+  const [modalMetaVisible, setModalMetaVisible] = useState(false);
+  const [metaGuardada, setMetaGuardada] = useState({ modo: 'auto' });
   const timerAvisoRef = useRef(null);
 
   const fechaHoy = obtenerFechaLocal();
@@ -126,6 +138,22 @@ export default function NutricionView({
       sincronizarComidas();
     }
   }, [comidasExternas, sincronizarComidas]);
+
+  useEffect(() => {
+    let activo = true;
+    cargarMetaNutricion().then((meta) => {
+      if (activo) setMetaGuardada(meta);
+    });
+    return () => {
+      activo = false;
+    };
+  }, []);
+
+  const metaActiva = useMemo(
+    () => resolverMetaActiva(perfilUsuario, metaGuardada),
+    [perfilUsuario, metaGuardada]
+  );
+  const metaAutomatica = useMemo(() => calcularMetaNutricional(perfilUsuario), [perfilUsuario]);
 
   useEffect(() => {
     return () => {
@@ -318,6 +346,58 @@ export default function NutricionView({
     }
   };
 
+  const handleGuardarManual = async (valores, tipo) => {
+    const comidaEditada = modalManual.comida;
+    try {
+      const listaActualizada = comidaEditada
+        ? await actualizarComida(comidaEditada.id, { ...valores, tipo })
+        : await guardarComida({
+            ...valores,
+            descripcion: valores.nombre,
+            tipo,
+            uriFoto: '',
+            fotoUri: '',
+            fecha: obtenerFechaLocal(),
+          });
+      anunciar(comidaEditada ? 'Comida actualizada' : 'Comida guardada en tu día');
+      vibrarExito();
+      reproducirSonido('exito');
+      if (typeof onComidaRegistrada === 'function') {
+        onComidaRegistrada(listaActualizada);
+      } else {
+        setComidasInternas(listaActualizada);
+      }
+      setModalManual({ visible: false, comida: null });
+    } catch (error) {
+      mostrarAlerta(
+        'Error al guardar',
+        error?.message || 'No se pudo guardar la comida.',
+        [{ text: 'Entendido', style: 'cancel' }]
+      );
+    }
+  };
+
+  const handleGuardarMeta = async (meta) => {
+    try {
+      const guardada = await guardarMetaNutricion(meta);
+      setMetaGuardada(guardada);
+      anunciar(guardada.modo === 'auto' ? 'Meta automática activada' : 'Meta guardada');
+      vibrarExito();
+      setModalMetaVisible(false);
+    } catch (error) {
+      mostrarAlerta(
+        'Error al guardar la meta',
+        error?.message || 'No se pudo guardar la meta.',
+        [{ text: 'Entendido', style: 'cancel' }]
+      );
+    }
+  };
+
+  const progresoKcal = calcularProgreso(totalesDia.calorias, metaActiva.calorias);
+  const etiquetaProgreso = `Calorías: ${totalesDia.calorias} de ${metaActiva.calorias} kilocalorías${
+    progresoKcal.exceso > 0 ? `, ${progresoKcal.exceso} sobre la meta` : ''
+  }`;
+
   const handleCerrarModal = () => {
     setModalAnalisisVisible(false);
     setBorradorFoto(null);
@@ -393,25 +473,60 @@ export default function NutricionView({
           </Text>
           <Text style={styles.valorTotalPrincipal}>{totalesDia.calorias}</Text>
           <Text style={styles.unidadTotalPrincipal}>
-            {esHoy ? 'kcal consumidas hoy' : 'kcal consumidas en este día'}
+            {`${totalesDia.calorias} / ${metaActiva.calorias} kcal`}
           </Text>
+          <View
+            style={styles.pistaProgreso}
+            accessible
+            accessibilityRole="progressbar"
+            accessibilityLabel={etiquetaProgreso}
+            aria-valuemin={0}
+            aria-valuemax={metaActiva.calorias}
+            aria-valuenow={Math.min(totalesDia.calorias, metaActiva.calorias)}
+          >
+            <View
+              style={[styles.rellenoProgreso, { width: `${Math.round(progresoKcal.porcentaje * 100)}%` }]}
+            />
+          </View>
+          {progresoKcal.exceso > 0 ? (
+            <Text style={styles.textoExceso}>{`+${progresoKcal.exceso} kcal sobre la meta`}</Text>
+          ) : null}
         </View>
 
         <View style={styles.filaMacros}>
           <View style={styles.bloqueMacro}>
             <Text style={styles.etiquetaMacro}>PROTEÍNAS</Text>
             <Text style={styles.valorMacro}>{totalesDia.proteinas}g</Text>
+            <Text style={styles.metaMacro}>{`${totalesDia.proteinas} / ${metaActiva.proteinas} g`}</Text>
           </View>
           <View style={styles.divisorMacro} />
           <View style={styles.bloqueMacro}>
             <Text style={styles.etiquetaMacro}>CARBOHIDRATOS</Text>
             <Text style={styles.valorMacro}>{totalesDia.carbohidratos}g</Text>
+            <Text style={styles.metaMacro}>{`${totalesDia.carbohidratos} / ${metaActiva.carbohidratos} g`}</Text>
           </View>
           <View style={styles.divisorMacro} />
           <View style={styles.bloqueMacro}>
             <Text style={styles.etiquetaMacro}>GRASAS</Text>
             <Text style={styles.valorMacro}>{totalesDia.grasas}g</Text>
+            <Text style={styles.metaMacro}>{`${totalesDia.grasas} / ${metaActiva.grasas} g`}</Text>
           </View>
+        </View>
+
+        <View style={styles.pieTotales}>
+          <Text style={styles.textoOrientativo}>
+            {metaActiva.modo === 'manual' ? 'Meta propia.' : 'Meta automática según tu perfil.'} Estimación
+            orientativa, no es consejo médico.
+          </Text>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Editar meta diaria"
+            style={styles.botonEditarMeta}
+            onPress={() => setModalMetaVisible(true)}
+          >
+            <Feather name="sliders" size={14} color={TOKENS.colors.textPrimary} style={{ marginRight: 6 }} />
+            <Text style={styles.textoEditarMeta}>Editar meta</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -419,7 +534,7 @@ export default function NutricionView({
       {esHoy ? (
         <>
           <View style={styles.seccionTipoComida}>
-            <Text style={styles.etiquetaSeccion}>TIPO DE COMIDA A ESCANEAR</Text>
+            <Text style={styles.etiquetaSeccion}>TIPO DE COMIDA</Text>
             <View style={styles.filaTiposComida}>
               {TIPOS_COMIDA.map((tipo) => {
                 const activo = tipoSeleccionado === tipo;
@@ -456,6 +571,7 @@ export default function NutricionView({
               style={[styles.botonCaptura, styles.botonCamara]}
               onPress={tomarFoto}
               disabled={modalAnalisisVisible}
+              aria-disabled={modalAnalisisVisible || undefined}
               activeOpacity={0.8}
             >
               <Feather
@@ -464,7 +580,7 @@ export default function NutricionView({
                 color={TOKENS.colors.textInverse}
                 style={{ marginRight: 8 }}
               />
-              <Text style={styles.textoBotonCamara}>Escanear con Cámara</Text>
+              <Text style={styles.textoBotonCamara}>Cámara</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -472,6 +588,7 @@ export default function NutricionView({
               style={[styles.botonCaptura, styles.botonGaleria]}
               onPress={seleccionarDeGaleria}
               disabled={modalAnalisisVisible}
+              aria-disabled={modalAnalisisVisible || undefined}
               activeOpacity={0.8}
             >
               <Feather
@@ -481,6 +598,23 @@ export default function NutricionView({
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.textoBotonGaleria}>Galería</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel="Registrar comida a mano, sin foto"
+              style={[styles.botonCaptura, styles.botonGaleria, styles.botonManual]}
+              onPress={() => setModalManual({ visible: true, comida: null })}
+              disabled={modalAnalisisVisible}
+              aria-disabled={modalAnalisisVisible || undefined}
+              activeOpacity={0.8}
+            >
+              <Feather
+                name="edit-3"
+                size={18}
+                color={TOKENS.colors.textPrimary}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.textoBotonGaleria}>Manual</Text>
             </TouchableOpacity>
           </View>
         </>
@@ -508,6 +642,17 @@ export default function NutricionView({
           const prot = item.proteinas ?? item.macros?.proteinas ?? 0;
           const carb = item.carbohidratos ?? item.macros?.carbohidratos ?? 0;
           const gras = item.grasas ?? item.macros?.grasas ?? 0;
+          // Solo el cuerpo es táctil: la cápsula de borrado queda fuera para no anidar botones (Spec 028).
+          const CuerpoTarjeta = esHoy ? TouchableOpacity : View;
+          const propsCuerpo = esHoy
+            ? {
+                accessibilityRole: 'button',
+                accessibilityLabel: `Editar ${tituloComida}`,
+                accessibilityHint: 'Abre el formulario para corregir nombre, tipo, calorías y macros',
+                activeOpacity: 0.8,
+                onPress: () => setModalManual({ visible: true, comida: item }),
+              }
+            : {};
 
           return (
             <View style={styles.tarjetaComida}>
@@ -536,7 +681,10 @@ export default function NutricionView({
                 )}
               </View>
 
-              <View style={styles.cuerpoTarjetaComida}>
+              <CuerpoTarjeta
+                style={styles.cuerpoTarjetaComida}
+                {...propsCuerpo}
+              >
                 {foto ? (
                   <FotoPersistida
                     uri={foto}
@@ -557,7 +705,10 @@ export default function NutricionView({
                     </Text>
                   </View>
                 </View>
-              </View>
+                {esHoy ? (
+                  <Feather name="edit-2" size={14} color={TOKENS.colors.textMuted} style={{ marginLeft: 8 }} />
+                ) : null}
+              </CuerpoTarjeta>
 
               {item.detalles && String(item.detalles).trim().length > 0 ? (
                 <View style={styles.bloqueDetallesIA}>
@@ -609,11 +760,29 @@ export default function NutricionView({
             </Text>
             {esHoy ? (
               <Text style={styles.subtextoVacio}>
-                Toma una foto de tu plato para desglosar calorías y macros con IA.
+                Toma una foto de tu plato para desglosar calorías y macros con IA, o regístrala a mano.
               </Text>
             ) : null}
           </View>
         }
+      />
+
+      <ModalComidaManual
+        key={`manual-${modalManual.comida?.id ?? 'nueva'}-${modalManual.visible}`}
+        visible={modalManual.visible}
+        comidaInicial={modalManual.comida}
+        tipoInicial={tipoSeleccionado}
+        onCerrar={() => setModalManual({ visible: false, comida: null })}
+        onGuardar={handleGuardarManual}
+      />
+
+      <ModalMetaNutricion
+        key={`meta-${modalMetaVisible}`}
+        visible={modalMetaVisible}
+        metaActiva={metaActiva}
+        metaAutomatica={metaAutomatica}
+        onCerrar={() => setModalMetaVisible(false)}
+        onGuardar={handleGuardarMeta}
       />
 
       <ModalAnalisisComida
@@ -803,6 +972,63 @@ const styles = StyleSheet.create({
     color: TOKENS.colors.textInverse,
     fontSize: 13,
     fontWeight: '800',
+  },
+  botonManual: {
+    marginLeft: 8,
+  },
+  pistaProgreso: {
+    alignSelf: 'stretch',
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+    marginTop: 10,
+    overflow: 'hidden',
+  },
+  rellenoProgreso: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: TOKENS.colors.accentWhite,
+  },
+  textoExceso: {
+    color: TOKENS.colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 6,
+  },
+  metaMacro: {
+    color: TOKENS.colors.textMuted,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  pieTotales: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: TOKENS.colors.borderSubtle,
+  },
+  textoOrientativo: {
+    flex: 1,
+    color: TOKENS.colors.textMuted,
+    fontSize: 11,
+    marginRight: 8,
+  },
+  botonEditarMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: TOKENS.touchTarget.minSize,
+    paddingHorizontal: 12,
+    borderRadius: TOKENS.radii.md,
+    borderWidth: 1,
+    borderColor: TOKENS.colors.borderDefault,
+    backgroundColor: TOKENS.colors.surfaceElevated,
+  },
+  textoEditarMeta: {
+    color: TOKENS.colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '700',
   },
   botonGaleria: {
     backgroundColor: TOKENS.colors.surfaceElevated,
