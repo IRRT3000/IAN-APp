@@ -2,12 +2,10 @@
 Memoria viva del proyecto entre sesiones. Máximo ~50 líneas: resumir o eliminar lo obsoleto.
 
 ## Estado Actual (2026-11-27)
-- **Dónde nos quedamos (cierre del 27/11/2026):** `main` y Vercel producción siguen en v2.2.0 (build 7). Hay dos PR abiertos, con checks en verde, sin conflictos y con Auto-fix activo:
-  - **PR #11** (`claude/app-analysis-improvements-52feef` → `main`): Specs 020–025, v2.3.0. Probado en preview web y en Android (emulador con Expo Go). **Mergear primero.**
-  - **PR #12** (`claude/spec-026-accesibilidad-complementos` → rama del #11): Spec 026. Mergear después del #11; GitHub reapunta la base a `main`.
-- La rama local `claude/app-status-c09be7` (una "Spec 020" de accesibilidad paralela) queda **obsoleta**: lo útil se portó a la 026. No fusionarla.
+- **Dónde nos quedamos (cierre del 27/11/2026):** `main` está en v2.3.0 (build 8) con las Specs 020–026 y Vercel producción (https://ian-app.vercel.app/) ya la sirve, revisada sin errores de consola. Se mergearon el PR #11 (Specs 020–025, commit `0a0726d`) y después el PR #12 (Spec 026, `d76fd13`), ambos probados antes en su preview de Vercel y en Android (emulador con Expo Go). Las ramas de esos PR siguen en GitHub sin borrar.
+- La rama local `claude/app-status-c09be7` (una "Spec 020" de accesibilidad paralela) quedó **obsoleta**: lo útil se portó a la 026. No fusionarla.
 - Siguiente paso sugerido: Spec de UX (valores iniciales del onboarding 2010/182 cm/74 kg/Hombre, entrada numérica directa, temporizador de descanso, meta de kcal, registro manual de comidas).
-- Specs completadas: 001–011, 013–019; 020–026 con `CODIGO_APROBADO`. Release de prueba v2.3.0 (build 8) publicada desde la rama, sin fusionar a `main`. La 012 está archivada: la app es BYOK por decisión del dueño (Q16).
+- Specs completadas: 001–011, 013–026 con `CODIGO_APROBADO`. La 012 está archivada: la app es BYOK por decisión del dueño (Q16).
 - **020 Seguridad:** CSP y cabeceras en `vercel.json`, `public/index.html` (`lang="es"`) y manifiesto PWA. `scripts/test-gate.js` existe porque Jest ignoraba los worktrees. SDK 58.0.26 y `npm audit` en 0 altas. Fotos permanentes en `fotosStorage.js` (`foto-doc:` en nativo, `foto-local:` en web con tope de 80). Los guardados lanzan el error en vez de devolver `[]`.
 - **021 Gemini:** un único motor `ejecutarConFailover` con reintentos, tope de 90 s, `thinkingLevel: 'low'` y mensajes claros. Cadena: `3.5-flash-lite` → `3.6-flash` → `3-flash-preview`. Con clave gratuita, Flash-Lite acertó 10/12 dentro de los rangos USDA.
 - **022 Refactor:** Onboarding 3015 → 133 líneas y CambioFisico 2191 → 76, con hooks y renders en `onboarding/` y `cambioFisico/`. El DOM es idéntico, verificado por hash, y hay 12 snapshots de caracterización.
