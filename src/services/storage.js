@@ -12,6 +12,8 @@ export const STORAGE_KEY_SESION_ACTIVA_DRAFT =
   '@fitness_tracker_sesion_activa_draft_v1';
 export const STORAGE_KEY_DIAS_DESCANSO =
   '@fitness_tracker_dias_descanso_v1';
+export const STORAGE_KEY_META_NUTRICION =
+  '@fitness_tracker_meta_nutricion_v1';
 
 export const OBJETIVOS_PERFIL_VALIDOS = [
   'Mantenimiento',
@@ -924,6 +926,127 @@ export const guardarComida = async (nuevaComida) => {
       'No se pudo guardar la comida. Es posible que el almacenamiento del dispositivo esté lleno.'
     );
   }
+};
+
+/**
+ * Actualiza de forma inmutable una comida existente (Spec 028, CA-3).
+ * Solo cambia nombre, tipo, kcal y macros; conserva id, fecha, foto y la evaluación IA (`detalles`).
+ * @param {string} id
+ * @param {Object} cambios - { nombre, tipo, calorias, proteinas, carbohidratos, grasas }
+ * @returns {Promise<Array<Object>>} Lista actualizada e inmutable de comidas
+ */
+export const actualizarComida = async (id, cambios = {}) => {
+  const comidasActuales = await cargarComidas();
+  const original = comidasActuales.find((c) => String(c.id) === String(id));
+  if (!original) {
+    throw new Error('No se encontró la comida.');
+  }
+
+  // Un campo ausente en `cambios` conserva el valor original.
+  const valorDe = (clave) =>
+    cambios?.[clave] ?? original[clave] ?? original.macros?.[clave] ?? 0;
+  const redondear1 = (v) => Math.max(0, Math.round((Number(v) || 0) * 10) / 10);
+  const nombre =
+    String(cambios?.nombre ?? '').trim() || original.nombre || 'Platillo registrado';
+  const proteinas = redondear1(valorDe('proteinas'));
+  const carbohidratos = redondear1(valorDe('carbohidratos'));
+  const grasas = redondear1(valorDe('grasas'));
+  const actualizada = {
+    ...original,
+    nombre,
+    descripcion: nombre,
+    tipo: String(cambios?.tipo || original.tipo || 'Comida').trim(),
+    calorias: Math.max(0, Math.round(Number(valorDe('calorias')) || 0)),
+    proteinas,
+    carbohidratos,
+    grasas,
+    macros: { proteinas, carbohidratos, grasas },
+  };
+
+  const nuevaListaInmutable = comidasActuales.map((item) =>
+    String(item.id) === String(id) ? actualizada : { ...item }
+  );
+
+  try {
+    await AsyncStorage.setItem(STORAGE_KEY_COMIDAS, JSON.stringify(nuevaListaInmutable));
+  } catch (error) {
+    console.error('Error al actualizar comida en AsyncStorage:', error);
+    throw new Error(
+      'No se pudo guardar el cambio. Es posible que el almacenamiento del dispositivo esté lleno.'
+    );
+  }
+  return nuevaListaInmutable.map((item) => ({ ...item }));
+};
+
+/** Límites de la meta nutricional propia (Spec 028, plan §8). */
+export const LIMITES_META_NUTRICION = {
+  calorias: { min: 800, max: 8000 },
+  macro: { min: 0, max: 1000 },
+};
+
+const dentroDe = (v, { min, max }) => Number.isFinite(v) && v >= min && v <= max;
+
+/**
+ * Devuelve la meta guardada si es válida; si no hay, está corrupta o fuera de rango, `{ modo: 'auto' }`.
+ * Nunca lanza.
+ * @returns {Promise<Object>}
+ */
+export const cargarMetaNutricion = async () => {
+  try {
+    const json = await AsyncStorage.getItem(STORAGE_KEY_META_NUTRICION);
+    if (!json) return { modo: 'auto' };
+    const meta = JSON.parse(json);
+    if (!meta || typeof meta !== 'object' || meta.modo !== 'manual') return { modo: 'auto' };
+    const valores = {
+      calorias: Math.round(Number(meta.calorias)),
+      proteinas: Math.round(Number(meta.proteinas)),
+      carbohidratos: Math.round(Number(meta.carbohidratos)),
+      grasas: Math.round(Number(meta.grasas)),
+    };
+    const valida =
+      dentroDe(valores.calorias, LIMITES_META_NUTRICION.calorias) &&
+      ['proteinas', 'carbohidratos', 'grasas'].every((k) =>
+        dentroDe(valores[k], LIMITES_META_NUTRICION.macro)
+      );
+    return valida ? { modo: 'manual', ...valores } : { modo: 'auto' };
+  } catch (error) {
+    console.error('Error al cargar la meta nutricional:', error);
+    return { modo: 'auto' };
+  }
+};
+
+/**
+ * Guarda la meta nutricional. `{ modo: 'auto' }` vuelve a la automática.
+ * Lanza si los valores están fuera de rango o si falla la escritura.
+ * @param {Object} meta
+ * @returns {Promise<Object>} La meta guardada
+ */
+export const guardarMetaNutricion = async (meta = {}) => {
+  let aGuardar = { modo: 'auto' };
+  if (meta?.modo === 'manual') {
+    aGuardar = {
+      modo: 'manual',
+      calorias: Math.round(Number(meta.calorias)),
+      proteinas: Math.round(Number(meta.proteinas)),
+      carbohidratos: Math.round(Number(meta.carbohidratos)),
+      grasas: Math.round(Number(meta.grasas)),
+    };
+    const valida =
+      dentroDe(aGuardar.calorias, LIMITES_META_NUTRICION.calorias) &&
+      ['proteinas', 'carbohidratos', 'grasas'].every((k) =>
+        dentroDe(aGuardar[k], LIMITES_META_NUTRICION.macro)
+      );
+    if (!valida) {
+      throw new Error('La meta está fuera de rango: 800 a 8000 kcal y 0 a 1000 g por macro.');
+    }
+  }
+  try {
+    await AsyncStorage.setItem(STORAGE_KEY_META_NUTRICION, JSON.stringify(aGuardar));
+  } catch (error) {
+    console.error('Error al guardar la meta nutricional:', error);
+    throw new Error('No se pudo guardar la meta. Inténtalo de nuevo.');
+  }
+  return { ...aGuardar };
 };
 
 /**

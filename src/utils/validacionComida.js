@@ -6,6 +6,9 @@
  * Protege contra valores NaN, negativos, comas decimales europeas/latinas y nombres vacíos.
  */
 
+/** Largo máximo del nombre de una comida escrita a mano (Spec 028). */
+export const LIMITE_NOMBRE_COMIDA = 80;
+
 function normalizarNumero(valor, esEntero = false) {
   if (valor === null || valor === undefined) return 0;
   const num = Number(String(valor).replace(',', '.').trim());
