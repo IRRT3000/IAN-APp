@@ -30,6 +30,7 @@ describe('estimar1RM (CA-1)', () => {
     [61.5, 3, 67.5],
     ['100,5', '1', 100.5],
     [-20, 5, 0],
+    [101.2, 1, 101.2],
   ])('(%p, %p) → %p', (peso, reps, esperado) => {
     expect(estimar1RM(peso, reps)).toBe(esperado);
   });
@@ -165,5 +166,7 @@ describe('formatearKg', () => {
     expect(formatearKg(116.5)).toBe('116,5');
     expect(formatearKg(100)).toBe('100');
     expect(formatearKg(0)).toBe('0');
+    expect(formatearKg(1500)).toBe('1500');
+    expect(formatearKg(12345.5)).toBe('12\u00A0345,5');
   });
 });

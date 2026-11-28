@@ -20,7 +20,7 @@ export function estimar1RM(peso, reps) {
   const p = aNumero(peso);
   const r = Math.floor(aNumero(reps));
   if (p <= 0 || r <= 0 || r > REPS_MAX_1RM) return 0;
-  if (r === 1) return redondearMedio(p);
+  if (r === 1) return p;
   return redondearMedio(p * (1 + r / 30));
 }
 
@@ -130,8 +130,10 @@ export function registroEsRecord(entrenamientos, registro, indice = null) {
   return propio.pesoMaximo > mejorPeso || propio.mejor1RM > mejor1RM;
 }
 
-/** «116,5» o «100»: coma decimal, sin ceros sobrantes. */
+/** «116,5», «100» o «12 345»: coma decimal, sin ceros sobrantes y espacio de miles desde 10 000. */
 export function formatearKg(valor) {
   const n = Math.round(aNumero(valor) * 10) / 10;
-  return String(n).replace('.', ',');
+  const [entero, decimal] = String(n).split('.');
+  const conMiles = entero.length > 4 ? entero.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0') : entero;
+  return decimal ? `${conMiles},${decimal}` : conMiles;
 }

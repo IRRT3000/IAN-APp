@@ -69,6 +69,19 @@ describe('ModalProgresoEjercicio', () => {
     expect(screen.getByText('Sin datos de peso para esta métrica.')).toBeTruthy();
   });
 
+  it('con 12 sesiones solo etiqueta algunas fechas, siempre la última', async () => {
+    const doce = Array.from({ length: 12 }, (_, i) =>
+      reg(`s${i}`, 'Press banca', `2026-10-${String(i + 1).padStart(2, '0')}`, [[80, 5]])
+    );
+    await montar(doce);
+    expect(screen.getByText('12/10', { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.queryByText('11/10', { includeHiddenElements: true })).toBeNull();
+    expect(screen.getByText('10/10', { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByRole('image').props.accessibilityLabel).toBe(
+      '1RM estimado en las últimas 12 sesiones: se mantiene en 93,5 kilos'
+    );
+  });
+
   it('tolera nombre nulo', async () => {
     await montar(HISTORIAL, null);
     expect(screen.getByText('Aún no hay sesiones de este ejercicio.')).toBeTruthy();

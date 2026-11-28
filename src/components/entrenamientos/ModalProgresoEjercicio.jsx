@@ -18,6 +18,7 @@ import {
 
 const MAX_SESIONES_GRAFICA = 12;
 const ALTURA_GRAFICA = 120;
+const MAX_SESIONES_LISTA = 30;
 
 export const METRICAS = [
   { clave: 'mejor1RM', titulo: '1RM', nombre: '1RM estimado' },
@@ -64,12 +65,21 @@ export default function ModalProgresoEjercicio({ visible, nombreEjercicio, entre
   const maximo = Math.max(0, ...ultimas.map((d) => d[metrica]));
   const datosMetrica = METRICAS.find((m) => m.clave === metrica);
   const valoresConDatos = ultimas.map((d) => d[metrica]).filter((v) => v > 0);
-  const resumenGrafica =
-    valoresConDatos.length > 0
-      ? `${datosMetrica.nombre} en las últimas ${ultimas.length} sesiones: de ${formatearKg(
-          valoresConDatos[0]
-        )} a ${formatearKg(valoresConDatos[valoresConDatos.length - 1])} kilos`
-      : '';
+  const primero = valoresConDatos[0];
+  const ultimo = valoresConDatos[valoresConDatos.length - 1];
+  let resumenGrafica = '';
+  if (valoresConDatos.length === 1) {
+    resumenGrafica = `${datosMetrica.nombre}: ${formatearKg(primero)} kilos en una sesión`;
+  } else if (valoresConDatos.length > 1) {
+    resumenGrafica = `${datosMetrica.nombre} en las últimas ${valoresConDatos.length} sesiones: ${
+      primero === ultimo
+        ? `se mantiene en ${formatearKg(primero)} kilos`
+        : `de ${formatearKg(primero)} a ${formatearKg(ultimo)} kilos`
+    }`;
+  }
+  // Con muchas columnas, la fecha solo va en algunas (siempre en la última) para que no se corte.
+  const pasoEtiqueta = ultimas.length > 6 ? Math.ceil(ultimas.length / (cruzaAnio ? 4 : 6)) : 1;
+  const sesionesLista = [...historial].reverse().slice(0, MAX_SESIONES_LISTA);
 
   return (
     <ModalAccesible visible={visible} transparent animationType="fade" onRequestClose={onCerrar}>
@@ -127,10 +137,11 @@ export default function ModalProgresoEjercicio({ visible, nombreEjercicio, entre
 
                     {maximo > 0 ? (
                       <View style={styles.grafica} accessible accessibilityRole="image" accessibilityLabel={resumenGrafica}>
-                        {ultimas.map((dia) => (
+                        {ultimas.map((dia, indice) => (
                           <View
                             key={dia.fecha}
                             style={styles.columna}
+                            aria-hidden
                             accessibilityElementsHidden
                             importantForAccessibility="no-hide-descendants"
                           >
@@ -143,7 +154,9 @@ export default function ModalProgresoEjercicio({ visible, nombreEjercicio, entre
                               />
                             </View>
                             <Text style={styles.fechaBarra} numberOfLines={1}>
-                              {fechaCorta(dia.fecha, cruzaAnio)}
+                              {(ultimas.length - 1 - indice) % pasoEtiqueta === 0
+                                ? fechaCorta(dia.fecha, cruzaAnio)
+                                : ' '}
                             </Text>
                           </View>
                         ))}
@@ -155,7 +168,7 @@ export default function ModalProgresoEjercicio({ visible, nombreEjercicio, entre
                 )}
 
                 <Text style={styles.etiquetaSeccion}>SESIONES</Text>
-                {[...historial].reverse().map((dia) => {
+                {sesionesLista.map((dia) => {
                   const mejor = dia.mejorSerie;
                   const rm = mejor ? estimar1RM(mejor.peso, mejor.repeticiones) : 0;
                   const textoSerie = mejor ? `${formatearKg(mejor.peso)} kg × ${mejor.repeticiones}` : '—';
@@ -175,6 +188,10 @@ export default function ModalProgresoEjercicio({ visible, nombreEjercicio, entre
                     </View>
                   );
                 })}
+
+                {historial.length > MAX_SESIONES_LISTA ? (
+                  <Text style={styles.nota}>{`Se muestran las ${MAX_SESIONES_LISTA} sesiones más recientes de ${historial.length}.`}</Text>
+                ) : null}
 
                 <Text style={styles.nota}>
                   El 1RM es una estimación (fórmula de Epley) con series de hasta 12 repeticiones.
@@ -252,7 +269,13 @@ const styles = StyleSheet.create({
   columna: { flex: 1, alignItems: 'center' },
   zonaBarra: { height: ALTURA_GRAFICA, justifyContent: 'flex-end', width: '100%' },
   barra: { width: '100%', borderRadius: TOKENS.radii.xs, backgroundColor: TOKENS.colors.accentWhite },
-  fechaBarra: { fontSize: 11, color: TOKENS.colors.textMuted, marginTop: TOKENS.spacing.xs },
+  fechaBarra: {
+    fontSize: 11,
+    color: TOKENS.colors.textMuted,
+    marginTop: TOKENS.spacing.xs,
+    width: 64,
+    textAlign: 'center',
+  },
   etiquetaSeccion: { ...TOKENS.typography.labelCategory, marginBottom: TOKENS.spacing.sm },
   filaSesion: {
     flexDirection: 'row',
