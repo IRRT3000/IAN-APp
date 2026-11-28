@@ -10,6 +10,7 @@ import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';
 import { LIMITES_META_NUTRICION } from '../services/storage';
 import { anunciarError } from '../utils/accesibilidad';
+import { reescalarMacros } from '../utils/metaNutricional';
 import { estilosFormulario as styles } from './nutricion/estilosFormulario';
 
 const CAMPOS = [
@@ -52,6 +53,38 @@ export default function ModalMetaNutricion({
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
   const guardandoRef = useRef(false);
+  // Reparto del que parte el reescalado al cambiar las kcal (Spec 029, CA-4).
+  const baseRef = useRef({
+    calorias: Number(metaActiva?.calorias),
+    proteinas: Number(metaActiva?.proteinas),
+    carbohidratos: Number(metaActiva?.carbohidratos),
+    grasas: Number(metaActiva?.grasas),
+  });
+
+  const cambiarCampo = (clave, texto) => {
+    setError('');
+    setValores((prev) => {
+      const siguiente = { ...prev, [clave]: texto };
+      if (clave === 'calorias') {
+        const macros = reescalarMacros(baseRef.current, aNumero(texto));
+        if (!macros) return siguiente;
+        return {
+          ...siguiente,
+          proteinas: String(macros.proteinas),
+          carbohidratos: String(macros.carbohidratos),
+          grasas: String(macros.grasas),
+        };
+      }
+      const kcal = aNumero(siguiente.calorias);
+      baseRef.current = {
+        calorias: Number.isFinite(kcal) && kcal > 0 ? kcal : baseRef.current.calorias,
+        proteinas: aNumero(siguiente.proteinas),
+        carbohidratos: aNumero(siguiente.carbohidratos),
+        grasas: aNumero(siguiente.grasas),
+      };
+      return siguiente;
+    });
+  };
 
   const ejecutar = async (meta) => {
     if (guardandoRef.current) return;
@@ -143,7 +176,7 @@ export default function ModalMetaNutricion({
                       style={styles.inputMacro}
                       keyboardType="number-pad"
                       value={valores[campo.clave]}
-                      onChangeText={(texto) => setValores((prev) => ({ ...prev, [campo.clave]: texto }))}
+                      onChangeText={(texto) => cambiarCampo(campo.clave, texto)}
                     />
                   </View>
                 ))}

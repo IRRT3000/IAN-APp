@@ -82,7 +82,7 @@ export const crearRenderEscenaCelebracion = (ctx) => (...args) => {
               <View style={styles.passportTopHeader}>
                 <View>
                   <Text style={styles.passportSerialLabel}>
-                    FITNESS TRACKER · MATTE LUXURY ID
+                    IXN · PASAPORTE DE ATLETA
                   </Text>
                   <Text style={styles.passportOwnerName}>
                     {perfilFinal.nombre || 'Atleta'}

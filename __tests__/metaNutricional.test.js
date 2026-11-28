@@ -4,6 +4,7 @@
 import {
   calcularMetaNutricional,
   calcularProgreso,
+  reescalarMacros,
   resolverMetaActiva,
 } from '../src/utils/metaNutricional';
 
@@ -91,5 +92,35 @@ describe('calcularProgreso', () => {
 
   test('meta 0 no divide por cero', () => {
     expect(calcularProgreso(500, 0)).toEqual({ porcentaje: 0, exceso: 0 });
+  });
+});
+
+describe('reescalarMacros (Spec 029, CA-4)', () => {
+  const META = { calorias: 2760, proteinas: 160, carbohidratos: 358, grasas: 77 };
+
+  it('reescala en proporción a las kcal nuevas', () => {
+    expect(reescalarMacros(META, 2200)).toEqual({ proteinas: 128, carbohidratos: 285, grasas: 61 });
+  });
+
+  it('parte siempre de la base, sin acumular', () => {
+    reescalarMacros(META, 2);
+    expect(reescalarMacros(META, 2760)).toEqual({ proteinas: 160, carbohidratos: 358, grasas: 77 });
+  });
+
+  it.each([[''], [0], [-500], [NaN], [undefined]])('devuelve null con kcal %p', (kcal) => {
+    expect(reescalarMacros(META, kcal)).toBeNull();
+  });
+
+  it('devuelve null si la base no tiene kcal válidas', () => {
+    expect(reescalarMacros({ proteinas: 100 }, 2000)).toBeNull();
+    expect(reescalarMacros({ ...META, calorias: 0 }, 2000)).toBeNull();
+  });
+
+  it('macros en 0 o vacíos dan 0, nunca NaN', () => {
+    expect(reescalarMacros({ calorias: 2000, proteinas: 0, carbohidratos: NaN }, 3000)).toEqual({
+      proteinas: 0,
+      carbohidratos: 0,
+      grasas: 0,
+    });
   });
 });
