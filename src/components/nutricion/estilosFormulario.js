@@ -25,6 +25,7 @@ export const estilosFormulario = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
     paddingHorizontal: TOKENS.spacing.md,
+    paddingVertical: TOKENS.spacing.md,
   },
   scrollArea: {
     flexShrink: 1,
