@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   },
   textoInsignia: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   etiquetaMetrica: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.4,
     textTransform: 'uppercase',

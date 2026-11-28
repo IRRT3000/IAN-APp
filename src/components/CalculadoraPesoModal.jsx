@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import {
   Keyboard,
-  Modal,
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import ModalAccesible from './ModalAccesible';
 import { Text, TextInput } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import {
@@ -73,7 +73,7 @@ export default function CalculadoraPesoModal({
   const esLbsAKg = modo === MODOS_CONVERSION.LBS_A_KG;
 
   return (
-    <Modal
+    <ModalAccesible
       visible={visible}
       transparent={true}
       statusBarTranslucent
@@ -161,6 +161,7 @@ export default function CalculadoraPesoModal({
                 </Text>
                 <View style={styles.filaHeroInput}>
                   <TextInput
+                    accessibilityLabel={esLbsAKg ? 'Peso en libras' : 'Peso en kilogramos'}
                     style={styles.heroInput}
                     value={inputPeso}
                     onChangeText={manejarCambioTexto}
@@ -230,7 +231,7 @@ export default function CalculadoraPesoModal({
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
-    </Modal>
+    </ModalAccesible>
   );
 }
 
@@ -322,7 +323,7 @@ const styles = StyleSheet.create({
   },
   etiquetaCampo: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
     marginBottom: 6,
@@ -364,7 +365,7 @@ const styles = StyleSheet.create({
   },
   etiquetaResultado: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
   },

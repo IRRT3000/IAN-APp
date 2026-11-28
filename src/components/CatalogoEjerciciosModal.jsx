@@ -2,13 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
+import ModalAccesible from './ModalAccesible';
 import { Text, TextInput } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import {
@@ -238,7 +238,7 @@ export default function CatalogoEjerciciosModal({
   };
 
   return (
-    <Modal
+    <ModalAccesible
       visible={visible}
       animationType="slide"
       transparent={false}
@@ -279,6 +279,7 @@ export default function CatalogoEjerciciosModal({
             style={{ marginRight: 8 }}
           />
           <TextInput
+            accessibilityLabel="Buscar ejercicio o implemento"
             ref={inputBusquedaRef}
             style={styles.inputBusqueda}
             placeholder="Buscar por ejercicio o implemento..."
@@ -416,7 +417,7 @@ export default function CatalogoEjerciciosModal({
           }
         />
 
-        <Modal
+        <ModalAccesible
           visible={subModalVisible}
           animationType="fade"
           transparent={true}
@@ -450,6 +451,7 @@ export default function CatalogoEjerciciosModal({
                 ) : null}
 
                 <TextInput
+                  accessibilityLabel="Nombre del nuevo ejercicio"
                   style={styles.inputNombrePersonalizado}
                   placeholder="Nombre del ejercicio (ej. Hip Thrust)"
                   placeholderTextColor={TOKENS.colors.textMuted}
@@ -499,9 +501,9 @@ export default function CatalogoEjerciciosModal({
               </ScrollView>
             </View>
           </KeyboardAvoidingView>
-        </Modal>
+        </ModalAccesible>
       </View>
-    </Modal>
+    </ModalAccesible>
   );
 }
 
@@ -719,7 +721,7 @@ const styles = StyleSheet.create({
   },
   etiquetaCampo: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
     marginBottom: 6,
@@ -770,7 +772,7 @@ const styles = StyleSheet.create({
     marginBottom: TOKENS.spacing.sm,
   },
   etiquetaRecientes: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
     color: TOKENS.colors.textSecondary,

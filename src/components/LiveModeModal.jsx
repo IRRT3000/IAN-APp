@@ -2,13 +2,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   BackHandler,
   Keyboard,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
+import ModalAccesible from './ModalAccesible';
 import { Text, TextInput } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import CalculadoraPesoModal from './CalculadoraPesoModal';
@@ -27,6 +27,7 @@ import { TOKENS } from '../theme/tokens';
 import { useSafeInsets } from '../utils/useSafeInsets';
 import { anunciar } from '../utils/accesibilidad';
 import { reproducirSonido } from '../services/sonidos';
+import { etiquetaCampoSerie } from '../utils/etiquetasFecha';
 
 export default function LiveModeModal({
   visible,
@@ -277,7 +278,7 @@ export default function LiveModeModal({
   }
 
   return (
-    <Modal
+    <ModalAccesible
       visible={visible}
       animationType="slide"
       transparent={false}
@@ -389,6 +390,7 @@ export default function LiveModeModal({
 
                   <View style={styles.colInput}>
                     <TextInput
+                      accessibilityLabel={etiquetaCampoSerie({ campo: 'peso', serie: item.serie })}
                       style={[
                         styles.inputSerie,
                         esInvalida && (!item.peso || Number(item.peso) < 0)
@@ -406,6 +408,7 @@ export default function LiveModeModal({
 
                   <View style={styles.colInput}>
                     <TextInput
+                      accessibilityLabel={etiquetaCampoSerie({ campo: 'repeticiones', serie: item.serie })}
                       style={[
                         styles.inputSerie,
                         esInvalida && (!item.repeticiones || Number(item.repeticiones) <= 0)
@@ -508,7 +511,7 @@ export default function LiveModeModal({
           onCerrar={() => setCalculadoraVisible(false)}
         />
       </View>
-    </Modal>
+    </ModalAccesible>
   );
 }
 
@@ -591,7 +594,7 @@ const styles = StyleSheet.create({
   },
   textoBadgeGrupo: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
   },
@@ -605,7 +608,7 @@ const styles = StyleSheet.create({
   },
   textoBadgeImplemento: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
   },
   nombreEjercicio: {
@@ -648,7 +651,7 @@ const styles = StyleSheet.create({
   },
   textoEncabezado: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
     textAlign: 'center',

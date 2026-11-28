@@ -70,7 +70,6 @@ const PastillaFiltro = React.memo(function PastillaFiltro({
         onPress={handlePress}
         activeOpacity={0.85}
         accessibilityRole="tab"
-        accessibilityState={{ selected: esActiva }}
         aria-selected={esActiva}
       >
         {categoria ? (

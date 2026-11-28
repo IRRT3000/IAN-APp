@@ -124,6 +124,49 @@ describe('Accesibilidad estática de elementos táctiles (Spec 023)', () => {
   );
 });
 
+/**
+ * Spec 026, CA-1 y CA-2: todo campo de texto tiene nombre accesible propio (no basta el placeholder)
+ * y nadie usa accessibilityState, que react-native-web 0.21 ignora (se usan aria-checked/selected/
+ * disabled/busy, que RN 0.88 también acepta en nativo).
+ */
+const analizarCamposYEstados = (ruta) => {
+  const ast = parse(fs.readFileSync(ruta, 'utf8'), { sourceType: 'module', plugins: ['jsx'] });
+  const campos = new Set(['TextInput']);
+  recorrer(ast, (n) => {
+    if (n.type === 'ImportDeclaration' && /(^react-native$|base\/Texto$)/.test(n.source.value)) {
+      for (const e of n.specifiers) {
+        if (e.type === 'ImportSpecifier' && e.imported.name === 'TextInput') campos.add(e.local.name);
+      }
+    }
+  });
+  const infracciones = [];
+  recorrer(ast, (n) => {
+    if (n.type !== 'JSXOpeningElement') return;
+    const nombre = nombreElemento(n.name);
+    const props = new Set(n.attributes.filter((a) => a.type === 'JSXAttribute').map((a) => a.name.name));
+    const esparce = n.attributes.some((a) => a.type === 'JSXSpreadAttribute');
+    if (campos.has(nombre) && !esparce && !props.has('accessibilityLabel') && !props.has('aria-label')) {
+      infracciones.push(`línea ${n.loc.start.line}: <${nombre}> sin accessibilityLabel/aria-label`);
+    }
+    if (props.has('accessibilityState')) {
+      infracciones.push(`línea ${n.loc.start.line}: <${nombre}> usa accessibilityState (web lo ignora; usar aria-*)`);
+    }
+  });
+  return infracciones;
+};
+
+describe('Campos con nombre y estados aria-* (Spec 026, CA-1/CA-2)', () => {
+  const archivos = [path.join(RAIZ, 'App.js'), ...listarJsx(path.join(RAIZ, 'src'))].filter(
+    (a) => !a.split(path.sep).join('/').includes('src/components/base/')
+  );
+  test.each(archivos.map((a) => [a.split(path.sep).join('/').replace(/^\.\//, '')]))(
+    '%s: sin campos anónimos ni accessibilityState',
+    (archivo) => {
+      expect(analizarCamposYEstados(archivo)).toEqual([]);
+    }
+  );
+});
+
 describe('Escala de letra con tope (Spec 023, RF-4)', () => {
   test('ningún archivo importa Text o TextInput directamente de react-native (se usa base/Texto)', () => {
     const archivos = [path.join(RAIZ, 'App.js'), ...listarJsx(path.join(RAIZ, 'src'))].filter(

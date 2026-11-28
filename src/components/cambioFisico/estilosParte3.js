@@ -24,7 +24,7 @@ export const estilosParte3 = {
   },
 
   textoAmPm: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
   },
 
@@ -61,7 +61,7 @@ export const estilosParte3 = {
   },
 
   textoChipMomento: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
 

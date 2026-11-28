@@ -9,6 +9,7 @@ import Animated, {
 import { obtenerFechaLocal } from '../services/storage';
 import { vibrarSeleccionBascula } from '../services/haptics';
 import { TOKENS } from '../theme/tokens';
+import { etiquetaDiaSelector } from '../utils/etiquetasFecha';
 
 const INICIALES_DIA_SEMANA = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
@@ -75,7 +76,7 @@ const CeldaDiaSemanal = React.memo(function CeldaDiaSemanal({
   return (
     <Animated.View style={[styles.envoltorioCelda, estiloAnimado]}>
       <TouchableOpacity
-        accessibilityRole="radio" accessibilityLabel={`${item.esHoy ? 'Hoy, ' : ''}${item.fechaCorta}`} aria-checked={estaSeleccionado}
+        accessibilityRole="radio" accessibilityLabel={etiquetaDiaSelector({ fecha: item.fecha, esHoy: item.esHoy, tieneActividad })} aria-checked={estaSeleccionado}
         style={[
           styles.celda,
           estaSeleccionado && styles.celdaSeleccionada,
@@ -243,7 +244,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   textoFechaCorta: {
-    fontSize: 9,
+    fontSize: 11,
     marginTop: 2,
     fontWeight: '600',
   },
@@ -255,7 +256,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   contenedorIndicador: {
-    height: 12,
+    height: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 4,
@@ -270,7 +271,7 @@ const styles = StyleSheet.create({
     backgroundColor: TOKENS.colors.textInverse, // #0A0A0A en activa
   },
   badgeHoy: {
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: '800',
     color: TOKENS.colors.textSecondary, // #8E8E93
     letterSpacing: 0.3,

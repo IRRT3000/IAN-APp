@@ -149,7 +149,6 @@ export default function SeccionRespaldo({ onDatosRestaurados, onRestauradoIntern
         accessibilityLabel="Incluir fotos en el respaldo"
         accessibilityHint="El archivo será más grande"
         aria-checked={incluirFotos}
-        accessibilityState={{ checked: incluirFotos }}
         style={styles.filaCasilla}
         activeOpacity={0.85}
         onPress={alternarFotos}
@@ -166,7 +165,6 @@ export default function SeccionRespaldo({ onDatosRestaurados, onRestauradoIntern
           accessibilityLabel="Exportar respaldo"
           aria-busy={ocupado === 'exportar'}
           aria-disabled={ocupado !== null}
-          accessibilityState={{ busy: ocupado === 'exportar', disabled: ocupado !== null }}
           disabled={ocupado !== null}
           style={[styles.boton, styles.botonPrimario, ocupado !== null && styles.botonInactivo]}
           activeOpacity={0.85}
@@ -186,7 +184,6 @@ export default function SeccionRespaldo({ onDatosRestaurados, onRestauradoIntern
           accessibilityHint="Reemplaza los datos actuales por los del archivo"
           aria-busy={ocupado === 'restaurar'}
           aria-disabled={ocupado !== null}
-          accessibilityState={{ busy: ocupado === 'restaurar', disabled: ocupado !== null }}
           disabled={ocupado !== null}
           style={[styles.boton, styles.botonSecundario, ocupado !== null && styles.botonInactivo]}
           activeOpacity={0.85}

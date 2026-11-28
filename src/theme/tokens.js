@@ -94,7 +94,7 @@ export const TOKENS = {
       color: '#8E8E93',
     },
     labelCategory: {
-      fontSize: 10,
+      fontSize: 11,
       fontWeight: '700',
       letterSpacing: 1.2,
       color: '#8E8E93',
@@ -107,7 +107,7 @@ export const TOKENS = {
       color: '#FFFFFF',
     },
     metricLabel: {
-      fontSize: 10,
+      fontSize: 11,
       fontWeight: '600',
       letterSpacing: 0.8,
       color: '#8E8E93',

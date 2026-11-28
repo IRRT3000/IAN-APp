@@ -3,13 +3,13 @@ import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
+import ModalAccesible from './ModalAccesible';
 import { Text, TextInput } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import { TOKENS } from '../theme/tokens';
@@ -21,7 +21,6 @@ import {
 import { sanearValoresComida } from '../utils/validacionComida';
 import { textoProgresoGemini } from '../utils/progresoGemini';
 import { anunciar, anunciarError } from '../utils/accesibilidad';
-import RegionAnuncios from './base/RegionAnuncios';
 import { vibrarExito, vibrarError } from '../services/haptics';
 import { reproducirSonido } from '../services/sonidos';
 
@@ -117,14 +116,12 @@ export default function ModalAnalisisComida({
   };
 
   return (
-    <Modal
+    <ModalAccesible
       visible={visible}
       transparent
       animationType="fade"
       onRequestClose={onCerrar}
     >
-      {/* Spec 023: en web, aria-modal deja inerte lo de fuera; la región de anuncios va dentro del modal. */}
-      <RegionAnuncios />
       <View style={styles.backdrop}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -197,6 +194,7 @@ export default function ModalAnalisisComida({
                     DESCRIPCIÓN Y PORCIONES (OPCIONAL)
                   </Text>
                   <TextInput
+                    accessibilityLabel="Descripción y porciones, opcional"
                     style={styles.inputMultiline}
                     placeholder="Ej: 200g pechuga a la plancha, 1 taza arroz blanco, 1 cdta aceite de oliva..."
                     placeholderTextColor={TOKENS.colors.textMuted}
@@ -247,6 +245,7 @@ export default function ModalAnalisisComida({
                     <View style={styles.columnaNombrePlato}>
                       <Text style={styles.etiquetaCampo}>NOMBRE DEL PLATO</Text>
                       <TextInput
+                        accessibilityLabel="Nombre del plato"
                         style={styles.inputSimple}
                         value={nombreEditado}
                         onChangeText={setNombreEditado}
@@ -264,6 +263,7 @@ export default function ModalAnalisisComida({
                     <View style={styles.cajaMacro}>
                       <Text style={styles.etiquetaMacroInput}>CALORÍAS (KCAL)</Text>
                       <TextInput
+                        accessibilityLabel="Calorías en kilocalorías"
                         style={styles.inputMacro}
                         keyboardType="numeric"
                         value={caloriasEditadas}
@@ -273,6 +273,7 @@ export default function ModalAnalisisComida({
                     <View style={styles.cajaMacro}>
                       <Text style={styles.etiquetaMacroInput}>PROTEÍNAS (G)</Text>
                       <TextInput
+                        accessibilityLabel="Proteínas en gramos"
                         style={styles.inputMacro}
                         keyboardType="decimal-pad"
                         value={proteinasEditadas}
@@ -282,6 +283,7 @@ export default function ModalAnalisisComida({
                     <View style={styles.cajaMacro}>
                       <Text style={styles.etiquetaMacroInput}>CARBOS (G)</Text>
                       <TextInput
+                        accessibilityLabel="Carbohidratos en gramos"
                         style={styles.inputMacro}
                         keyboardType="decimal-pad"
                         value={carbohidratosEditados}
@@ -291,6 +293,7 @@ export default function ModalAnalisisComida({
                     <View style={styles.cajaMacro}>
                       <Text style={styles.etiquetaMacroInput}>GRASAS (G)</Text>
                       <TextInput
+                        accessibilityLabel="Grasas en gramos"
                         style={styles.inputMacro}
                         keyboardType="decimal-pad"
                         value={grasasEditadas}
@@ -379,7 +382,7 @@ export default function ModalAnalisisComida({
           </View>
         </KeyboardAvoidingView>
       </View>
-    </Modal>
+    </ModalAccesible>
   );
 }
 
@@ -436,7 +439,7 @@ const styles = StyleSheet.create({
   },
   textoBadgeTipo: {
     ...TOKENS.typography.labelCategory,
-    fontSize: 9,
+    fontSize: 11,
     color: TOKENS.colors.textPrimary,
   },
   botonCerrar: {
@@ -485,7 +488,7 @@ const styles = StyleSheet.create({
   },
   etiquetaCampo: {
     ...TOKENS.typography.labelCategory,
-    fontSize: 10,
+    fontSize: 11,
     marginBottom: 6,
   },
   inputMultiline: {
@@ -573,7 +576,7 @@ const styles = StyleSheet.create({
   },
   etiquetaMacroInput: {
     ...TOKENS.typography.labelCategory,
-    fontSize: 9,
+    fontSize: 11,
     marginBottom: 4,
   },
   inputMacro: {
@@ -597,7 +600,7 @@ const styles = StyleSheet.create({
   },
   etiquetaDetalles: {
     ...TOKENS.typography.labelCategory,
-    fontSize: 9,
+    fontSize: 11,
   },
   textoDetalles: {
     ...TOKENS.typography.subtitle,

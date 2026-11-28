@@ -32,7 +32,7 @@ export const estilosParte2 = {
 
   spinnerSubNumber: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
@@ -195,7 +195,7 @@ export const estilosParte2 = {
 
   anthroMetricLabel: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
     marginBottom: 4,
@@ -231,14 +231,14 @@ export const estilosParte2 = {
 
   imcClassificationText: {
     color: TOKENS.colors.textPrimary,
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.7,
   },
 
   imcNoteText: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
   },
@@ -292,7 +292,7 @@ export const estilosParte2 = {
 
   timelineKickerLabel: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.1,
   },
@@ -309,7 +309,7 @@ export const estilosParte2 = {
 
   timelineBadgePillText: {
     color: TOKENS.colors.textInverse,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.7,
     fontVariant: ['tabular-nums'],
@@ -392,7 +392,7 @@ export const estilosParte2 = {
 
   objectiveTagText: {
     color: TOKENS.colors.textMuted,
-    fontSize: 9.5,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
   },

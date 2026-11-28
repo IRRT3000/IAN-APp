@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from '../base/Texto';
 import { PALETA_NIVELES_VASO } from '../../utils/waterGlassEngine';
+import { etiquetaCeldaHeatmap } from '../../utils/etiquetasFecha';
 
 /**
  * Celda individual de día en el mapa de calor anual.
@@ -56,7 +57,7 @@ function HeatmapDayCell({
 
   return (
     <TouchableOpacity
-      accessibilityRole="button" accessibilityLabel={`${isToday ? 'Hoy, ' : ''}${fechaStr}, nivel de actividad ${nivelSeguro} de 4${isFuture ? ', día futuro' : ''}`} aria-disabled={isFuture || undefined}
+      accessibilityRole="button" accessibilityLabel={etiquetaCeldaHeatmap({ fecha: fechaStr, nivel: nivelSeguro, esHoy: isToday, esFutura: isFuture })} aria-disabled={isFuture || undefined}
       activeOpacity={isFuture ? 1 : 0.7}
       disabled={isFuture}
       onPress={handlePress}
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
     borderColor: '#1C1C1E',
   },
   textoDia: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
   textoDiaHoy: {

@@ -185,12 +185,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 1.5,
     textAlign: 'center',
     color: TOKENS.colors.textMuted, // Spec 023: antes #555555 (contraste ~2.6)
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: '700',
   },
   textoDiaSemanaGrande: {
     marginHorizontal: 3.5,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     color: '#8E8E93',
   },

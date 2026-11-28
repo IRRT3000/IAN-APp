@@ -104,7 +104,6 @@ export default function BarraNavegacionInferior({
               onPress={() => manejarPulsarTab(tab.id)}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               accessibilityRole="tab"
-              accessibilityState={{ selected: esActivo }}
               aria-selected={esActivo}
               accessibilityLabel={`${tab.etiqueta}${tieneContador ? `, ${tab.contador} registros hoy` : ''}`}
             >
@@ -189,7 +188,7 @@ const styles = StyleSheet.create({
     height: 22,
   },
   etiquetaTab: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     letterSpacing: 0.2,
     marginTop: 2,
@@ -206,9 +205,9 @@ const styles = StyleSheet.create({
     top: -4,
     right: -10,
     backgroundColor: '#FFFFFF',
-    borderRadius: 6,
-    minWidth: 14,
-    height: 14,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
     paddingHorizontal: 3,
     alignItems: 'center',
     justifyContent: 'center',
@@ -217,8 +216,8 @@ const styles = StyleSheet.create({
   },
   textoBadge: {
     color: '#0A0A0A',
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
-    lineHeight: 11,
+    lineHeight: 13,
   },
 });

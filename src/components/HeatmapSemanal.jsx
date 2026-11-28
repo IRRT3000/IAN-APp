@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   textoFechaCompleta: {
-    fontSize: 10,
+    fontSize: 11,
     marginTop: 2,
   },
   textoActivo: {

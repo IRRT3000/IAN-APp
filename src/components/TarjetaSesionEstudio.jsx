@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   textoBadgeCategoria: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   textoBadgeFecha: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
   tema: {
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   textoBadgeComprension: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.4,
   },

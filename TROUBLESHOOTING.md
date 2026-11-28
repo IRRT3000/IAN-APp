@@ -14,10 +14,6 @@
 - **Causa Raíz:** `guardarComida`/`guardarCambioFisico` devolvían `[]` ante un error de escritura y la vista lo tomaba como éxito.
 - **Solución:** Los guardados lanzan el error y la vista muestra `mostrarAlerta`. Las miniaturas web tienen tope de 80 con rotación (`fotosStorage.js`); al rotar, las fotos antiguas muestran un marcador gris.
 
-### INC-002: Bloqueo de Herramientas por Hook de Telemetría en Windows (`PreToolUse`)
-- **Causa Raíz:** Concatenación con comillas dobles en plugin de telemetría de Cloud en Windows.
-- **Solución:** Eliminar carpeta `C:\Users\ianra\.gemini\config\plugins\googlecloudtools.datacloud_telemetry`.
-
 ### INC-003: Fallo en GitHub Actions Runner (`setup-android@v3`) al compilar APK
 - **Causa Raíz:** `ubuntu-latest` ya incluye Android SDK; `setup-android@v3` intentó reinstalarlo provocando colisión.
 - **Solución:** Usar `gradle/actions/setup-gradle@v4` con JDK 17 y compilar con `./gradlew assembleRelease`.
@@ -53,3 +49,7 @@
 ### INC-012: Incompatibilidad de SecureStore y Alert.alert en Expo Web
 - **Causa Raíz:** `expo-secure-store` no existe en Web; `Alert.alert` ignora callbacks de botones en `react-native-web`.
 - **Solución:** Fallback web a `AsyncStorage` en `apiKeyStorage.js` y puente `mostrarAlerta` (`alertUtils.js`) con `window.confirm`.
+
+### INC-015: Estado y foco de modales en web (react-native-web 0.21)
+- **Causa Raíz:** RNW ignora `accessibilityState` (solo traduce `aria-*`), y su `ModalFocusTrap` del modal de abajo recupera el foco si se enfoca un submodal antes de que termine su animación.
+- **Solución:** estado con `aria-checked/selected/disabled/busy`; `ModalAccesible` enfoca el título en `onShow`. La prueba estática prohíbe `accessibilityState`.

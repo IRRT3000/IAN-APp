@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import {
-  Modal,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
+import ModalAccesible from './ModalAccesible';
 import { Text, TextInput } from './base/Texto';
 import { Feather } from '@expo/vector-icons';
 import { TOKENS } from '../theme/tokens';
@@ -115,7 +115,7 @@ export default function GestionMateriasModal({
   };
 
   return (
-    <Modal
+    <ModalAccesible
       visible={visible}
       animationType="slide"
       transparent={false}
@@ -177,6 +177,7 @@ export default function GestionMateriasModal({
               </View>
 
               <TextInput
+                accessibilityLabel="Nombre de la nueva materia"
                 style={styles.input}
                 placeholder="Nombre de la materia (ej. Álgebra)"
                 placeholderTextColor={TOKENS.colors.textMuted}
@@ -268,6 +269,7 @@ export default function GestionMateriasModal({
                       </View>
 
                       <TextInput
+                        accessibilityLabel="Nombre de la materia"
                         style={styles.input}
                         value={nombreEditando}
                         onChangeText={setNombreEditando}
@@ -380,7 +382,7 @@ export default function GestionMateriasModal({
           </View>
         </ScrollView>
       </View>
-    </Modal>
+    </ModalAccesible>
   );
 }
 
@@ -461,7 +463,7 @@ const styles = StyleSheet.create({
   },
   etiquetaFormulario: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
@@ -524,7 +526,7 @@ const styles = StyleSheet.create({
   },
   etiquetaLista: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
@@ -587,7 +589,7 @@ const styles = StyleSheet.create({
   },
   textoBadgeCategoriaItem: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.4,
   },

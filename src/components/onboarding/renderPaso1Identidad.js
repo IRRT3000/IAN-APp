@@ -46,6 +46,7 @@ export const crearRenderPaso1Identidad = (ctx) => (...args) => {
                 }
               />
               <TextInput
+                accessibilityLabel="Nombre o alias, opcional"
                 value={nombre}
                 onChangeText={(txt) => {
                   setNombre(String(txt || '').replace(/[\r\n]+/g, ' ').slice(0, 40));

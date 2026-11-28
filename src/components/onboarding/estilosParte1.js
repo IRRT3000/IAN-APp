@@ -78,7 +78,7 @@ export const estilosParte1 = {
 
   whitePillBadgeText: {
     color: TOKENS.colors.badgeText,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.3,
   },
@@ -188,7 +188,7 @@ export const estilosParte1 = {
 
   wizardStepCategory: {
     color: TOKENS.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
     marginBottom: 2,
@@ -232,7 +232,7 @@ export const estilosParte1 = {
 
   stepKicker: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.3,
     textTransform: 'uppercase',
@@ -254,7 +254,7 @@ export const estilosParte1 = {
 
   fieldLabel: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.1,
     textTransform: 'uppercase',
@@ -410,7 +410,7 @@ export const estilosParte1 = {
 
   bioCalibrationTag: {
     color: TOKENS.colors.textPrimary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.9,
     marginBottom: 2,
@@ -440,7 +440,7 @@ export const estilosParte1 = {
 
   spinnerColLabel: {
     color: TOKENS.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.1,
   },
