@@ -153,7 +153,15 @@ export default function ModalProgresoEjercicio({ visible, nombreEjercicio, entre
                                 ]}
                               />
                             </View>
-                            <Text style={styles.fechaBarra} numberOfLines={1}>
+                            <Text
+                              style={[
+                                styles.fechaBarra,
+                                indice === ultimas.length - 1 && ultimas.length > 1 && styles.fechaBarraFinal,
+                                indice === 0 && ultimas.length > 1 && styles.fechaBarraInicial,
+                              ]}
+                              numberOfLines={1}
+                              maxFontSizeMultiplier={TOKENS.escalaTexto.compacta}
+                            >
                               {(ultimas.length - 1 - indice) % pasoEtiqueta === 0
                                 ? fechaCorta(dia.fecha, cruzaAnio)
                                 : ' '}
@@ -273,9 +281,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: TOKENS.colors.textMuted,
     marginTop: TOKENS.spacing.xs,
-    width: 64,
+    width: 72,
     textAlign: 'center',
   },
+  // Las fechas de los extremos crecen hacia dentro para que el ScrollView no las recorte.
+  fechaBarraInicial: { alignSelf: 'flex-start', textAlign: 'left' },
+  fechaBarraFinal: { alignSelf: 'flex-end', textAlign: 'right' },
   etiquetaSeccion: { ...TOKENS.typography.labelCategory, marginBottom: TOKENS.spacing.sm },
   filaSesion: {
     flexDirection: 'row',
